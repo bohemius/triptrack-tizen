@@ -6,12 +6,13 @@
  */
 
 #include "geo/Tracker.h"
+#include "dao/TTLocation.h"
 
 using namespace Tizen::Locations;
 using namespace Tizen::Base::Collection;
 
 Tracker::Tracker() {
-	__pTrackPoints=new LinkedList(SingleObjectDeleter);
+	__pTrackPoints=new LinkedListT<TTLocation*>;
 
 }
 
@@ -19,21 +20,22 @@ Tracker::~Tracker() {
 	// TODO Auto-generated destructor stub
 }
 
-void Tracker::AddLocation(Location position) {
+void Tracker::AddLocation(TTLocation* position) {
+	//const TTLocation* loc=position;
 	__pTrackPoints->Add(position);
 }
 
-Tizen::Locations::Location* Tracker::FindLocationAtTime(
+TTLocation* Tracker::FindLocationAtTime(
 		Tizen::Base::DateTime timeStamp,
 		const Tizen::Base::DateTime timeWindow) {
 	return NULL;
 }
 
-Tizen::Locations::Location* Tracker::StartPosition(void) {
+TTLocation* Tracker::StartPosition(void) {
 	return NULL;
 }
 
-Tizen::Locations::Location* Tracker::EndPosition(void) {
+TTLocation* Tracker::EndPosition(void) {
 	return NULL;
 }
 
@@ -41,7 +43,7 @@ int Tracker::TrackerStatus(void) {
 	return NULL;
 }
 
-LinkedList* Tracker::GetTrack(
+LinkedListT<TTLocation*>* Tracker::GetTrack(
 		void) {
 	return __pTrackPoints;
 }
