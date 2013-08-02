@@ -18,6 +18,7 @@ public:
 	virtual~LocationManagerApp(void);
 
 	bool OnAppInitializing(Tizen::App::AppRegistry& appRegistry);
+	bool OnAppInitialized(void);
 	bool OnAppWillTerminate(void); 
 	bool OnAppTerminating(Tizen::App::AppRegistry& appRegistry, bool forcedTermination = false);
 	void OnForeground(void);

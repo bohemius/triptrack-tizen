@@ -17,11 +17,16 @@
 class Tracker: public Tizen::Locations::ILocationProviderListener,
 		public Tizen::Ui::IActionEventListener {
 public:
+	enum STATUS {
+		ACTIVE, PAUSED, LOCKED
+	};
+
 	Tracker();
 	virtual ~Tracker();
 
-	void AddLocation(TTLocation* position);
-	TTLocation* FindLocationAtTime(Tizen::Base::DateTime timeStamp, const Tizen::Base::DateTime timeWindow);
+	void AddLocation(Tizen::Locations::Location position);
+	TTLocation* FindLocationAtTime(Tizen::Base::DateTime timeStamp,
+			const Tizen::Base::DateTime timeWindow);
 	TTLocation* StartPosition(void);
 	TTLocation* EndPosition(void);
 	int TrackerStatus(void);

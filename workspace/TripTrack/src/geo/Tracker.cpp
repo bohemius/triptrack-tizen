@@ -20,8 +20,9 @@ Tracker::~Tracker() {
 	// TODO Auto-generated destructor stub
 }
 
-void Tracker::AddLocation(TTLocation* position) {
+void Tracker::AddLocation(Location location) {
 	//const TTLocation* loc=position;
+	TTLocation* position=new TTLocation(location);
 	__pTrackPoints->Add(position);
 }
 

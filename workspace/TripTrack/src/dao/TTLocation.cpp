@@ -12,22 +12,22 @@ using namespace Tizen::Base;
 using namespace Tizen::System;
 
 TTLocation::TTLocation() {
-	// TODO Auto-generated constructor stub
-
+	__pCoordinates = new Coordinates();
+	SystemTime::GetCurrentTime(*__pTimeStamp);
+	__speed = 0.0;
+	__speed = 0.0;
 }
 
 TTLocation::TTLocation(Tizen::Locations::Location location) {
-	__pCoordinates=new Coordinates(location.GetCoordinates());
-	__pTimeStamp=new DateTime(location.GetTimestamp());
-	__speed=location.GetSpeed();
-	__course=location.GetCourse();
+	__pCoordinates = new Coordinates(location.GetCoordinates());
+	__pTimeStamp = new DateTime(location.GetTimestamp());
+	__speed = location.GetSpeed();
+	__course = location.GetCourse();
 }
 
 TTLocation::~TTLocation() {
-	__pCoordinates=new Coordinates();
-	SystemTime::GetCurrentTime(*__pTimeStamp);
-	__speed=0.0;
-	__speed=0.0;
+	delete (__pCoordinates);
+	delete (__pTimeStamp);
 }
 
 Tizen::Locations::Coordinates* TTLocation::getCoordinates(void) {
@@ -47,19 +47,19 @@ double TTLocation::getCourse(void) {
 }
 
 void TTLocation::setSpeed(double speed) {
-	__speed=speed;
+	__speed = speed;
 }
 
 void TTLocation::setCourse(double course) {
-	__course=course;
+	__course = course;
 }
 
 void TTLocation::setCoordinates(Tizen::Locations::Coordinates* coordinates) {
-	__pCoordinates=coordinates;
+	__pCoordinates = coordinates;
 }
 
 void TTLocation::setTimestamp(Tizen::Base::DateTime* timestamp) {
-	__pTimeStamp=timestamp;
+	__pTimeStamp = timestamp;
 }
 
 double TTLocation::getLatitude(void) {
@@ -73,5 +73,4 @@ double TTLocation::getLongitude(void) {
 double TTLocation::getAltitude(void) {
 	return __pCoordinates->GetAltitude();
 }
-
 
