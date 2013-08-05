@@ -12,10 +12,10 @@ using namespace Tizen::Base;
 using namespace Tizen::System;
 
 TTLocation::TTLocation() {
-	__pCoordinates = new Coordinates();
-	SystemTime::GetCurrentTime(*__pTimeStamp);
+	__pCoordinates = null;
+	__pTimeStamp=null;
 	__speed = 0.0;
-	__speed = 0.0;
+	__course = 0.0;
 }
 
 TTLocation::TTLocation(Tizen::Locations::Location location) {
@@ -74,3 +74,21 @@ double TTLocation::getAltitude(void) {
 	return __pCoordinates->GetAltitude();
 }
 
+Tizen::Io::DbStatement* TTLocation::Read(void) {
+	return 0;
+}
+
+
+Tizen::Io::DbStatement* TTLocation::Write(void) {
+	return 0;
+}
+
+
+Tizen::Io::DbStatement* TTLocation::Delete(void) {
+	return 0;
+}
+
+
+Tizen::Io::DbStatement* TTLocation::Update(void) {
+	return 0;
+}

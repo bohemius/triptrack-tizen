@@ -15,8 +15,9 @@
 #include <FLocations.h>
 #include <FBase.h>
 #include <FSystem.h>
+#include "ICRUD.h"
 
-class TTLocation {
+class TTLocation: public I_CRUDable {
 
 public:
 	TTLocation();
@@ -34,6 +35,10 @@ public:
 	double getLatitude(void);
 	double getLongitude(void);
 	double getAltitude(void);
+	virtual Tizen::Io::DbStatement* Read(void);
+	virtual Tizen::Io::DbStatement* Write(void);
+	virtual Tizen::Io::DbStatement* Delete(void);
+	virtual Tizen::Io::DbStatement* Update(void);
 
 private:
 	Tizen::Locations::Coordinates* __pCoordinates;

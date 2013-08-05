@@ -20,6 +20,7 @@ public:
 	void DropDatabase(Tizen::Base::String dropSql);
 	result Construct(void);
 	result Bootstrap(void);
+	Tizen::Io::Database* getDatabase(void);
 	static Tizen::Io::Database* getDatabase(Tizen::Base::String filename);
 	static Tizen::Base::String* readFile(Tizen::Base::String filename);
 	Tizen::Base::String* getScript(void);

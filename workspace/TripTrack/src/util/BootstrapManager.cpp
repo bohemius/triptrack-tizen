@@ -79,6 +79,10 @@ result BootstrapManager::Bootstrap(void) {
 	return r;
 }
 
+Database* BootstrapManager::getDatabase(void) {
+	return __pDb;
+}
+
 Database* BootstrapManager::getDatabase(String filename) {
 	Database* db = new Database();
 	result r = E_SUCCESS;
