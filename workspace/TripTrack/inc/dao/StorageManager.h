@@ -18,12 +18,12 @@ public:
 	result Construct(Tizen::Io::Database* database);
 	static StorageManager* getInstance(void);
 	Tizen::Io::DbEnumerator* CRUDoperation(I_CRUDable* entity, enum I_CRUDable::CRUD_OP);
+	Tizen::Io::DbEnumerator* PerformTransaction(Tizen::Io::DbStatement* statement);
 
 private:
 	StorageManager();
 	static StorageManager* __pSelf;
 	Tizen::Io::Database* __pDb;
-	Tizen::Io::DbEnumerator* PerformTransaction(Tizen::Io::DbStatement* statement);
 };
 
 #endif /* STORAGEMANAGER_H_ */

@@ -12,8 +12,8 @@ using namespace Tizen::Base;
 using namespace Tizen::App;
 
 BootstrapManager* BootstrapManager::__pSelf = 0;
-const String BootstrapManager::defaultDbFilename(L"tt.db");
-const String BootstrapManager::defaultScriptFilename(L"tt.sql");
+const String BootstrapManager::defaultDbFilename("tt.db");
+const String BootstrapManager::defaultScriptFilename("tt.sql");
 
 BootstrapManager::BootstrapManager() {
 }
@@ -39,29 +39,63 @@ void BootstrapManager::DropDatabase(Tizen::Base::String dropSql) {
 }
 
 result BootstrapManager::Construct(void) {
+	Database* db = new Database();
 	__pDb = 0;
 	__pSql = 0;
 	result r = E_SUCCESS;
 
-	AppLog("Constructing database.");
-	__pDb = getDatabase(
-			App::GetInstance()->GetAppDataPath() + defaultDbFilename);
-	if (__pDb == 0) {
-		AppLogException(
-				"Error constructing db file [%ls]", (App::GetInstance()->GetAppDataPath() + defaultDbFilename).GetPointer());
-		r = E_FAILURE;
-	} else
-		AppLog("Opened db file.");
-	AppLog("Reading SQL file into memory.");
-	__pSql = readFile(
+	String dbPath(App::GetInstance()->GetAppDataPath() + defaultDbFilename);
+	String sqlPath(
 			App::GetInstance()->GetAppDataPath() + defaultScriptFilename);
-	if (__pSql == 0) {
-		AppLogException(
-				"Error loading SQL: [%ls]", (App::GetInstance()->GetAppDataPath() + defaultScriptFilename).GetPointer());
-		r = E_FAILURE;
-	} else
-		AppLog("Opened and read sql: [%ls]", __pSql->GetPointer());
 
+	AppLog("Constructing database.");
+
+	//database exists, use it
+	if (Database::Exists(dbPath)) {
+		AppLog(
+				"Db file [%ls] exists, using it to construct database.", dbPath.GetPointer());
+		r = db->Construct(dbPath, "r+");
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error constructing db using file [%ls]", dbPath.GetPointer());
+			r = E_FAILURE;
+			return r;
+		} else {
+			AppLog("Opened db file [%ls].", dbPath.GetPointer());
+			__pDb = db;
+		}
+	}
+	//database does not exist create it
+	else {
+		AppLog(
+				"Db file [%ls] does not exist, creating new db file: ", dbPath.GetPointer());
+		r = db->Construct(dbPath, "a+");
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error constructing db using new file [%ls]", dbPath.GetPointer());
+			r = E_FAILURE;
+			return r;
+		} else {
+			AppLog("Opened db using new file [%ls].", dbPath.GetPointer());
+			__pDb = db;
+		}
+		AppLog("Reading SQL file into memory.");
+		__pSql = readFile(sqlPath);
+		if (__pSql == 0) {
+			AppLogException( "Error loading SQL: [%ls]", sqlPath.GetPointer());
+			r = E_FAILURE;
+			return r;
+		} else {
+			AppLog("Opened and read sql: [%ls]", __pSql->GetPointer());
+			r = Bootstrap();
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error running bootstrap script [%ls]: ", sqlPath.GetPointer());
+				return r;
+			}
+		}
+	}
+	AppLog("Construction complete");
 	return r;
 }
 
@@ -69,7 +103,7 @@ result BootstrapManager::Bootstrap(void) {
 	result r = E_SUCCESS;
 
 	AppLog("Bootstrapping database.");
-	r = __pDb->ExecuteSql(*__pSql,true);
+	r = __pDb->ExecuteSql(*__pSql, true);
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error bootstrapping database: [%s]", GetErrorMessage(r));
@@ -81,21 +115,6 @@ result BootstrapManager::Bootstrap(void) {
 
 Database* BootstrapManager::getDatabase(void) {
 	return __pDb;
-}
-
-Database* BootstrapManager::getDatabase(String filename) {
-	Database* db = new Database();
-	result r = E_SUCCESS;
-
-	AppLog("Opening db file: [%ls]", filename.GetPointer());
-	r = db->Construct(filename, "a+");
-
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error opening db file [%ls]: [%s]", filename.GetPointer(), GetErrorMessage(r));
-		return 0;
-	}
-	return db;
 }
 
 Tizen::Base::String* BootstrapManager::readFile(String filename) {

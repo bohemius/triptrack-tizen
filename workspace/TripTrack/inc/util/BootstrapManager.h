@@ -19,9 +19,7 @@ public:
 	void CreateDatabase(Tizen::Base::String createSql);
 	void DropDatabase(Tizen::Base::String dropSql);
 	result Construct(void);
-	result Bootstrap(void);
 	Tizen::Io::Database* getDatabase(void);
-	static Tizen::Io::Database* getDatabase(Tizen::Base::String filename);
 	static Tizen::Base::String* readFile(Tizen::Base::String filename);
 	Tizen::Base::String* getScript(void);
 	static BootstrapManager* getInstance(void);
@@ -31,6 +29,7 @@ public:
 
 private:
 	BootstrapManager();
+	result Bootstrap(void);
 	static BootstrapManager* __pSelf;
 	Tizen::Base::String* __pSql;
 	Tizen::Io::Database* __pDb;

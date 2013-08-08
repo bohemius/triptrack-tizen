@@ -15,9 +15,9 @@ using namespace Tizen::Base::Collection;
 using namespace Tizen::Base;
 using namespace Tizen::Io;
 
-const int ACTIVE = 0;
-const int PAUSED = 1;
-const int LOCKED = 2;
+const int Tracker::ACTIVE;
+const int Tracker::PAUSED;
+const int Tracker::LOCKED;
 
 Tracker::Tracker() {
 	__pTrackPoints = new LinkedListT<TTLocation*>;
@@ -83,29 +83,57 @@ TTLocation* Tracker::EndPosition(void) {
 	return retVal;
 }
 
+//Constructs existing tracker from database using trackeId
 result Tracker::Construct(int id) {
 	StorageManager* store = StorageManager::getInstance();
 	DbEnumerator* pEnum = 0;
-	result r=E_SUCCESS;
+	result r = E_SUCCESS;
 
 	AppLog("Reading tracker data from database for tracker id: [%d]", id);
-	__trackerId=id;
+	__trackerId = id;
 	pEnum = store->CRUDoperation(this, I_CRUDable::READ);
 	if (pEnum == 0) {
 		AppLogException("Error reading tracker with id: [%d]", id);
-		r=E_FAILURE;
+		r = E_FAILURE;
 		return r;
 	}
 
-	while (pEnum->MoveNext()==E_SUCCESS) {
+	while (pEnum->MoveNext() == E_SUCCESS) {
 		pEnum->GetStringAt(0, *__pDescription);
-		pEnum->GetStringAt(1,*__pTitle);
+		pEnum->GetStringAt(1, *__pTitle);
 		pEnum->GetDoubleAt(2, __distance);
-		pEnum->GetIntAt(3,__status);
+		pEnum->GetIntAt(3, __status);
 	}
-	AppLog("Successfully loaded data for tracker: [%ls]", __pTitle->GetPointer());
+	//TODO: also load associated location into the linked list
+	AppLog(
+			"Successfully loaded data for tracker: [%ls]", __pTitle->GetPointer());
 
 	delete pEnum;
+	return r;
+}
+
+//Constructs a new tracker using the supplied parameters, sets the status to paused
+//and saves it to the database
+result Tracker::Construct(Tizen::Base::String &Description,
+		Tizen::Base::String &Title) {
+	StorageManager* store = StorageManager::getInstance();
+	DbEnumerator* pEnum = 0;
+	result r = E_SUCCESS;
+
+	AppLog(
+			"Creating a new tracker with title [%ls] and description [%ls].", Title.GetPointer(), Description.GetPointer());
+	__pDescription = &Description;
+	__pTitle = &Title;
+	__status = PAUSED;
+	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error storing the new tracker [%ls] in the database: [%ls]", __pTitle->GetPointer(), GetErrorMessage(r));
+		return r;
+	}
+	//now we need to read the entity from the database to get the ID
+	AppLog(
+			"Successfully stored the new tracker [%ls] in the database with ID: [%d]", __pTitle->GetPointer(), __trackerId);
 	return r;
 }
 

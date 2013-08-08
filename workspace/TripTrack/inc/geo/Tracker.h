@@ -15,12 +15,12 @@
 #include "dao/TTLocation.h"
 #include "dao/ICRUD.h"
 
-class Tracker: public Tizen::Locations::ILocationProviderListener,
-		public Tizen::Ui::IActionEventListener, public I_CRUDable {
+class Tracker: /*public Tizen::Locations::ILocationProviderListener,
+		public Tizen::Ui::IActionEventListener,*/ public I_CRUDable {
 public:
-	static const int ACTIVE;
-	static const int PAUSED;
-	static const int LOCKED;
+	static const int ACTIVE=0;
+	static const int PAUSED=1;
+	static const int LOCKED=2;
 
 	Tracker();
 	virtual ~Tracker();
@@ -31,6 +31,7 @@ public:
 	TTLocation* StartPosition(void);
 	TTLocation* EndPosition(void);
 	result Construct(int id);
+	result Construct(Tizen::Base::String &Description,Tizen::Base::String &Title);
 	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetTrack(void);
 	Tizen::Base::String* GetDescription() const;
 	void SetDescription(Tizen::Base::String* description);

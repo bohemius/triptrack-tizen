@@ -2,6 +2,7 @@
 #include "LocationManagerMainForm.h"
 #include "SceneRegister.h"
 #include "util/BootstrapManager.h"
+#include "geo/Tracker.h"
 
 using namespace Tizen::App;
 using namespace Tizen::Base;
@@ -47,13 +48,18 @@ bool LocationManagerApp::OnAppInitialized(void) {
 		return false;
 	}
 
-	r = bmInstance->Bootstrap();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error bootstraping database: [%s]", GetErrorMessage(r));
+	//Test track creation
+	Tracker* track=new Tracker();
+
+	AppLog("Constructing testing tracker");
+	String desc(L"Testing tracker used for testing");
+	String title(L"Test track");
+	r=track->Construct(desc, title);
+	if (r!=E_SUCCESS) {
+		AppLogException("Error constructin tracker [%ls]: [%s]", track->GetTitle()->GetPointer(), GetErrorMessage(r));
 		return false;
 	}
-
+	AppLog("Successfully constructed tracker [%ls] ",track->GetTitle()->GetPointer());
 	return true;
 }
 
