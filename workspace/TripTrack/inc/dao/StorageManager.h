@@ -11,6 +11,10 @@
 #include <FIo.h>
 #include <FBase.h>
 #include "ICRUD.h"
+#include "dao/POI.h"
+#include "dao/TTMedia.h"
+#include "dao/TTLocation.h"
+#include "geo/Tracker.h"
 
 class StorageManager {
 public:
@@ -19,6 +23,10 @@ public:
 	static StorageManager* getInstance(void);
 	Tizen::Io::DbEnumerator* CRUDoperation(I_CRUDable* entity, enum I_CRUDable::CRUD_OP);
 	Tizen::Io::DbEnumerator* PerformTransaction(Tizen::Io::DbStatement* statement);
+	Tizen::Base::Collection::LinkedListT<POI*>* GetPois(void);
+	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetMedia(int poiId);
+	Tizen::Base::Collection::LinkedListT<Tracker*>* GetTracks(void);
+	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetLocations(int trackerId);
 
 private:
 	StorageManager();

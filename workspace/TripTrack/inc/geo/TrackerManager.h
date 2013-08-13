@@ -9,16 +9,17 @@
 #define TRACKERMANAGER_H_
 
 #include <geo/Tracker.h>
+#include <FBase.h>
 
 class TrackerManager {
 public:
 	TrackerManager();
 	virtual ~TrackerManager();
 	static TrackerManager* getInstance(void);
-	result AddTracker(Tracker* tracker);
-	result RemoveTracker(Tracker* tracker);
+	result AddTracker(Tizen::Base::String &Title, Tizen::Base::String &Description);
+	result RemoveTracker(Tracker* pTracker);
 	result Construct(void);
-	Tracker* GetCurrentTracker() const;
+	Tracker* GetCurrentTracker(void) const;
 	void SetCurrentTracker(Tracker* currentTracker);
 	Tizen::Base::Collection::LinkedListT<Tracker*>* GetTracks() const;
 

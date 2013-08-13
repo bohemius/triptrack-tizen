@@ -2,21 +2,53 @@
 <SignedInfo>
 <CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"></CanonicalizationMethod>
 <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"></SignatureMethod>
-<Reference URI="bin/TripTrack.exe">
-<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>SH3hcLKW1HJ1shS7jQa8eryFe0mSRDIUYq0OoQBFork=</DigestValue>
-</Reference>
-<Reference URI="data/.svn/all-wcprops">
-<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>/S8V8Ub2fiLf8wRZUP8bSfJK+NNKcI5WI8g+TV9mZfA=</DigestValue>
-</Reference>
-<Reference URI="data/.svn/entries">
-<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>cGh2Vi6qB69DUytyL9nCfatkTJ1Zit6rd90YkZJkWKk=</DigestValue>
-</Reference>
 <Reference URI="info/manifest.xml">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
 <DigestValue>DFj7DuFaSjRaKrFnTA2W+5OJeEvaJPbSIGQn1qrllsk=</DigestValue>
+</Reference>
+<Reference URI="res/rus-RU.xml">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>7FGL/qOYi459ojYkukZy/Ozdr5cNcxQkTETX014JhSQ=</DigestValue>
+</Reference>
+<Reference URI="res/ces-CZ.xml">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>yE9VGHnsVgaNQ1ifWUdK2uaqJ2CvtY650QjolCA8oac=</DigestValue>
+</Reference>
+<Reference URI="res/eng-US.xml">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>/71KnHzenTOWwwtGj3lTvuCBTRokXZ2zKzTyw0upDGI=</DigestValue>
+</Reference>
+<Reference URI="res/.svn/all-wcprops">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>y64pQSPZ5LVlhkRZk5pvxuIf5xJhTxGhq+qViCxTvE8=</DigestValue>
+</Reference>
+<Reference URI="res/.svn/text-base/ces-CZ.xml.svn-base">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>yE9VGHnsVgaNQ1ifWUdK2uaqJ2CvtY650QjolCA8oac=</DigestValue>
+</Reference>
+<Reference URI="res/.svn/text-base/rus-RU.xml.svn-base">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>7FGL/qOYi459ojYkukZy/Ozdr5cNcxQkTETX014JhSQ=</DigestValue>
+</Reference>
+<Reference URI="res/.svn/text-base/eng-US.xml.svn-base">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>/71KnHzenTOWwwtGj3lTvuCBTRokXZ2zKzTyw0upDGI=</DigestValue>
+</Reference>
+<Reference URI="res/.svn/entries">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>5W0wr4KYjnJFZ73GIonwjG5dG4WHckBpMQ/o6V48An0=</DigestValue>
+</Reference>
+<Reference URI="res/.svn/prop-base/ces-CZ.xml.svn-base">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>STcTGbZFocYggPCs7nWXr/SfwTVqHAbMvy7jfGk6oGk=</DigestValue>
+</Reference>
+<Reference URI="res/.svn/prop-base/rus-RU.xml.svn-base">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>STcTGbZFocYggPCs7nWXr/SfwTVqHAbMvy7jfGk6oGk=</DigestValue>
+</Reference>
+<Reference URI="res/.svn/prop-base/eng-US.xml.svn-base">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>STcTGbZFocYggPCs7nWXr/SfwTVqHAbMvy7jfGk6oGk=</DigestValue>
 </Reference>
 <Reference URI="lib/.svn/all-wcprops">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
@@ -24,23 +56,31 @@
 </Reference>
 <Reference URI="lib/.svn/entries">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>3aH52hw374eqnc/bQZII9S4pul6sbe0a6qpAMAoaW9I=</DigestValue>
+<DigestValue>7+50eQzE7R2cSRm5sQG0zCv6nj9OtB47CK0qK0O9w/k=</DigestValue>
 </Reference>
-<Reference URI="res/.svn/all-wcprops">
+<Reference URI="bin/TripTrack.exe">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>WScuEN71/AH7neIpDi6Nmi4PRd6G73T+7Zq3EFjtVdM=</DigestValue>
+<DigestValue>OC5yvO39RC4rVNBJJkoFZ+iAh/lzwzXGs4ecNXs8+oU=</DigestValue>
 </Reference>
-<Reference URI="res/.svn/entries">
+<Reference URI="shared/res/screen-density-xhigh/mainmenu.png">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>hGqDYArb3E/3L0AbvgFPt2iTwUJjUjFUkhLLgOiiuJ0=</DigestValue>
+<DigestValue>1d0oEZHqPn+QzNzGIHwj9ODby6x9ggFs9uOsav6jPNs=</DigestValue>
 </Reference>
-<Reference URI="shared/data/.svn/all-wcprops">
+<Reference URI="shared/res/screen-density-xhigh/.svn/all-wcprops">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>9+HxRdOHCp9wsloJBlajfUNsYIYTdLDIaQCDq6Xfa2M=</DigestValue>
+<DigestValue>jCw7a0+5pqrzfix7tQQae8iEuC9Wa+JtyZTD15XgG7E=</DigestValue>
 </Reference>
-<Reference URI="shared/data/.svn/entries">
+<Reference URI="shared/res/screen-density-xhigh/.svn/text-base/mainmenu.png.svn-base">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>ZuKg+JOvIXdmrclqXD5NPs+e7mrShi/MgoIB5ZhYMdI=</DigestValue>
+<DigestValue>1d0oEZHqPn+QzNzGIHwj9ODby6x9ggFs9uOsav6jPNs=</DigestValue>
+</Reference>
+<Reference URI="shared/res/screen-density-xhigh/.svn/entries">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>JbTeEGcJBE7FqCMj0W3JcSnzjgwaZg8mx4CzAqz2Dw0=</DigestValue>
+</Reference>
+<Reference URI="shared/res/screen-density-xhigh/.svn/prop-base/mainmenu.png.svn-base">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>679+iADDRGvDoZX6U1c73hBzsL91gaYUNy8TkakobQI=</DigestValue>
 </Reference>
 <Reference URI="shared/res/.svn/all-wcprops">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
@@ -48,27 +88,7 @@
 </Reference>
 <Reference URI="shared/res/.svn/entries">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>/0TDwJH0JpnC756QLXctyHCRKXIf33bLq0NLBu9X3zI=</DigestValue>
-</Reference>
-<Reference URI="shared/res/screen-density-xhigh/.svn/all-wcprops">
-<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>jCw7a0+5pqrzfix7tQQae8iEuC9Wa+JtyZTD15XgG7E=</DigestValue>
-</Reference>
-<Reference URI="shared/res/screen-density-xhigh/.svn/entries">
-<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>YeAhdHy7ZrHRfQEzroA2maJqr+jDceBWJ8m2x9ZqBBQ=</DigestValue>
-</Reference>
-<Reference URI="shared/res/screen-density-xhigh/.svn/prop-base/mainmenu.png.svn-base">
-<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>679+iADDRGvDoZX6U1c73hBzsL91gaYUNy8TkakobQI=</DigestValue>
-</Reference>
-<Reference URI="shared/res/screen-density-xhigh/.svn/text-base/mainmenu.png.svn-base">
-<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>1d0oEZHqPn+QzNzGIHwj9ODby6x9ggFs9uOsav6jPNs=</DigestValue>
-</Reference>
-<Reference URI="shared/res/screen-density-xhigh/mainmenu.png">
-<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>1d0oEZHqPn+QzNzGIHwj9ODby6x9ggFs9uOsav6jPNs=</DigestValue>
+<DigestValue>w1hVpr8OSdbTpDi18FPAGEPIA1jNOfMqy2axcqMpf2E=</DigestValue>
 </Reference>
 <Reference URI="shared/trusted/.svn/all-wcprops">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
@@ -76,11 +96,31 @@
 </Reference>
 <Reference URI="shared/trusted/.svn/entries">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>Poro9omqs408P5hGZksbGOzrgXXf/9IPIYuReBOCBLw=</DigestValue>
+<DigestValue>JiyM8I4xmc9Mj+JSSmmx+/DEFKT7vFD9qskG+ueQ0DI=</DigestValue>
+</Reference>
+<Reference URI="shared/data/.svn/all-wcprops">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>9+HxRdOHCp9wsloJBlajfUNsYIYTdLDIaQCDq6Xfa2M=</DigestValue>
+</Reference>
+<Reference URI="shared/data/.svn/entries">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>nGUc20n+e2VLDyzOvuXGgIA6b7Cw5xzXO7OEbUdzNLk=</DigestValue>
 </Reference>
 <Reference URI="data/tt.sql">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
 <DigestValue>4d1YbovifSgtsVE/53jIEFkfSaTTBPV8I/YZAYiScak=</DigestValue>
+</Reference>
+<Reference URI="data/.svn/all-wcprops">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>ZrhBcCH6UVks6HeKGy8TGfk1xapVHMKwrJsSdAvQnDc=</DigestValue>
+</Reference>
+<Reference URI="data/.svn/text-base/tt.sql.svn-base">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>4d1YbovifSgtsVE/53jIEFkfSaTTBPV8I/YZAYiScak=</DigestValue>
+</Reference>
+<Reference URI="data/.svn/entries">
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
+<DigestValue>VEUO/njmErUilGJ9VQ8H/8+OO60sHzGpAVT9QLZjecE=</DigestValue>
 </Reference>
 <Reference URI="#prop">
 <Transforms>
@@ -91,9 +131,9 @@
 </Reference>
 </SignedInfo>
 <SignatureValue>
-eYynmQmRBkITtTfGj2u1qMuxrA9zRgQ4sNnJiRz/lg2gDa1NjCaClIcCDLDjCnG6oclK3sgQdjx+
-jssBao0ljJ1BGTzJWA0pFk+q34jKs22ye/8WhkJuZ+X2nPlwmPzLStLOvazGWd5AQKDmf2RZWL0f
-2hfuIvgXeSkzX8O6law=
+E5uXCatKtd+k1Mha1TB4k4utLyBaQEpMzqRz437ktSDaxsqedFuva4kE6syfHkxqI/SJUnRuRuiz
+hpaiIFCsexpaIYVX/k+DUsxXHOnsmesvRS8MRJs12vHgXioq1hS3amgmDjskiTAIzcSjv8FX12zq
+5qll3NK70vLdDxRTziU=
 </SignatureValue>
 <KeyInfo>
 <X509Data>

@@ -12,14 +12,18 @@
 #include <FLocations.h>
 #include "dao/TTLocation.h"
 #include "dao/TTMedia.h"
+#include "dao/ICRUD.h"
 
-class POI {
+class POI: I_CRUDable {
 public:
 	POI();
 	virtual ~POI();
 
 	int GetDefImageId() const;
 	void SetDefImageId(int defImageId);
+	result Construct(int id);
+	result Construct(Tizen::Base::String &Title,
+			Tizen::Base::String &Description);
 	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetAssociatedMedia() const;
 	Tizen::Base::String* GetDescription() const;
 	void SetDescription(Tizen::Base::String* description);
@@ -30,10 +34,17 @@ public:
 	void AddMedia(TTMedia* media);
 	void DeleteMedia(TTMedia* media);
 	int GetId() const;
+	virtual Tizen::Io::DbStatement* Read(void);
+	virtual Tizen::Io::DbStatement* Write(void);
+	virtual Tizen::Io::DbStatement* Delete(void);
+	virtual Tizen::Io::DbStatement* Update(void);
+	Tizen::Base::DateTime* GetTimestamp() const;
+	void SetTimestamp(Tizen::Base::DateTime* timestamp);
 
 private:
 	Tizen::Base::String* __pDescription;
 	Tizen::Base::String* __pTitle;
+	Tizen::Base::DateTime* __pTimestamp;
 	TTLocation* __pLocation;
 	int __defImageId;
 	int __id;

@@ -20,7 +20,6 @@ const int Tracker::PAUSED;
 const int Tracker::LOCKED;
 
 Tracker::Tracker() {
-	__pTrackPoints = new LinkedListT<TTLocation*>;
 }
 
 Tracker::~Tracker() {
@@ -28,25 +27,20 @@ Tracker::~Tracker() {
 }
 
 result Tracker::AddLocation(Location location) {
-	TTLocation* position = new TTLocation(location);
-	DbEnumerator* pEnum = 0;
+	TTLocation* position = new TTLocation();
 	result r = E_SUCCESS;
 
-	StorageManager* store = StorageManager::getInstance();
-
-	AppLog(
-			"Adding location: [%ls]", position->getTimestamp()->ToString().GetPointer());
-	pEnum = store->CRUDoperation(position, I_CRUDable::CREATE);
-	if (pEnum == 0) {
+	//TODO check if this tracker is current tracker, otherwise return error
+	r = position->Construct(location);
+	if (r != E_SUCCESS) {
 		AppLogException(
-				"Error saving location: [%ls]", position->getTimestamp()->ToString().GetPointer());
+				"Error constructing location with timestamp [%ls]", location.GetTimestamp().ToString().GetPointer());
 		r = E_FAILURE;
 		return r;
 	}
 	AppLog(
-			"Successfully added location: [%ls]", position->getTimestamp()->ToString().GetPointer());
+			"Successfully added location with timestamp [%ls] and id [%d]", position->getTimestamp()->ToString().GetPointer(), position->GetLocationId());
 	__pTrackPoints->Add(position);
-	delete pEnum;
 	return r;
 }
 
@@ -83,7 +77,7 @@ TTLocation* Tracker::EndPosition(void) {
 	return retVal;
 }
 
-//Constructs existing tracker from database using trackeId
+//Constructs existing tracker from database using trackerId
 result Tracker::Construct(int id) {
 	StorageManager* store = StorageManager::getInstance();
 	DbEnumerator* pEnum = 0;
@@ -104,7 +98,7 @@ result Tracker::Construct(int id) {
 		pEnum->GetDoubleAt(2, __distance);
 		pEnum->GetIntAt(3, __status);
 	}
-	//TODO: also load associated location into the linked list
+	__pTrackPoints=StorageManager::getInstance()->GetLocations(__trackerId);
 	AppLog(
 			"Successfully loaded data for tracker: [%ls]", __pTitle->GetPointer());
 
@@ -131,9 +125,25 @@ result Tracker::Construct(Tizen::Base::String &Description,
 				"Error storing the new tracker [%ls] in the database: [%ls]", __pTitle->GetPointer(), GetErrorMessage(r));
 		return r;
 	}
-	//now we need to read the entity from the database to get the ID
+	//get the inserted ID using last_insert_rowid()
+	r = pEnum->MoveNext();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting tracker ID using last_insert_rowid(): [%s]", GetErrorMessage(r));
+		return r;
+	} else {
+		r = pEnum->GetIntAt(0, __trackerId);
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error getting tracker ID using last_insert_rowid(): [%s]", GetErrorMessage(r));
+			return r;
+		}
+	}
+
 	AppLog(
 			"Successfully stored the new tracker [%ls] in the database with ID: [%d]", __pTitle->GetPointer(), __trackerId);
+	delete pEnum;
+	__pTrackPoints=new LinkedListT<TTLocation*>();
 	return r;
 }
 
@@ -177,14 +187,14 @@ Tizen::Io::DbStatement* Tracker::Read(void) {
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);
 	AppLog(
-			"Creating sql statement for SELECT for tracker: [%ls]", __pTitle->GetPointer());
+			"Creating sql statement for SELECT for tracker with ID: [%d]", __trackerId);
 	if (pStmt == 0 || r != E_SUCCESS) {
 		AppLogException(
-				"Error creating sql statement for SELECT for tracker ID [%ls]: [%s]", __pTitle->GetPointer(), GetErrorMessage(r));
+				"Error creating sql statement for SELECT for tracker with ID [%d]: [%s]", __trackerId, GetErrorMessage(r));
 		return 0;
 	}
 	AppLog(
-			"Sql SELECT statement created for tracker: [%ls]", __pTitle->GetPointer());
+			"Sql SELECT statement created for tracker with ID: [%d]", __trackerId);
 	pStmt->BindInt(0, __trackerId);
 	return pStmt;
 }
@@ -196,7 +206,7 @@ Tizen::Io::DbStatement* Tracker::Write(void) {
 	result r = E_SUCCESS;
 
 	sqlStatement.Append(
-			L"INSERT INTO Track (Description, Title, Distance, Status) VALUES (?,?,?,?)");
+			L"INSERT INTO Track (Description, Title, Distance, Status) VALUES (?,?,?,?); SELECT last_insert_rowid();");
 
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);
@@ -204,7 +214,7 @@ Tizen::Io::DbStatement* Tracker::Write(void) {
 			"Creating sql statement for INSERT for tracker: [%ls]", __pTitle->GetPointer());
 	if (pStmt == 0 || r != E_SUCCESS) {
 		AppLogException(
-				"Error creating sql statement for INSERT for tracker ID [%ls]: [%s]", __pTitle->GetPointer(), GetErrorMessage(r));
+				"Error creating sql statement for INSERT for tracker [%ls]: [%s]", __pTitle->GetPointer(), GetErrorMessage(r));
 		return 0;
 	}
 	AppLog(
@@ -227,10 +237,10 @@ Tizen::Io::DbStatement* Tracker::Delete(void) {
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);
 	AppLog(
-			"Creating DELETE statement for INSERT for tracker: [%ls]", __pTitle->GetPointer());
+			"Creating DELETE statement for tracker: [%ls]", __pTitle->GetPointer());
 	if (pStmt == 0 || r != E_SUCCESS) {
 		AppLogException(
-				"Error creating sql statement for DELETE for tracker ID [%ls]: [%s]", __pTitle->GetPointer(), GetErrorMessage(r));
+				"Error creating sql statement for DELETE for tracker [%ls]: [%s]", __pTitle->GetPointer(), GetErrorMessage(r));
 		return 0;
 	}
 	AppLog(
@@ -254,7 +264,7 @@ Tizen::Io::DbStatement* Tracker::Update(void) {
 			"Creating sql statement for UPDATE for tracker: [%ls]", __pTitle->GetPointer());
 	if (pStmt == 0 || r != E_SUCCESS) {
 		AppLogException(
-				"Error creating sql statement for UPDATE for tracker ID [%ls]: [%s]", __pTitle->GetPointer(), GetErrorMessage(r));
+				"Error creating sql statement for UPDATE for tracker [%ls]: [%s]", __pTitle->GetPointer(), GetErrorMessage(r));
 		return 0;
 	}
 	AppLog(

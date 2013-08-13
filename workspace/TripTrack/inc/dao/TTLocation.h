@@ -21,9 +21,10 @@ class TTLocation: public I_CRUDable {
 
 public:
 	TTLocation();
-	TTLocation(Tizen::Locations::Location location);
 	virtual ~TTLocation();
 
+	result Construct(int id);
+	result Construct(Tizen::Locations::Location location);
 	Tizen::Locations::Coordinates* getCoordinates(void);
 	Tizen::Base::DateTime* getTimestamp(void);
 	double getSpeed(void);
@@ -39,12 +40,14 @@ public:
 	virtual Tizen::Io::DbStatement* Write(void);
 	virtual Tizen::Io::DbStatement* Delete(void);
 	virtual Tizen::Io::DbStatement* Update(void);
+	int GetLocationId() const;
 
 private:
 	Tizen::Locations::Coordinates* __pCoordinates;
 	Tizen::Base::DateTime* __pTimeStamp;
 	double __speed;
 	double __course;
+	int __locationId;
 };
 
 #endif /* TTLOCATION_H_ */
