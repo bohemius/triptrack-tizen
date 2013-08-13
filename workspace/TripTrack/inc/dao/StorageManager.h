@@ -24,9 +24,9 @@ public:
 	Tizen::Io::DbEnumerator* CRUDoperation(I_CRUDable* entity, enum I_CRUDable::CRUD_OP);
 	Tizen::Io::DbEnumerator* PerformTransaction(Tizen::Io::DbStatement* statement);
 	Tizen::Base::Collection::LinkedListT<POI*>* GetPois(void);
-	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetMedia(int poiId);
+	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetMedia(long long int poiId);
 	Tizen::Base::Collection::LinkedListT<Tracker*>* GetTracks(void);
-	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetLocations(int trackerId);
+	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetLocations(long long int trackerId);
 
 private:
 	StorageManager();

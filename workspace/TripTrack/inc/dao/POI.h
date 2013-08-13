@@ -19,21 +19,21 @@ public:
 	POI();
 	virtual ~POI();
 
-	int GetDefImageId() const;
-	void SetDefImageId(int defImageId);
-	result Construct(int id);
+	long long int GetDefImageId() const;
+	void SetDefImageId(long long int defImageId);
+	result Construct(long long int id);
 	result Construct(Tizen::Base::String &Title,
-			Tizen::Base::String &Description);
+			Tizen::Base::String &Description, Tizen::Locations::Location location);
 	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetAssociatedMedia() const;
 	Tizen::Base::String* GetDescription() const;
 	void SetDescription(Tizen::Base::String* description);
-	TTLocation* GetLocation() const;
-	void SetLocation(TTLocation* location);
+	Tizen::Locations::Coordinates* GetLocation() const;
+	void SetLocation(Tizen::Locations::Coordinates* location);
 	Tizen::Base::String* GetTitle() const;
 	void SetTitle(Tizen::Base::String* title);
 	void AddMedia(TTMedia* media);
 	void DeleteMedia(TTMedia* media);
-	int GetId() const;
+	long long int GetId() const;
 	virtual Tizen::Io::DbStatement* Read(void);
 	virtual Tizen::Io::DbStatement* Write(void);
 	virtual Tizen::Io::DbStatement* Delete(void);
@@ -45,9 +45,9 @@ private:
 	Tizen::Base::String* __pDescription;
 	Tizen::Base::String* __pTitle;
 	Tizen::Base::DateTime* __pTimestamp;
-	TTLocation* __pLocation;
-	int __defImageId;
-	int __id;
+	Tizen::Locations::Coordinates* __pCoordinates;
+	long long int __defImageId;
+	long long int __id;
 	Tizen::Base::Collection::LinkedListT<TTMedia*>* __pAssociatedMedia;
 };
 

@@ -26,7 +26,6 @@ StorageManager* StorageManager::getInstance(void) {
 
 Tizen::Io::DbEnumerator* StorageManager::CRUDoperation(I_CRUDable* entity,
 		enum I_CRUDable::CRUD_OP operation) {
-	DbStatement* pStmt;
 
 	switch (operation) {
 	case I_CRUDable::CREATE:
@@ -61,9 +60,116 @@ Tizen::Io::DbEnumerator* StorageManager::PerformTransaction(
 }
 
 LinkedListT<POI*>* StorageManager::GetPois(void) {
+	result r = E_SUCCESS;
+	DbEnumerator* pEnum = 0;
+	LinkedListT<POI*>* retVal = new LinkedListT<POI*>();
+	String sql;
+	long long int id;
+
+	Database* db = BootstrapManager::getInstance()->getDatabase();
+
+	sql.Append(L"SELECT ID FROM poi");
+	AppLog("Getting all poi IDs from the database.");
+	pEnum = db->QueryN(sql);
+
+	r = GetLastResult();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting poi IDs from database: [%s]", GetErrorMessage(r));
+		return 0;
+	}
+	AppLog("Creating collection of pois.");
+
+	while (pEnum->MoveNext() == E_SUCCESS) {
+		r = pEnum->GetInt64At(0, id);
+		if (r != E_SUCCESS) {
+			AppLogException("Error getting poi id: [%s]", GetErrorMessage(r));
+			return 0;
+		}
+		POI* pPoi = new POI();
+		r = pPoi->Construct(id);
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error constructing poi with ID [%d]: [%s]", id, GetErrorMessage(r));
+			return 0;
+		}
+		r = retVal->Add(pPoi);
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error adding poi [%ls] to collection: [%s]", pPoi->GetTitle()->GetPointer(), GetErrorMessage(r));
+			return 0;
+		}
+		AppLog(
+				"Successfully added poi [%ls] to collection.", pPoi->GetTitle()->GetPointer());
+	}
+	AppLog(
+			"Successfully read and added [%d] pois to collection.", retVal->GetCount());
+	delete pEnum;
+	return retVal;
 }
 
-LinkedListT<TTMedia*>* StorageManager::GetMedia(int poiId) {
+LinkedListT<TTMedia*>* StorageManager::GetMedia(long long int poiId) {
+	result r = E_SUCCESS;
+	DbEnumerator* pEnum = 0;
+	DbStatement* pStmt = null;
+	LinkedListT<TTMedia*>* retVal = new LinkedListT<TTMedia*>();
+	String sql;
+	long long int id;
+
+	Database* db = BootstrapManager::getInstance()->getDatabase();
+
+	sql.Append(L"SELECT ID FROM media WHERE POI_ID = ?");
+	AppLog(
+			"Getting all media IDs for POI_ID [%d] from the database.", poiId);
+	AppLog(
+			"Creating SELECT statement for all media IDs for POI_ID [%d]", poiId);
+
+	pStmt = db->CreateStatementN(sql);
+	if (pStmt == 0 || r != E_SUCCESS) {
+		AppLogException(
+				"Error creating sql statement for SELECT for all media IDs for POI_ID [%d]: [%s]", poiId, GetErrorMessage(r));
+		return 0;
+	}
+	AppLog(
+			"Sql SELECT statement created for all media IDs for POI_ID [%d]", poiId);
+	pStmt->BindInt64(0, poiId);
+	pEnum = db->ExecuteStatementN(*pStmt);
+
+	r = GetLastResult();
+	if (pEnum == 0 || r != E_SUCCESS) {
+		AppLogException(
+				"Error getting all media IDs for POI_ID [%d] from database: [%s]", poiId, GetErrorMessage(r));
+		return 0;
+	}
+	AppLog("Creating collection of media for POI_ID [%d].", poiId);
+
+	while (pEnum->MoveNext() == E_SUCCESS) {
+		r = pEnum->GetInt64At(0, id);
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error getting media id: [%s]", GetErrorMessage(r));
+			return 0;
+		}
+		TTMedia* pTTMedia = new TTMedia();
+		r = pTTMedia->Construct(id);
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error constructing media with ID [%d]: [%s]", id, GetErrorMessage(r));
+			return 0;
+		}
+		r = retVal->Add(pTTMedia);
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error adding media with id [%d] to collection: [%s]", id, GetErrorMessage(r));
+			return 0;
+		}
+		AppLog( "Successfully added media with id [%d] to collection.", id);
+	}
+	AppLog(
+			"Successfully read and added [%d] media to collection.", retVal->GetCount());
+	delete pEnum;
+	delete pStmt;
+	return retVal;
 }
 
 LinkedListT<Tracker*>* StorageManager::GetTracks(void) {
@@ -71,7 +177,7 @@ LinkedListT<Tracker*>* StorageManager::GetTracks(void) {
 	DbEnumerator* pEnum = 0;
 	LinkedListT<Tracker*>* retVal = new LinkedListT<Tracker*>();
 	String sql;
-	int id;
+	long long int id;
 
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 
@@ -88,7 +194,7 @@ LinkedListT<Tracker*>* StorageManager::GetTracks(void) {
 	AppLog("Creating collection of tracks.");
 
 	while (pEnum->MoveNext() == E_SUCCESS) {
-		r = pEnum->GetIntAt(0, id);
+		r = pEnum->GetInt64At(0, id);
 		if (r != E_SUCCESS) {
 			AppLogException("Error getting track id: [%s]", GetErrorMessage(r));
 			return 0;
@@ -115,13 +221,14 @@ LinkedListT<Tracker*>* StorageManager::GetTracks(void) {
 	return retVal;
 }
 
-LinkedListT<TTLocation*>* StorageManager::GetLocations(int trackerId) {
+LinkedListT<TTLocation*>* StorageManager::GetLocations(
+		long long int trackerId) {
 	result r = E_SUCCESS;
 	DbEnumerator* pEnum = 0;
 	DbStatement* pStmt = null;
 	LinkedListT<TTLocation*>* retVal = new LinkedListT<TTLocation*>();
 	String sql;
-	int id;
+	long long int id;
 
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 
@@ -139,21 +246,22 @@ LinkedListT<TTLocation*>* StorageManager::GetLocations(int trackerId) {
 	}
 	AppLog(
 			"Sql SELECT statement created for all location IDs for tracker_ID [%d]", trackerId);
-	pStmt->BindInt(0, trackerId);
+	pStmt->BindInt64(0, trackerId);
 	pEnum = db->ExecuteStatementN(*pStmt);
 
 	r = GetLastResult();
-	if (pEnum ==0 || r != E_SUCCESS) {
+	if (pEnum == 0 || r != E_SUCCESS) {
 		AppLogException(
 				"Error getting all location IDs for tracker ID [%d] from database: [%s]", trackerId, GetErrorMessage(r));
 		return 0;
 	}
-	AppLog("Creating collection of locations for track ID [%d].",trackerId);
+	AppLog("Creating collection of locations for track ID [%d].", trackerId);
 
 	while (pEnum->MoveNext() == E_SUCCESS) {
-		r = pEnum->GetIntAt(0, id);
+		r = pEnum->GetInt64At(0, id);
 		if (r != E_SUCCESS) {
-			AppLogException("Error getting location id: [%s]", GetErrorMessage(r));
+			AppLogException(
+					"Error getting location id: [%s]", GetErrorMessage(r));
 			return 0;
 		}
 		TTLocation* pLoc = new TTLocation();
@@ -169,8 +277,7 @@ LinkedListT<TTLocation*>* StorageManager::GetLocations(int trackerId) {
 					"Error adding location with id [%d] to collection: [%s]", id, GetErrorMessage(r));
 			return 0;
 		}
-		AppLog(
-				"Successfully added location with id [%d] to collection.", id);
+		AppLog( "Successfully added location with id [%d] to collection.", id);
 	}
 	AppLog(
 			"Successfully read and added [%d] locations to collection.", retVal->GetCount());

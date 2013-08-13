@@ -30,7 +30,7 @@ public:
 			const Tizen::Base::DateTime timeWindow);
 	TTLocation* StartPosition(void);
 	TTLocation* EndPosition(void);
-	result Construct(int id);
+	result Construct(long long int id);
 	result Construct(Tizen::Base::String &Description,Tizen::Base::String &Title);
 	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetTrack(void);
 	Tizen::Base::String* GetDescription() const;
@@ -38,7 +38,7 @@ public:
 	Tizen::Base::String* GetTitle() const;
 	void SetTitle(Tizen::Base::String* title);
 	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetTrackPoints() const;
-	int GetTrackerId() const;
+	long long int GetTrackerId() const;
 	virtual Tizen::Io::DbStatement* Read(void);
 	virtual Tizen::Io::DbStatement* Write(void);
 	virtual Tizen::Io::DbStatement* Delete(void);
@@ -49,7 +49,7 @@ public:
 
 private:
 
-	int __trackerId;
+	long long int __trackerId;
 	int __status;
 	Tizen::Base::String *__pDescription;
 	Tizen::Base::String *__pTitle;

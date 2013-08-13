@@ -78,7 +78,7 @@ TTLocation* Tracker::EndPosition(void) {
 }
 
 //Constructs existing tracker from database using trackerId
-result Tracker::Construct(int id) {
+result Tracker::Construct(long long int id) {
 	StorageManager* store = StorageManager::getInstance();
 	DbEnumerator* pEnum = 0;
 	result r = E_SUCCESS;
@@ -112,6 +112,7 @@ result Tracker::Construct(Tizen::Base::String &Description,
 		Tizen::Base::String &Title) {
 	StorageManager* store = StorageManager::getInstance();
 	DbEnumerator* pEnum = 0;
+	Database* db = BootstrapManager::getInstance()->getDatabase();
 	result r = E_SUCCESS;
 
 	AppLog(
@@ -126,20 +127,7 @@ result Tracker::Construct(Tizen::Base::String &Description,
 		return r;
 	}
 	//get the inserted ID using last_insert_rowid()
-	r = pEnum->MoveNext();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error getting tracker ID using last_insert_rowid(): [%s]", GetErrorMessage(r));
-		return r;
-	} else {
-		r = pEnum->GetIntAt(0, __trackerId);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error getting tracker ID using last_insert_rowid(): [%s]", GetErrorMessage(r));
-			return r;
-		}
-	}
-
+	__trackerId=db->GetLastInsertRowId();
 	AppLog(
 			"Successfully stored the new tracker [%ls] in the database with ID: [%d]", __pTitle->GetPointer(), __trackerId);
 	delete pEnum;
@@ -171,7 +159,7 @@ Tizen::Base::Collection::LinkedListT<TTLocation*>* Tracker::GetTrackPoints() con
 	return __pTrackPoints;
 }
 
-int Tracker::GetTrackerId() const {
+long long int Tracker::GetTrackerId() const {
 	return __trackerId;
 }
 
@@ -195,7 +183,7 @@ Tizen::Io::DbStatement* Tracker::Read(void) {
 	}
 	AppLog(
 			"Sql SELECT statement created for tracker with ID: [%d]", __trackerId);
-	pStmt->BindInt(0, __trackerId);
+	pStmt->BindInt64(0, __trackerId);
 	return pStmt;
 }
 
@@ -206,7 +194,7 @@ Tizen::Io::DbStatement* Tracker::Write(void) {
 	result r = E_SUCCESS;
 
 	sqlStatement.Append(
-			L"INSERT INTO Track (Description, Title, Distance, Status) VALUES (?,?,?,?); SELECT last_insert_rowid();");
+			L"INSERT INTO Track (Description, Title, Distance, Status) VALUES (?,?,?,?)");
 
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);
@@ -245,7 +233,7 @@ Tizen::Io::DbStatement* Tracker::Delete(void) {
 	}
 	AppLog(
 			"Sql DELETE statement created for tracker: [%ls]", __pTitle->GetPointer());
-	pStmt->BindInt(0, __trackerId);
+	pStmt->BindInt64(0, __trackerId);
 	return pStmt;
 }
 
@@ -273,7 +261,7 @@ Tizen::Io::DbStatement* Tracker::Update(void) {
 	pStmt->BindString(1, *__pTitle);
 	pStmt->BindDouble(2, __distance);
 	pStmt->BindInt(3, __status);
-	pStmt->BindInt(4, __trackerId);
+	pStmt->BindInt64(4, __trackerId);
 	return pStmt;
 }
 
