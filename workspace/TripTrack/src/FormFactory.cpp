@@ -1,5 +1,5 @@
 #include "FormFactory.h"
-#include "LocationManagerMainForm.h"
+#include "TripTrackForm.h"
 
 using namespace Tizen::Ui::Scenes;
 
@@ -22,7 +22,7 @@ FormFactory::CreateFormN(const Tizen::Base::String& formId, const Tizen::Ui::Sce
 
 	if (formId == FORM_MAIN)
 	{
-		LocationManagerMainForm* pForm = new LocationManagerMainForm();
+		TripTrackForm* pForm = new TripTrackForm();
 		pForm->Initialize();
 		pSceneManager->AddSceneEventListener(sceneId, *pForm);
 		pNewForm = pForm;

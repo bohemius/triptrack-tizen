@@ -1,3 +1,4 @@
+info/manifest.xml__DEL__//gFOr1qCLO4631xCfayIyfGPf4vDakmyEn1ILdbtQ4=
 res/rus-RU.xml__DEL__7FGL/qOYi459ojYkukZy/Ozdr5cNcxQkTETX014JhSQ=
 res/ces-CZ.xml__DEL__yE9VGHnsVgaNQ1ifWUdK2uaqJ2CvtY650QjolCA8oac=
 res/eng-US.xml__DEL__/71KnHzenTOWwwtGj3lTvuCBTRokXZ2zKzTyw0upDGI=
@@ -11,9 +12,13 @@ res/.svn/prop-base/rus-RU.xml.svn-base__DEL__STcTGbZFocYggPCs7nWXr/SfwTVqHAbMvy7
 res/.svn/prop-base/eng-US.xml.svn-base__DEL__STcTGbZFocYggPCs7nWXr/SfwTVqHAbMvy7jfGk6oGk=
 lib/.svn/all-wcprops__DEL__kETdAOcRMMjDwkc5KWctMujjeFfPpdJ+acipw2GuHUo=
 lib/.svn/entries__DEL__7+50eQzE7R2cSRm5sQG0zCv6nj9OtB47CK0qK0O9w/k=
-shared/res/screen-density-xhigh/.svn/all-wcprops__DEL__jCw7a0+5pqrzfix7tQQae8iEuC9Wa+JtyZTD15XgG7E=
-shared/res/screen-density-xhigh/.svn/text-base/mainmenu.png.svn-base__DEL__1d0oEZHqPn+QzNzGIHwj9ODby6x9ggFs9uOsav6jPNs=
-shared/res/screen-density-xhigh/.svn/prop-base/mainmenu.png.svn-base__DEL__679+iADDRGvDoZX6U1c73hBzsL91gaYUNy8TkakobQI=
+author-signature.xml__DEL__TvMi3MArbFRuA2BNaflowVVX2040GeWKxBux7pTpqHo=
+bin/TripTrack.exe__DEL__hmKfsn7bvrTZY1PhMLDqvUuN3H9aTf2ybTwmBtTJGCo=
+shared/res/screen-density-xhigh/header_logo.png__DEL__1uIDp9v/WLHIpacd/2BUZfIwxoQyGSeEvTMepAwOpbg=
+shared/res/screen-density-xhigh/.svn/all-wcprops__DEL__lkRD221tjksucGfCCdHJ6+dOFFbFjRzYprObsVoBHCs=
+shared/res/screen-density-xhigh/.svn/text-base/header_logo.png.svn-base__DEL__1uIDp9v/WLHIpacd/2BUZfIwxoQyGSeEvTMepAwOpbg=
+shared/res/screen-density-xhigh/.svn/entries__DEL__XAGx10y8uB9SJXir6uMq+C9l0cLgU5gU//dbZ684Ap0=
+shared/res/screen-density-xhigh/.svn/prop-base/header_logo.png.svn-base__DEL__679+iADDRGvDoZX6U1c73hBzsL91gaYUNy8TkakobQI=
 shared/res/.svn/all-wcprops__DEL__6VoAq+6xf81U0aQ6DXkLlNheiCMI8OBzxG9Z98v9WRw=
 shared/res/.svn/entries__DEL__w1hVpr8OSdbTpDi18FPAGEPIA1jNOfMqy2axcqMpf2E=
 shared/trusted/.svn/all-wcprops__DEL__/YHjbFD4WNn7WkJEoslSqgfySqG8b5qKSkrGSjZ0Nsk=
@@ -24,12 +29,3 @@ data/tt.sql__DEL__4d1YbovifSgtsVE/53jIEFkfSaTTBPV8I/YZAYiScak=
 data/.svn/all-wcprops__DEL__ZrhBcCH6UVks6HeKGy8TGfk1xapVHMKwrJsSdAvQnDc=
 data/.svn/text-base/tt.sql.svn-base__DEL__4d1YbovifSgtsVE/53jIEFkfSaTTBPV8I/YZAYiScak=
 data/.svn/entries__DEL__VEUO/njmErUilGJ9VQ8H/8+OO60sHzGpAVT9QLZjecE=
-.svn/all-wcprops__DEL__rFfMZ25vk7681r9ZQn02LzDDkDqRAEWuSkx44f/nG74=
-.svn/entries__DEL__Tu4p7B7FDGeEqwd4Occ1SOehWfiqj7HYTogtS8Hn90M=
-.svn/text-base/signature1.xml.svn-base__DEL__N08YXi/cwjWDUG70wC1BLA3Blb8Fco1RV01G7i2ha00=
-info/manifest.xml__DEL__//gFOr1qCLO4631xCfayIyfGPf4vDakmyEn1ILdbtQ4=
-shared/res/screen-density-xhigh/header_logo.png__DEL__1uIDp9v/WLHIpacd/2BUZfIwxoQyGSeEvTMepAwOpbg=
-bin/TripTrack.exe__DEL__kNKCLuavXYG5mUxSl/jCj2k+0ijOTtXW0K6ek0HCya4=
-shared/res/screen-density-xhigh/.svn/entries__DEL__xZIfUDpt/+7017/dHEp0CNlOGIfrhMMI/UxExNv2yDc=
-author-signature.xml__DEL__C+SS30wGD8B51komYreFOU9QyXpuMsfp/5N+aaZRcT8=
-shared/res/screen-density-xhigh/mainmenu.png__DEL__DELETED

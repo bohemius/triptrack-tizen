@@ -1,5 +1,10 @@
-#include "LocationManager.h"
-#include "LocationManagerMainForm.h"
+/*
+ * TripTrack.cpp
+ *
+ *  Created on: Aug 15, 2013
+ *      Author: hsp
+ */
+#include "TripTrack.h"
 #include "SceneRegister.h"
 #include "util/BootstrapManager.h"
 #include "geo/Tracker.h"
@@ -12,18 +17,18 @@ using namespace Tizen::Ui;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Ui::Scenes;
 
-LocationManagerApp::LocationManagerApp(void) {
+TripTrackApp::TripTrackApp(void) {
 }
 
-LocationManagerApp::~LocationManagerApp(void) {
+TripTrackApp::~TripTrackApp(void) {
 }
 
 UiApp*
-LocationManagerApp::CreateInstance(void) {
-	return new LocationManagerApp();
+TripTrackApp::CreateInstance(void) {
+	return new TripTrackApp();
 }
 
-bool LocationManagerApp::OnAppInitializing(AppRegistry& appRegistry) {
+bool TripTrackApp::OnAppInitializing(AppRegistry& appRegistry) {
 	Frame* pAppFrame = new Frame();
 	pAppFrame->Construct();
 	AddFrame(*pAppFrame);
@@ -36,7 +41,7 @@ bool LocationManagerApp::OnAppInitializing(AppRegistry& appRegistry) {
 	return true;
 }
 
-bool LocationManagerApp::OnAppInitialized(void) {
+bool TripTrackApp::OnAppInitialized(void) {
 	BootstrapManager* bmInstance = BootstrapManager::getInstance();
 	result r = E_SUCCESS;
 
@@ -63,29 +68,31 @@ bool LocationManagerApp::OnAppInitialized(void) {
 	return true;
 }
 
-bool LocationManagerApp::OnAppWillTerminate(void) {
+bool TripTrackApp::OnAppWillTerminate(void) {
 	return true;
 }
 
-bool LocationManagerApp::OnAppTerminating(AppRegistry& appRegistry,
+bool TripTrackApp::OnAppTerminating(AppRegistry& appRegistry,
 		bool forcedTermination) {
 	return true;
 }
 
-void LocationManagerApp::OnForeground(void) {
+void TripTrackApp::OnForeground(void) {
 }
 
-void LocationManagerApp::OnBackground(void) {
+void TripTrackApp::OnBackground(void) {
 }
 
-void LocationManagerApp::OnLowMemory(void) {
+void TripTrackApp::OnLowMemory(void) {
 }
 
-void LocationManagerApp::OnBatteryLevelChanged(BatteryLevel batteryLevel) {
+void TripTrackApp::OnBatteryLevelChanged(BatteryLevel batteryLevel) {
 }
 
-void LocationManagerApp::OnScreenOn(void) {
+void TripTrackApp::OnScreenOn(void) {
 }
 
-void LocationManagerApp::OnScreenOff(void) {
+void TripTrackApp::OnScreenOff(void) {
 }
+
+

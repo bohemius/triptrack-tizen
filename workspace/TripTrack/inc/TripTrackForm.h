@@ -1,5 +1,12 @@
-#ifndef _LOCATION_MANAGER_MAIN_FORM_H_
-#define _LOCATION_MANAGER_MAIN_FORM_H_
+/*
+ * TripTrackForm.h
+ *
+ *  Created on: Aug 15, 2013
+ *      Author: hsp
+ */
+
+#ifndef TRIPTRACKFORM_H_
+#define TRIPTRACKFORM_H_
 
 #include <FApp.h>
 #include <FBase.h>
@@ -8,7 +15,7 @@
 
 class LocationManagerThread;
 
-class LocationManagerMainForm
+class TripTrackForm
 	: public Tizen::Ui::Controls::Form
 	, public Tizen::Ui::IActionEventListener
 	, public Tizen::Ui::Controls::IFormBackEventListener
@@ -17,8 +24,8 @@ class LocationManagerMainForm
  	, public Tizen::App::IAppControlResponseListener
 {
 public:
-	LocationManagerMainForm(void);
-	virtual ~LocationManagerMainForm(void);
+	TripTrackForm(void);
+	virtual ~TripTrackForm(void);
 	bool Initialize(void);
 
 	virtual result OnInitializing(void);
@@ -103,4 +110,4 @@ private:
 	bool __isUpdateInProgress;
 };
 
-#endif	//_LOCATION_MANAGER_MAIN_FORM_H_
+#endif /* TRIPTRACKFORM_H_ */

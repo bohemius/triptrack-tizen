@@ -1,12 +1,19 @@
-#ifndef _LOCATION_MANAGER_H_
-#define _LOCATION_MANAGER_H_
+/*
+ * TripTrack.h
+ *
+ *  Created on: Aug 15, 2013
+ *      Author: hsp
+ */
+
+#ifndef TRIPTRACK_H_
+#define TRIPTRACK_H_
 
 #include <FApp.h>
 #include <FBase.h>
 #include <FSystem.h>
 #include <FUi.h>
 
-class LocationManagerApp
+class TripTrackApp
 	: public Tizen::App::UiApp
 	, public Tizen::System::IScreenEventListener
 {
@@ -14,12 +21,12 @@ public:
 	static Tizen::App::UiApp* CreateInstance(void);
 
 public:
-	LocationManagerApp(void);
-	virtual~LocationManagerApp(void);
+	TripTrackApp(void);
+	virtual ~TripTrackApp(void);
 
 	bool OnAppInitializing(Tizen::App::AppRegistry& appRegistry);
 	bool OnAppInitialized(void);
-	bool OnAppWillTerminate(void); 
+	bool OnAppWillTerminate(void);
 	bool OnAppTerminating(Tizen::App::AppRegistry& appRegistry, bool forcedTermination = false);
 	void OnForeground(void);
 	void OnBackground(void);
@@ -32,4 +39,4 @@ private:
 	int __actionId;
 };
 
-#endif //  _LOCATION_MANAGER_H_
+#endif /* TRIPTRACK_H_ */

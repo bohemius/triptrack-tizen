@@ -1,10 +1,15 @@
-#include <new>
+/*
+ * TripTrackForm.cpp
+ *
+ *  Created on: Aug 15, 2013
+ *      Author: hsp
+ */
 #include <FGraphics.h>
 #include <FLocales.h>
 #include <FLocCoordinates.h>
 #include <FSysSettingInfo.h>
 #include <FSysSystemTime.h>
-#include "LocationManagerMainForm.h"
+#include "TripTrackForm.h"
 #include "LocationManagerThread.h"
 
 using namespace std;
@@ -19,7 +24,7 @@ using namespace Tizen::Ui;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Ui::Scenes;
 
-LocationManagerMainForm::LocationManagerMainForm(void)
+TripTrackForm::TripTrackForm(void)
 	: __viewType(VIEW_TYPE_NONE)
 	, __pTextBoxStatus(null)
 	, __pTextBoxAccuracy(null)
@@ -36,12 +41,12 @@ LocationManagerMainForm::LocationManagerMainForm(void)
 {
 }
 
-LocationManagerMainForm::~LocationManagerMainForm(void)
+TripTrackForm::~TripTrackForm(void)
 {
 }
 
 bool
-LocationManagerMainForm::Initialize(void)
+TripTrackForm::Initialize(void)
 {
 	result r = Form::Construct(FORM_STYLE_INDICATOR|FORM_STYLE_FOOTER|FORM_STYLE_HEADER);
 	if (IsFailed(r))
@@ -53,7 +58,7 @@ LocationManagerMainForm::Initialize(void)
 }
 
 result
-LocationManagerMainForm::OnInitializing(void)
+TripTrackForm::OnInitializing(void)
 {
 	result r = E_SUCCESS;
 
@@ -203,7 +208,7 @@ LocationManagerMainForm::OnInitializing(void)
 }
 
 result
-LocationManagerMainForm::OnTerminating(void)
+TripTrackForm::OnTerminating(void)
 {
 	delete __pContextMenu;
 	delete __pRegionAddPopup;
@@ -215,7 +220,7 @@ LocationManagerMainForm::OnTerminating(void)
 }
 
 void
-LocationManagerMainForm::OnActionPerformed(const Tizen::Ui::Control& source, int actionId)
+TripTrackForm::OnActionPerformed(const Tizen::Ui::Control& source, int actionId)
 {
 	switch(actionId)
 		{
@@ -464,7 +469,7 @@ LocationManagerMainForm::OnActionPerformed(const Tizen::Ui::Control& source, int
 }
 
 void
-LocationManagerMainForm::OnFormBackRequested(Tizen::Ui::Controls::Form& source)
+TripTrackForm::OnFormBackRequested(Tizen::Ui::Controls::Form& source)
 {
 	UiApp* pApp = UiApp::GetInstance();
 	AppAssert(pApp);
@@ -472,21 +477,21 @@ LocationManagerMainForm::OnFormBackRequested(Tizen::Ui::Controls::Form& source)
 }
 
 void
-LocationManagerMainForm::OnSceneActivatedN(const Tizen::Ui::Scenes::SceneId& previousSceneId,
+TripTrackForm::OnSceneActivatedN(const Tizen::Ui::Scenes::SceneId& previousSceneId,
 										  const Tizen::Ui::Scenes::SceneId& currentSceneId, Tizen::Base::Collection::IList* pArgs)
 {
 	AppLog("OnSceneActivatedN");
 }
 
 void
-LocationManagerMainForm::OnSceneDeactivated(const Tizen::Ui::Scenes::SceneId& currentSceneId,
+TripTrackForm::OnSceneDeactivated(const Tizen::Ui::Scenes::SceneId& currentSceneId,
 										   const Tizen::Ui::Scenes::SceneId& nextSceneId)
 {
 	AppLog("OnSceneDeactivated");
 }
 
 void
-LocationManagerMainForm::OnLocationUpdated(const Tizen::Locations::Location& location)
+TripTrackForm::OnLocationUpdated(const Tizen::Locations::Location& location)
 {
 	AppLog("Location update obtained for application.");
 
@@ -503,7 +508,7 @@ LocationManagerMainForm::OnLocationUpdated(const Tizen::Locations::Location& loc
 }
 
 void
-LocationManagerMainForm::OnLocationUpdateStatusChanged(LocationServiceStatus status)
+TripTrackForm::OnLocationUpdateStatusChanged(LocationServiceStatus status)
 {
 	AppLog("Service Status is (%d)", status);
 
@@ -536,7 +541,7 @@ LocationManagerMainForm::OnLocationUpdateStatusChanged(LocationServiceStatus sta
 }
 
 void
-LocationManagerMainForm::OnRegionEntered(RegionId regionId)
+TripTrackForm::OnRegionEntered(RegionId regionId)
 {
 	AppLog("Region Entered for Id (%d)", regionId);
 	__pTextBoxInfo->AppendText(L"Region entered for region Id " + String(Integer::ToString(__regionId)) + L"\n");
@@ -545,7 +550,7 @@ LocationManagerMainForm::OnRegionEntered(RegionId regionId)
 }
 
 void
-LocationManagerMainForm::OnRegionLeft(RegionId regionId)
+TripTrackForm::OnRegionLeft(RegionId regionId)
 {
 	AppLog("Region Left for Id (%d)", regionId);
 	__pTextBoxInfo->AppendText(L"Region left for region Id " + String(Integer::ToString(__regionId)) + L"\n");
@@ -553,7 +558,7 @@ LocationManagerMainForm::OnRegionLeft(RegionId regionId)
 }
 
 void
-LocationManagerMainForm::OnRegionMonitoringStatusChanged(LocationServiceStatus status)
+TripTrackForm::OnRegionMonitoringStatusChanged(LocationServiceStatus status)
 {
 	AppLog("Service Status is (%d)", status);
 
@@ -586,7 +591,7 @@ LocationManagerMainForm::OnRegionMonitoringStatusChanged(LocationServiceStatus s
 }
 
 void
-LocationManagerMainForm::OnAccuracyChanged(LocationAccuracy accuracy)
+TripTrackForm::OnAccuracyChanged(LocationAccuracy accuracy)
 {
 	AppLog("Accuracy changed to (%d)", accuracy);
 	__pTextBoxAccuracy->Clear();
@@ -621,7 +626,7 @@ LocationManagerMainForm::OnAccuracyChanged(LocationAccuracy accuracy)
 }
 
 void
-LocationManagerMainForm::DrawLocationInformation(const Tizen::Locations::Location& location)
+TripTrackForm::DrawLocationInformation(const Tizen::Locations::Location& location)
 {
 	__pTextBoxInfo->Clear();
 
@@ -690,7 +695,7 @@ LocationManagerMainForm::DrawLocationInformation(const Tizen::Locations::Locatio
 }
 
 void
-LocationManagerMainForm::SetLocationUpdateView(void)
+TripTrackForm::SetLocationUpdateView(void)
 {
 
 	if (__viewType == VIEW_TYPE_LOCTION_UPDATE)
@@ -736,7 +741,7 @@ LocationManagerMainForm::SetLocationUpdateView(void)
 }
 
 void
-LocationManagerMainForm::SetRegionMonitorView(void)
+TripTrackForm::SetRegionMonitorView(void)
 {
 	if (__viewType == VIEW_TYPE_REGION_MONITORING)
 	{
@@ -781,14 +786,14 @@ LocationManagerMainForm::SetRegionMonitorView(void)
 }
 
 void
-LocationManagerMainForm::ShowPopUp(void)
+TripTrackForm::ShowPopUp(void)
 {
 	__pRegionAddPopup->SetShowState(true);
 	__pRegionAddPopup->Show();
 }
 
 void
-LocationManagerMainForm::AddMonitoringRegion(void)
+TripTrackForm::AddMonitoringRegion(void)
 {
 	double latitude = 0.0;
 	double longitude = 0.0;
@@ -866,7 +871,7 @@ LocationManagerMainForm::AddMonitoringRegion(void)
 }
 
 void
-LocationManagerMainForm::UpdateFooterItem(int item)
+TripTrackForm::UpdateFooterItem(int item)
 {
 	Footer* pFooter = GetFooter();
 	pFooter->RemoveItemAt(0);
@@ -892,7 +897,7 @@ LocationManagerMainForm::UpdateFooterItem(int item)
 }
 
 void
-LocationManagerMainForm::ShowMessageBox(const String& title, const String& message)
+TripTrackForm::ShowMessageBox(const String& title, const String& message)
 {
 	MessageBox messageBox;
 
@@ -903,7 +908,7 @@ LocationManagerMainForm::ShowMessageBox(const String& title, const String& messa
 }
 
 void
-LocationManagerMainForm::LogLocationInfo(const Tizen::Locations::Location location)
+TripTrackForm::LogLocationInfo(const Tizen::Locations::Location location)
 {
 	String timeStamp = location.GetTimestamp().ToString();
 	String extraInfo = L"satellite";
@@ -917,7 +922,7 @@ LocationManagerMainForm::LogLocationInfo(const Tizen::Locations::Location locati
 }
 
 void
-LocationManagerMainForm::OnUserEventReceivedN(RequestId requestId, Tizen::Base::Collection::IList* pArgs)
+TripTrackForm::OnUserEventReceivedN(RequestId requestId, Tizen::Base::Collection::IList* pArgs)
 {
 	if (requestId == LOC_MGR_DRAW_SYNC_LOC_UPDATE)
 	{
@@ -955,7 +960,7 @@ LocationManagerMainForm::OnUserEventReceivedN(RequestId requestId, Tizen::Base::
 }
 
 void
-LocationManagerMainForm::LaunchLocationSettings(void)
+TripTrackForm::LaunchLocationSettings(void)
 {
 	int res;
 
@@ -983,7 +988,7 @@ LocationManagerMainForm::LaunchLocationSettings(void)
 }
 
 bool
-LocationManagerMainForm::CheckLocationSetting(void)
+TripTrackForm::CheckLocationSetting(void)
 {
 	bool hasPrivilege = false;
 	bool gpsEnabled = true;
@@ -1000,3 +1005,7 @@ LocationManagerMainForm::CheckLocationSetting(void)
 
 	return true;
 }
+
+
+
+

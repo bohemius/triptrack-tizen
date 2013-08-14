@@ -1,4 +1,10 @@
-#include "LocationManager.h"
+/*
+ * TripTrackEntry.cpp
+ *
+ *  Created on: Aug 15, 2013
+ *      Author: hsp
+ */
+#include "TripTrack.h"
 
 using namespace Tizen::Base;
 using namespace Tizen::Base::Collection;
@@ -26,7 +32,7 @@ OspMain(int argc, char *pArgv[])
 		pArgs->Add(*(new String(pArgv[i])));
 	}
 
-	r = Tizen::App::UiApp::Execute(LocationManagerApp::CreateInstance, pArgs);
+	r = Tizen::App::UiApp::Execute(TripTrackApp::CreateInstance, pArgs);
 	if (IsFailed(r))
 	{
 		AppLogException("Application execution failed-[%s].", GetErrorMessage(r));
@@ -42,3 +48,5 @@ OspMain(int argc, char *pArgv[])
 #ifdef __cplusplus
 }
 #endif // __cplusplus
+
+
