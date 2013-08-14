@@ -1,6 +1,8 @@
 #delete
+shared/res/screen-density-xhigh/mainmenu.png
 #add
 #modify
 author-signature.xml
 signature1.xml
 bin/TripTrack.exe
+shared/res/screen-density-xhigh/.svn/entries

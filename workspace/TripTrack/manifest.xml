@@ -21,7 +21,7 @@
                 <DisplayName Locale="eng-US">TripTrack</DisplayName>
             </DisplayNames>
             <Icons>
-                <Icon Section="MainMenu" Type="Xhigh">mainmenu.png</Icon>
+                <Icon Section="MainMenu" Type="Xhigh">header_logo.png</Icon>
             </Icons>
             <LaunchConditions/>
         </UiApp>

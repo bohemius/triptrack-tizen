@@ -49,7 +49,8 @@ Tizen::Io::DbEnumerator* StorageManager::PerformTransaction(
 	db->BeginTransaction();
 	retVal = db->ExecuteStatementN(*statement);
 	db->CommitTransaction();
-	if (retVal == 0 || r != E_SUCCESS) {
+	r = GetLastResult();
+	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error performing transaction with statement [%d]: [%s]", statement, GetErrorMessage(r));
 		return 0;
