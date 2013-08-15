@@ -11,6 +11,7 @@
 #include <FSysSystemTime.h>
 #include "TripTrackForm.h"
 #include "LocationManagerThread.h"
+#include "AppResourceId.h"
 
 using namespace std;
 using namespace Tizen::App;
@@ -69,16 +70,16 @@ TripTrackForm::OnInitializing(void)
 	Header *pHeader = GetHeader();
 	pHeader->SetStyle(HEADER_STYLE_TAB);
 
-	HeaderItem updateView;
-	updateView.Construct(ID_HEADER_TAB_UPDATE_VIEW);
-	updateView.SetText(L"LOCATION UPDATE");
-	pHeader->AddItem(updateView);
+	HeaderItem poiView;
+	poiView.Construct(ID_HEADER_TAB_UPDATE_VIEW);
+	poiView.SetText(I18N::GetLocalizedString(ID_STRING_TIMELINE_VIEW_TITLE));
+	pHeader->AddItem(poiView);
 	pHeader->AddActionEventListener(*this);
 
-	HeaderItem monitorView;
-	monitorView.Construct(ID_HEADER_TAB_MONITORING_VIEW);
-	monitorView.SetText(L"REGION MONITORING");
-	pHeader->AddItem(monitorView);
+	HeaderItem trackView;
+	trackView.Construct(ID_HEADER_TAB_MONITORING_VIEW);
+	trackView.SetText(I18N::GetLocalizedString(ID_STRING_TRACK_VIEW_TITLE));
+	pHeader->AddItem(trackView);
 	pHeader->AddActionEventListener(*this);
 
 	Footer* pFooter = GetFooter();

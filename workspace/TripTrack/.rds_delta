@@ -1,5 +1,12 @@
 #delete
 #add
-signature1.xml
 #modify
+.svn/all-wcprops
+.svn/entries
+.svn/text-base/.manifest.tmp.svn-base
 author-signature.xml
+signature1.xml
+bin/TripTrack.exe
+res/ces-CZ.xml
+res/eng-US.xml
+res/rus-RU.xml

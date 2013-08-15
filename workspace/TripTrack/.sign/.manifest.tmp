@@ -1,7 +1,4 @@
 info/manifest.xml__DEL__//gFOr1qCLO4631xCfayIyfGPf4vDakmyEn1ILdbtQ4=
-res/rus-RU.xml__DEL__7FGL/qOYi459ojYkukZy/Ozdr5cNcxQkTETX014JhSQ=
-res/ces-CZ.xml__DEL__yE9VGHnsVgaNQ1ifWUdK2uaqJ2CvtY650QjolCA8oac=
-res/eng-US.xml__DEL__/71KnHzenTOWwwtGj3lTvuCBTRokXZ2zKzTyw0upDGI=
 res/.svn/all-wcprops__DEL__y64pQSPZ5LVlhkRZk5pvxuIf5xJhTxGhq+qViCxTvE8=
 res/.svn/text-base/ces-CZ.xml.svn-base__DEL__yE9VGHnsVgaNQ1ifWUdK2uaqJ2CvtY650QjolCA8oac=
 res/.svn/text-base/rus-RU.xml.svn-base__DEL__7FGL/qOYi459ojYkukZy/Ozdr5cNcxQkTETX014JhSQ=
@@ -12,8 +9,6 @@ res/.svn/prop-base/rus-RU.xml.svn-base__DEL__STcTGbZFocYggPCs7nWXr/SfwTVqHAbMvy7
 res/.svn/prop-base/eng-US.xml.svn-base__DEL__STcTGbZFocYggPCs7nWXr/SfwTVqHAbMvy7jfGk6oGk=
 lib/.svn/all-wcprops__DEL__kETdAOcRMMjDwkc5KWctMujjeFfPpdJ+acipw2GuHUo=
 lib/.svn/entries__DEL__7+50eQzE7R2cSRm5sQG0zCv6nj9OtB47CK0qK0O9w/k=
-author-signature.xml__DEL__TvMi3MArbFRuA2BNaflowVVX2040GeWKxBux7pTpqHo=
-bin/TripTrack.exe__DEL__hmKfsn7bvrTZY1PhMLDqvUuN3H9aTf2ybTwmBtTJGCo=
 shared/res/screen-density-xhigh/header_logo.png__DEL__1uIDp9v/WLHIpacd/2BUZfIwxoQyGSeEvTMepAwOpbg=
 shared/res/screen-density-xhigh/.svn/all-wcprops__DEL__lkRD221tjksucGfCCdHJ6+dOFFbFjRzYprObsVoBHCs=
 shared/res/screen-density-xhigh/.svn/text-base/header_logo.png.svn-base__DEL__1uIDp9v/WLHIpacd/2BUZfIwxoQyGSeEvTMepAwOpbg=
@@ -29,3 +24,10 @@ data/tt.sql__DEL__4d1YbovifSgtsVE/53jIEFkfSaTTBPV8I/YZAYiScak=
 data/.svn/all-wcprops__DEL__ZrhBcCH6UVks6HeKGy8TGfk1xapVHMKwrJsSdAvQnDc=
 data/.svn/text-base/tt.sql.svn-base__DEL__4d1YbovifSgtsVE/53jIEFkfSaTTBPV8I/YZAYiScak=
 data/.svn/entries__DEL__VEUO/njmErUilGJ9VQ8H/8+OO60sHzGpAVT9QLZjecE=
+.svn/all-wcprops__DEL__bDARfoHdRtbY7BTq5mk5yUoV+wKd2soRbsjr115BzPU=
+.svn/entries__DEL__lTKCNmAboEl+LkaqGae9btWgi7ep5XWMKXvam1snbZU=
+bin/TripTrack.exe__DEL__kudIiCDjpcN2Uz+h3KTz4SVb05SBbCDX5+iVdNsX/44=
+res/ces-CZ.xml__DEL__XEPzXCW7RhAXBuTL/GE9Iy2svNJ9a+pULn8CNCDKsUc=
+res/eng-US.xml__DEL__SlrWSzNvAa03cdEA/PTv7K8FAtPnr6VPl6TMQIJuF2I=
+res/rus-RU.xml__DEL__+8VU7i6t2Zf0/ON5pEoZ/rp3STACt7zG5J053HhivGI=
+author-signature.xml__DEL__nvzjzna3M/YNDsNad2rtdcBusVeNnSyL9sJVxnyFby4=

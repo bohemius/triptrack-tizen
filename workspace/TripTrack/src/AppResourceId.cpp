@@ -1,0 +1,22 @@
+#include "AppResourceId.h"
+#include <FApp.h>
+
+using namespace Tizen::App;
+using namespace Tizen::Base;
+
+const wchar_t* IDS_HELLO = L"IDS_HELLO";
+const wchar_t* IDS_STRING1 = L"IDS_STRING1";
+const wchar_t* ID_STRING_TIMELINE_VIEW_TITLE = L"ID_STRING_TIMELINE_VIEW_TITLE";
+const wchar_t* ID_STRING_TRACK_VIEW_TITLE = L"ID_STRING_TRACK_VIEW_TITLE";
+
+String I18N::GetLocalizedString(const wchar_t* key) {
+	result r=E_SUCCESS;
+	String retVal;
+
+	r = Application::GetInstance()->GetAppResource()->GetString(key, retVal);
+	if (r != E_SUCCESS) {
+		retVal = L"NA";
+		AppLogException("Error getting localized String for key: [%ls]", key);
+	}
+	return retVal;
+}
