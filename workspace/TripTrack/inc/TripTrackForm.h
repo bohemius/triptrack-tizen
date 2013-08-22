@@ -47,67 +47,41 @@ public:
 
 	virtual void OnAppControlCompleteResponseReceived(const Tizen::App::AppId &appId, const Tizen::Base::String &operationId, Tizen::App::AppCtrlResult appControlResult, const Tizen::Base::Collection::IMap *pExtraData){}
 
-
-	void DrawLocationInformation(const Tizen::Locations::Location& location);
-	void SetLocationUpdateView();
-	void SetRegionMonitorView();
+	virtual result OnDraw();
+	void SetPoiView();
+	void SetTrackView();
 	void ShowPopUp();
-	void AddMonitoringRegion();
-	void UpdateFooterItem(int item);
 	void ShowMessageBox(const Tizen::Base::String& title, const Tizen::Base::String& message);
-	void LogLocationInfo(const Tizen::Locations::Location location);
-	bool CheckLocationSetting(void);
 
 private:
 	void LaunchLocationSettings(void);
-
-public:
-	static const RequestId LOC_MGR_DRAW_SYNC_LOC_UPDATE = 101;
-	static const RequestId LOC_MGR_NOTIFY_ERROR = 102;
+	bool CheckLocationSetting(void);
+	result LoadResources(void);
 
 private:
 	enum ViewType
 	{
 		VIEW_TYPE_NONE,
-		VIEW_TYPE_LOCTION_UPDATE,
-		VIEW_TYPE_REGION_MONITORING,
+		VIEW_TYPE_POI_VIEW,
+		VIEW_TYPE_TRACK_VIEW,
 	}__viewType;
 
-	static const int ID_HEADER_TAB_MONITORING_VIEW = 201;
-	static const int ID_HEADER_TAB_UPDATE_VIEW = 202;
+	static const int ID_HEADER_TAB_POI_VIEW = 201;
+	static const int ID_HEADER_TAB_TRACK_VIEW = 202;
 
-	static const int ID_FOOTER_BUTTON_UPDATE = 203;
-	static const int ID_FOOTER_BUTTON_GET = 204;
-	static const int ID_FOOTER_BUTTTON_CANCEL = 205;
-	static const int ID_FOOTER_ADD_MONITORING_REGION = 206;
-	static const int ID_FOOTER_REMOVE_MONITORING_REGION = 207;
+	static const int ID_FOOTER_BUTTON_ADD_POI = 203;
+	static const int ID_FOOTER_BUTTON_CAMERA_POI = 204;
+	static const int ID_FOOTER_BUTTTON_ADD_TRACK = 205;
+	static const int ID_FOOTER_BUTTON_DELETE_TRACK = 206;
+	static const int ID_FOOTER_BUTTON_EDIT_TRACK = 207;
+	static const int ID_FOOTER_BUTTON_SHOW_TRACK = 208;
 
-	static const int ID_CONTEXT_UPDATE_INTERVAL = 208;
-	static const int ID_CONTEXT_UPDATE_DISTANCE = 209;
+	Tizen::Graphics::Bitmap* __pDeleteBitmap;
+	Tizen::Graphics::Bitmap* __pEditBitmap;
+	Tizen::Graphics::Bitmap* __pCameraBitmap;
+	Tizen::Graphics::Bitmap* __pAddBitmap;
+	Tizen::Graphics::Bitmap* __pBgBitmap;
 
-	static const int ID_CONTEXT_GET_LAST = 210;
-	static const int ID_CONTEXT_GET_CURRENT = 211;
-
-	static const int ID_POPUP_REGION_OK = 212;
-	static const int ID_POPUP_REGION_CANCEL = 213;
-
-	Tizen::Ui::Controls::TextBox* __pTextBoxStatus;
-	Tizen::Ui::Controls::TextBox* __pTextBoxAccuracy;
-	Tizen::Ui::Controls::TextBox* __pTextBoxInfo;
-
-	Tizen::Ui::Controls::Popup* __pRegionAddPopup;
-	Tizen::Ui::Controls::EditField* __pRegionCenterLatitude;
-	Tizen::Ui::Controls::EditField* __pRegionCenterLongitude;
-	Tizen::Ui::Controls::EditField* __pRegionRadius;
-
-	Tizen::Ui::Controls::ContextMenu* __pContextMenu;
-
-	Tizen::Locations::LocationProvider* __pLocProvider;
-	LocationManagerThread* __pLocationManagerThread;
-	Tizen::Locations::RegionId __regionId;
-	Tizen::Locations::Coordinates __regionCenter;
-	double __regionRadius;
-	bool __isUpdateInProgress;
 };
 
 #endif /* TRIPTRACKFORM_H_ */

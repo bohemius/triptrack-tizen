@@ -41,7 +41,7 @@ LocationManagerThread::Run(void)
 
 	if (lastResult == E_USER_NOT_CONSENTED)
 	{
-		__pUiControl->SendUserEvent(TripTrackForm::LOC_MGR_NOTIFY_ERROR, null);
+		//__pUiControl->SendUserEvent(TripTrackForm::LOC_MGR_NOTIFY_ERROR, null);
 	}
 
 	ArrayList* pList = new (std::nothrow) ArrayList();
@@ -49,7 +49,7 @@ LocationManagerThread::Run(void)
 
 	pList->Construct();
 	pList->Add(*pLocation);
-	__pUiControl->SendUserEvent(TripTrackForm::LOC_MGR_DRAW_SYNC_LOC_UPDATE, pList);
+	//__pUiControl->SendUserEvent(TripTrackForm::LOC_MGR_DRAW_SYNC_LOC_UPDATE, pList);
 
 	return null;
 }
