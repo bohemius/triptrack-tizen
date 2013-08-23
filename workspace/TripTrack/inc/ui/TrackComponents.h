@@ -60,6 +60,7 @@ private:
 	result LoadResources(void);
 	Tizen::Ui::Controls::ListView* __pTrackListView;
 	Tizen::Graphics::Bitmap* __pTrackListBackgroundBitmap;
+	int _trackingIndex;
 
 	static const int ID_FORMAT_CUSTOM = 503;
 };

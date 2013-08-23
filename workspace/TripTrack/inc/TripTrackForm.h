@@ -65,7 +65,7 @@ private:
 		VIEW_TYPE_NONE,
 		VIEW_TYPE_POI_VIEW,
 		VIEW_TYPE_TRACK_VIEW,
-	}__viewType;
+	} __viewType;
 
 	static const int ID_HEADER_TAB_POI_VIEW = 201;
 	static const int ID_HEADER_TAB_TRACK_VIEW = 202;

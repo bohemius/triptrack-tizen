@@ -34,7 +34,8 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 	 }*/
 
 	//draw track title
-	if (canvas.DrawText(Tizen::Graphics::FloatPoint(rect.x, rect.y+TEXT_MARGIN_Y),
+	if (canvas.DrawText(
+			Tizen::Graphics::FloatPoint(rect.x, rect.y + TEXT_MARGIN_Y),
 			L"Track title") != E_SUCCESS) {
 		return false;
 	}
@@ -56,7 +57,8 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 	String durationStr(L"Duration 123.3 Hours");
 	float length = (float) durationStr.GetLength();
 	if (canvas.DrawText(
-			Tizen::Graphics::FloatPoint(rect.x + rect.width - 200, rect.y+TEXT_MARGIN_Y),
+			Tizen::Graphics::FloatPoint(rect.x + rect.width - 200,
+					rect.y + TEXT_MARGIN_Y),
 			L"Duration 123.3 Hours") != E_SUCCESS) {
 		return false;
 	}
@@ -74,6 +76,7 @@ TrackListPanel::~TrackListPanel(void) {
 
 result TrackListPanel::Construct(void) {
 	result r = E_SUCCESS;
+	_trackingIndex = -1;
 
 	r = LoadResources();
 	if (r != E_SUCCESS) {
@@ -96,8 +99,8 @@ result TrackListPanel::Construct(void) {
 		return r;
 	}
 	__pTrackListView->AddListViewItemEventListener(*this);
-
 	AddControl(*__pTrackListView);
+
 	//r = __pTrackListView->SetBackgroundBitmap(__pTrackListBackgroundBitmap);
 	//if (r != E_SUCCESS) {
 	//	AppLogException(
@@ -115,6 +118,38 @@ void TrackListPanel::OnListViewContextItemStateChanged(
 void TrackListPanel::OnListViewItemStateChanged(
 		Tizen::Ui::Controls::ListView& listView, int index, int elementId,
 		Tizen::Ui::Controls::ListItemStatus status) {
+
+	AppLog("int index: [%d], int elementId: [%d]", index, elementId);
+
+	if (status == LIST_ITEM_STATUS_CHECKED) {/*
+	 for (int i = 0; i < listView.GetItemCount(); i++)
+	 if (i != index) {
+	 result r = __pTrackListView->SetItemEnabled(i, false);
+	 if (r != E_SUCCESS) {
+	 AppLogException(
+	 "Error setting item:[%d],[%s]", i, GetErrorMessage(r));
+	 return;
+	 }
+	 }
+	 } else if (status == LIST_ITEM_STATUS_UNCHECKED) {
+	 for (int i = 0; i < listView.GetItemCount(); i++)
+	 if (i != index) {
+	 result r = __pTrackListView->SetItemEnabled(i, true);
+	 if (r != E_SUCCESS) {
+	 AppLogException(
+	 "Error setting item:[%d],[%s]", i, GetErrorMessage(r));
+	 return;
+	 }
+	 }*/
+		if (_trackingIndex != -1)
+			listView.SetItemChecked(index, false);
+		else
+			_trackingIndex = index;
+	} else if (status == LIST_ITEM_STATUS_UNCHECKED) {
+		if (_trackingIndex != -1)
+			_trackingIndex = -1;
+	}
+	__pTrackListView->UpdateList();
 }
 
 void TrackListPanel::OnListViewItemSwept(
@@ -135,8 +170,9 @@ Tizen::Ui::Controls::ListItemBase* TrackListPanel::CreateItem(int index,
 	FloatRectangle customElementRect(30.0f, 10.0f, 500.0f, 90.0f);
 
 	pItem->Construct(Dimension(itemWidth, 112), LIST_ANNEX_STYLE_ONOFF_SLIDING);
-	//pItem->AddElement(Rectangle(80, 25, 150, 50), 10, L"Test", true);
 	pItem->AddElement(customElementRect, ID_FORMAT_CUSTOM, *pTrackItem);
+	if (_trackingIndex != -1 && _trackingIndex != index)
+		pItem->SetBackgroundColor(LIST_ITEM_DRAWING_STATUS_NORMAL, Color::GetColor(COLOR_ID_GREY));
 
 	return pItem;
 }

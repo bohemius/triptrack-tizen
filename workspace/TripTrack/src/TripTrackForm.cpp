@@ -175,21 +175,11 @@ void TripTrackForm::OnAccuracyChanged(LocationAccuracy accuracy) {
 
 void TripTrackForm::SetPoiView(void) {
 
-	result r=E_SUCCESS;
-
 	if (__viewType == VIEW_TYPE_POI_VIEW) {
 		return;
 	}
+	RemoveAllControls();
 	__viewType = VIEW_TYPE_POI_VIEW;
-	Rectangle sqr=GetClientAreaBounds();
-	__pTrackListPanel = new TrackListPanel(sqr);
-	r = __pTrackListPanel->Construct();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructing track view panel: [%s]", GetErrorMessage(r));
-		return;
-	}
-	AddControl(*__pTrackListPanel);
 
 	Footer* pFooter = GetFooter();
 
@@ -213,13 +203,23 @@ void TripTrackForm::SetPoiView(void) {
 }
 
 void TripTrackForm::SetTrackView(void) {
+	result r = E_SUCCESS;
+
 	if (__viewType == VIEW_TYPE_TRACK_VIEW) {
 		return;
 	}
 
-	//RemoveControl(*__pTrackListPanel);
 	RemoveAllControls();
 	__viewType = VIEW_TYPE_TRACK_VIEW;
+	Rectangle sqr = GetClientAreaBounds();
+	__pTrackListPanel = new TrackListPanel(sqr);
+	r = __pTrackListPanel->Construct();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing track view panel: [%s]", GetErrorMessage(r));
+		return;
+	}
+	AddControl(*__pTrackListPanel);
 
 	Footer* pFooter = GetFooter();
 
