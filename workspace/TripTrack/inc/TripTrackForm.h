@@ -46,7 +46,7 @@ public:
 	virtual void OnAccuracyChanged(Tizen::Locations::LocationAccuracy accuracy);
 	virtual void OnUserEventReceivedN(RequestId requestId, Tizen::Base::Collection::IList* pArgs);
 
-	virtual void OnAppControlCompleteResponseReceived(const Tizen::App::AppId &appId, const Tizen::Base::String &operationId, Tizen::App::AppCtrlResult appControlResult, const Tizen::Base::Collection::IMap *pExtraData){}
+	virtual void OnAppControlCompleteResponseReceived(const Tizen::App::AppId &appId, const Tizen::Base::String &operationId, Tizen::App::AppCtrlResult appControlResult, const Tizen::Base::Collection::IMap *pExtraData);
 
 	virtual result OnDraw();
 	void SetPoiView();
@@ -56,6 +56,7 @@ public:
 
 private:
 	void LaunchLocationSettings(void);
+	void OpenCamera(void);
 	bool CheckLocationSetting(void);
 	result LoadResources(void);
 

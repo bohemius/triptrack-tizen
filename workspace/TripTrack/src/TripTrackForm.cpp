@@ -94,6 +94,61 @@ result TripTrackForm::OnTerminating(void) {
 	return E_SUCCESS;
 }
 
+void TripTrackForm::OnAppControlCompleteResponseReceived(
+		const Tizen::App::AppId& appId, const Tizen::Base::String& operationId,
+		Tizen::App::AppCtrlResult appControlResult,
+		const Tizen::Base::Collection::IMap* pExtraData) {
+	if (appId.Equals(String(L"tizen.camera"))
+			&& operationId.Equals(
+					String(
+							L"http://tizen.org/appcontrol/operation/create_content"))) {
+		if (appControlResult == APP_CTRL_RESULT_SUCCEEDED) {
+			AppLog("Camera capture succeeded.");
+			// Use the captured image
+			if (pExtraData) {
+				IList* pValueList =
+						const_cast<IList*>(dynamic_cast<const IList*>(pExtraData->GetValue(
+								String(
+										L"http://tizen.org/appcontrol/data/selected"))));
+				if (pValueList) {
+					for (int i = 0; i < pValueList->GetCount(); i++) {
+						String* pValue =
+								dynamic_cast<String*>(pValueList->GetAt(i));
+						AppLog("Captured image path: [%ls]", pValue->GetPointer());
+					}
+				}
+			}
+		} else if (appControlResult == APP_CTRL_RESULT_FAILED) {
+			AppLog("Camera capture failed.");
+		} else if (appControlResult == APP_CTRL_RESULT_CANCELED) {
+			AppLog("Camera capture was canceled.");
+		} else if (appControlResult == APP_CTRL_RESULT_TERMINATED) {
+			AppLog("Camera capture was terminated.");
+		} else if (appControlResult == APP_CTRL_RESULT_ABORTED) {
+			AppLog("Camera capture was aborted.");
+		} else if (appControlResult == APP_CTRL_RESULT_FAILED) {
+			AppLog("Camera capture failed.");
+		}
+	}
+
+}
+
+void TripTrackForm::OpenCamera(void) {
+	String mime = L"image/jpg";
+	HashMap extraData;
+	extraData.Construct();
+	String typeKey = L"http://tizen.org/appcontrol/data/camera/allow_switch";
+	String typeVal = L"true";
+	extraData.Add(&typeKey, &typeVal);
+
+	AppControl* pAc = AppManager::FindAppControlN(L"tizen.camera",
+			L"http://tizen.org/appcontrol/operation/create_content");
+	if (pAc) {
+		pAc->Start(null, &mime, &extraData, this);
+		delete pAc;
+	}
+}
+
 result TripTrackForm::LoadResources(void) {
 	result r = E_SUCCESS;
 
@@ -120,6 +175,11 @@ void TripTrackForm::OnActionPerformed(const Tizen::Ui::Control& source,
 	case ID_HEADER_TAB_TRACK_VIEW: {
 		AppLog("Setting ID_HEADER_TAB_Track_VIEW");
 		SetTrackView();
+	}
+		break;
+	case ID_FOOTER_BUTTON_CAMERA_POI: {
+		AppLog("Starting camera");
+		OpenCamera();
 	}
 		break;
 	default:
