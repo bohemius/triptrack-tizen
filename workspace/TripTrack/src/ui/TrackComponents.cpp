@@ -10,9 +10,11 @@
 using namespace Tizen::Graphics;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::App;
+using namespace Tizen::Base;
 
-TrackListElement::TrackListElement(Tracker* tracker) :
-		__pTracker(tracker) {
+TrackListElement::TrackListElement() /*:
+ __pTracker(tracker) */{
+
 }
 
 TrackListElement::~TrackListElement(void) {
@@ -20,21 +22,42 @@ TrackListElement::~TrackListElement(void) {
 
 bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 		ListItemDrawingStatus itemStatus) {
-	Font font;
-	font.Construct(FONT_STYLE_PLAIN, (rect.height / 2.0f));
-	canvas.SetFont(font);
+	Font titleFont, mileageFont, timeFont;
+	titleFont.Construct(FONT_STYLE_BOLD, 25.0f);
+	canvas.SetFont(titleFont);
 	//canvas.SetLineWidth(LINE_WITH);
-	canvas.SetForegroundColor(Color::GetColor(COLOR_ID_BLACK));
+	canvas.SetForegroundColor(Color::GetColor(COLOR_ID_WHITE));
 
-	int fontRectHeight = font.GetMaxHeightF();
+	/*
+	 * if (canvas.DrawRectangle(rect) != E_SUCCESS) {
+	 return false;
+	 }*/
 
-	//if (canvas.DrawRectangle(rect) != E_SUCCESS) {
-	//	return false;
-	//}
+	//draw track title
+	if (canvas.DrawText(Tizen::Graphics::FloatPoint(rect.x, rect.y+TEXT_MARGIN_Y),
+			L"Track title") != E_SUCCESS) {
+		return false;
+	}
+
+	//draw mileage
+	mileageFont.Construct(FONT_STYLE_PLAIN, 20.0f);
+	canvas.SetFont(mileageFont);
 	if (canvas.DrawText(
-			Tizen::Graphics::FloatPoint(rect.x + TEXT_MARGIN_X,
-					rect.y + ((rect.height - fontRectHeight) / 2.0f)),
-			L"Custom") != E_SUCCESS) {
+			Tizen::Graphics::FloatPoint(rect.x,
+					rect.y + rect.height - mileageFont.GetMaxHeightF()),
+			L"Total mileage: 1245.7 miles") != E_SUCCESS) {
+		return false;
+	}
+
+	//draw duration
+	canvas.SetForegroundColor(Color::GetColor(COLOR_ID_YELLOW));
+	timeFont.Construct(FONT_STYLE_MIN, 20.0f);
+	canvas.SetFont(timeFont);
+	String durationStr(L"Duration 123.3 Hours");
+	float length = (float) durationStr.GetLength();
+	if (canvas.DrawText(
+			Tizen::Graphics::FloatPoint(rect.x + rect.width - 200, rect.y+TEXT_MARGIN_Y),
+			L"Duration 123.3 Hours") != E_SUCCESS) {
 		return false;
 	}
 	return true;
@@ -60,7 +83,7 @@ result TrackListPanel::Construct(void) {
 	}
 	__pTrackListView = new ListView();
 	r = __pTrackListView->Construct(
-			Rectangle(0, 0, GetContentAreaBounds().width, GetContentAreaBounds().height), true, true);
+			Rectangle(0, 0, GetBounds().width, GetBounds().height), true, true);
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error constructing track list view: [%s]", GetErrorMessage(r));
@@ -74,6 +97,7 @@ result TrackListPanel::Construct(void) {
 	}
 	__pTrackListView->AddListViewItemEventListener(*this);
 
+	AddControl(*__pTrackListView);
 	//r = __pTrackListView->SetBackgroundBitmap(__pTrackListBackgroundBitmap);
 	//if (r != E_SUCCESS) {
 	//	AppLogException(
@@ -105,13 +129,27 @@ void TrackListPanel::OnListViewItemLongPressed(
 
 Tizen::Ui::Controls::ListItemBase* TrackListPanel::CreateItem(int index,
 		float itemWidth) {
+
+	CustomItem* pItem = new (std::nothrow) CustomItem();
+	TrackListElement* pTrackItem = new TrackListElement();
+	FloatRectangle customElementRect(30.0f, 10.0f, 500.0f, 90.0f);
+
+	pItem->Construct(Dimension(itemWidth, 112), LIST_ANNEX_STYLE_ONOFF_SLIDING);
+	//pItem->AddElement(Rectangle(80, 25, 150, 50), 10, L"Test", true);
+	pItem->AddElement(customElementRect, ID_FORMAT_CUSTOM, *pTrackItem);
+
+	return pItem;
 }
 
 bool TrackListPanel::DeleteItem(int index,
 		Tizen::Ui::Controls::ListItemBase* pItem, float itemWidth) {
+	delete pItem;
+	pItem = null;
+	return true;
 }
 
 int TrackListPanel::GetItemCount(void) {
+	return 10;
 }
 
 result TrackListPanel::LoadResources(void) {

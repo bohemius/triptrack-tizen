@@ -12,7 +12,6 @@
 #include "TripTrackForm.h"
 #include "LocationManagerThread.h"
 #include "AppResourceId.h"
-#include "ui/TrackComponents.h"
 
 using namespace std;
 using namespace Tizen::App;
@@ -83,16 +82,6 @@ result TripTrackForm::OnInitializing(void) {
 	Footer* pFooter = GetFooter();
 	pFooter->SetStyle(FOOTER_STYLE_BUTTON_ICON);
 	pFooter->SetBackButton();
-
-	TrackListPanel* pTrackPanel = new TrackListPanel(clientBounds);
-	r = pTrackPanel->Construct();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructing track view panel: [%s]", GetErrorMessage(r));
-		return r;
-	}
-
-	AddControl(pTrackPanel);
 
 	SetFormBackEventListener(this);
 	SetPoiView();
@@ -186,11 +175,21 @@ void TripTrackForm::OnAccuracyChanged(LocationAccuracy accuracy) {
 
 void TripTrackForm::SetPoiView(void) {
 
+	result r=E_SUCCESS;
+
 	if (__viewType == VIEW_TYPE_POI_VIEW) {
 		return;
 	}
-
 	__viewType = VIEW_TYPE_POI_VIEW;
+	Rectangle sqr=GetClientAreaBounds();
+	__pTrackListPanel = new TrackListPanel(sqr);
+	r = __pTrackListPanel->Construct();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing track view panel: [%s]", GetErrorMessage(r));
+		return;
+	}
+	AddControl(*__pTrackListPanel);
 
 	Footer* pFooter = GetFooter();
 
@@ -218,6 +217,8 @@ void TripTrackForm::SetTrackView(void) {
 		return;
 	}
 
+	//RemoveControl(*__pTrackListPanel);
+	RemoveAllControls();
 	__viewType = VIEW_TYPE_TRACK_VIEW;
 
 	Footer* pFooter = GetFooter();

@@ -12,6 +12,7 @@
 #include <FBase.h>
 #include <FLocations.h>
 #include <FUi.h>
+#include "ui/TrackComponents.h"
 
 class LocationManagerThread;
 
@@ -82,6 +83,7 @@ private:
 	Tizen::Graphics::Bitmap* __pAddBitmap;
 	Tizen::Graphics::Bitmap* __pBgBitmap;
 
+	TrackListPanel* __pTrackListPanel;
 };
 
 #endif /* TRIPTRACKFORM_H_ */
