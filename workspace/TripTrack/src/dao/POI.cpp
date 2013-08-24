@@ -61,12 +61,12 @@ void POI::SetTitle(Tizen::Base::String* title) {
 }
 
 void POI::AddMedia(TTMedia* media) {
-	//TODO add to db as well
 	__pAssociatedMedia->Add(media);
 }
 
 void POI::DeleteMedia(TTMedia* media) {
-	//TODO remove from db as well
+	StorageManager* pStore = StorageManager::getInstance();
+	pStore->CRUDoperation(media, I_CRUDable::DELETE);
 	__pAssociatedMedia->Remove(media);
 }
 
@@ -105,7 +105,7 @@ result POI::Construct(long long int id) {
 				"Error parsing timestamp for poi with id [%d]: [%s]", __id, GetErrorMessage(r));
 		return r;
 	}
-	__pAssociatedMedia=StorageManager::getInstance()->GetMedia(__id);
+	__pAssociatedMedia = StorageManager::getInstance()->GetMedia(__id);
 	AppLog("Successfully loaded data for poi [%ls]", __pTitle->GetPointer());
 
 	delete pEnum;
@@ -119,15 +119,14 @@ result POI::Construct(Tizen::Base::String& Title,
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 	result r = E_SUCCESS;
 
-	AppLog(
-			"Creating a new poi [%ls].", __pTitle->GetPointer());
+	AppLog( "Creating a new poi [%ls].", __pTitle->GetPointer());
 
 	__pTimestamp->SetValue(location.GetTimestamp());
 	__pCoordinates->Set(location.GetCoordinates().GetLatitude(),
 			location.GetCoordinates().GetLongitude(),
 			location.GetCoordinates().GetAltitude());
-	__pTitle=&Title;
-	__pDescription=&Description;
+	__pTitle = &Title;
+	__pDescription = &Description;
 
 	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
 	if (r != E_SUCCESS) {
@@ -141,7 +140,30 @@ result POI::Construct(Tizen::Base::String& Title,
 	AppLog(
 			"Successfully stored the new poi [%ls] in the database with ID: [%d]", __pTitle->GetPointer(), __id);
 	delete pEnum;
-	__pAssociatedMedia=new LinkedListT<TTMedia*>();
+	__pAssociatedMedia = new LinkedListT<TTMedia*>();
+	return r;
+}
+
+result POI::Construct(Tizen::Base::String& Title,
+		Tizen::Base::String& Description, Tizen::Locations::Location location,
+		Tizen::Base::String& SourceUri) {
+	//create poi tile base using the supplied image
+	TTMedia* pDefMedia = new TTMedia();
+	result r = E_SUCCESS;
+
+	ByteBuffer* pImgBuffer; //TODO image util class for scaling in the app
+
+	r = pDefMedia->Construct(SourceUri, __id, pImgBuffer);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error storing the new media for poiId [%d] in the database: [%s]", __id, GetErrorMessage(r));
+		return r;
+	}
+	AddMedia(pDefMedia);
+	__defImageId = pDefMedia->GetId();
+
+	//now that the default media id is set call construct
+	r = Construct(Title, Description, location);
 	return r;
 }
 

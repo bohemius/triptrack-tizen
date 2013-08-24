@@ -10,12 +10,12 @@
 #ifndef TTMEDIA_H_
 #define TTMEDIA_H_
 
-class TTMedia: I_CRUDable {
+class TTMedia: public I_CRUDable {
 public:
 	TTMedia();
 	virtual ~TTMedia();
 	result Construct(long long int id);
-	result Construct(Tizen::Base::String &SourceURI, long long PoiId);
+	result Construct(Tizen::Base::String &SourceURI, long long PoiId, Tizen::Base::ByteBuffer* buffer);
 	virtual Tizen::Io::DbStatement* Read(void);
 	virtual Tizen::Io::DbStatement* Write(void);
 	virtual Tizen::Io::DbStatement* Delete(void);

@@ -65,7 +65,7 @@ result TTMedia::Construct(long long int id) {
 
 }
 
-result TTMedia::Construct(Tizen::Base::String& SourceURI, long long int PoiId) {
+result TTMedia::Construct(Tizen::Base::String& SourceURI, long long int PoiId, ByteBuffer* buffer) {
 	StorageManager* store = StorageManager::getInstance();
 	DbEnumerator* pEnum = 0;
 	Database* db = BootstrapManager::getInstance()->getDatabase();
@@ -77,6 +77,8 @@ result TTMedia::Construct(Tizen::Base::String& SourceURI, long long int PoiId) {
 			"Creating a new media with source URI [%ls].", __pSourceUri->GetPointer());
 
 	__poiId = PoiId;
+	__pContent = new ByteBuffer();
+	__pContent->CopyFrom(*buffer);
 	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
 	if (r != E_SUCCESS) {
 		AppLogException(
@@ -90,7 +92,6 @@ result TTMedia::Construct(Tizen::Base::String& SourceURI, long long int PoiId) {
 			"Successfully stored the new media with source URI [%ls] in the database with ID: [%d]", __pSourceUri->GetPointer(), __id);
 	delete pEnum;
 	return r;
-
 }
 
 Tizen::Io::DbStatement* TTMedia::Read(void) {

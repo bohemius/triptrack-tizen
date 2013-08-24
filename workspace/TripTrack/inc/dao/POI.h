@@ -14,7 +14,7 @@
 #include "dao/TTMedia.h"
 #include "dao/ICRUD.h"
 
-class POI: I_CRUDable {
+class POI: public I_CRUDable {
 public:
 	POI();
 	virtual ~POI();
@@ -24,6 +24,8 @@ public:
 	result Construct(long long int id);
 	result Construct(Tizen::Base::String &Title,
 			Tizen::Base::String &Description, Tizen::Locations::Location location);
+	result Construct(Tizen::Base::String &Title,
+				Tizen::Base::String &Description, Tizen::Locations::Location location, Tizen::Base::String& SourceUri);
 	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetAssociatedMedia() const;
 	Tizen::Base::String* GetDescription() const;
 	void SetDescription(Tizen::Base::String* description);

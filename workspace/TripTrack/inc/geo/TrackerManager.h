@@ -13,7 +13,6 @@
 
 class TrackerManager {
 public:
-	TrackerManager();
 	virtual ~TrackerManager();
 	static TrackerManager* getInstance(void);
 	result AddTracker(Tizen::Base::String &Title, Tizen::Base::String &Description);
@@ -24,6 +23,8 @@ public:
 	Tizen::Base::Collection::LinkedListT<Tracker*>* GetTracks() const;
 
 private:
+	TrackerManager();
+
 	Tracker* __pCurrentTracker;
 	Tizen::Base::Collection::LinkedListT<Tracker*>* __pTracks;
 	static TrackerManager* __pSelf;
