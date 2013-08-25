@@ -8,6 +8,7 @@
 #define ICRUD_H_
 
 #include <FIo.h>
+#include <FBase.h>
 
 class I_CRUDable {
 public:

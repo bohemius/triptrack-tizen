@@ -29,6 +29,33 @@ TripTrackApp::CreateInstance(void) {
 }
 
 bool TripTrackApp::OnAppInitializing(AppRegistry& appRegistry) {
+	BootstrapManager* bmInstance = BootstrapManager::getInstance();
+	result r = E_SUCCESS;
+
+	AppLog("Constructing BootstrapManager.");
+	r = bmInstance->Construct();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing BootstrapManager: [%]", GetErrorMessage(r));
+		return false;
+	}
+
+	/*
+	Tracker* track = new Tracker();
+
+	AppLog("Constructing testing tracker");
+	String desc(L"Testing tracker used for testing");
+	String title(L"Test track");
+	r = track->Construct(desc, title);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructin tracker [%ls]: [%s]", track->GetTitle()->GetPointer(), GetErrorMessage(r));
+		return false;
+	}
+	AppLog(
+			"Successfully constructed tracker [%ls] ", track->GetTitle()->GetPointer());
+
+	*/
 	Frame* pAppFrame = new Frame();
 	pAppFrame->Construct();
 	AddFrame(*pAppFrame);
@@ -42,29 +69,6 @@ bool TripTrackApp::OnAppInitializing(AppRegistry& appRegistry) {
 }
 
 bool TripTrackApp::OnAppInitialized(void) {
-	BootstrapManager* bmInstance = BootstrapManager::getInstance();
-	result r = E_SUCCESS;
-
-	AppLog("Constructing BootstrapManager.");
-	r = bmInstance->Construct();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructing BootstrapManager: [%]", GetErrorMessage(r));
-		return false;
-	}
-
-	//Test track creation
-	Tracker* track=new Tracker();
-
-	AppLog("Constructing testing tracker");
-	String desc(L"Testing tracker used for testing");
-	String title(L"Test track");
-	r=track->Construct(desc, title);
-	if (r!=E_SUCCESS) {
-		AppLogException("Error constructin tracker [%ls]: [%s]", track->GetTitle()->GetPointer(), GetErrorMessage(r));
-		return false;
-	}
-	AppLog("Successfully constructed tracker [%ls] ",track->GetTitle()->GetPointer());
 	return true;
 }
 
@@ -94,5 +98,4 @@ void TripTrackApp::OnScreenOn(void) {
 
 void TripTrackApp::OnScreenOff(void) {
 }
-
 

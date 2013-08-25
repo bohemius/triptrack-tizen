@@ -23,9 +23,12 @@ public:
 	void SetDefImageId(long long int defImageId);
 	result Construct(long long int id);
 	result Construct(Tizen::Base::String &Title,
-			Tizen::Base::String &Description, Tizen::Locations::Location location);
+			Tizen::Base::String &Description,
+			Tizen::Locations::Location location);
 	result Construct(Tizen::Base::String &Title,
-				Tizen::Base::String &Description, Tizen::Locations::Location location, Tizen::Base::String& SourceUri);
+			Tizen::Base::String &Description,
+			Tizen::Locations::Location location,
+			Tizen::Base::String& SourceUri);
 	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetAssociatedMedia() const;
 	Tizen::Base::String* GetDescription() const;
 	void SetDescription(Tizen::Base::String* description);
@@ -42,6 +45,9 @@ public:
 	virtual Tizen::Io::DbStatement* Update(void);
 	Tizen::Base::DateTime* GetTimestamp() const;
 	void SetTimestamp(Tizen::Base::DateTime* timestamp);
+
+	static const float TILE_IMAGE_WIDTH = 100.0f;
+	static const float TILE_IMAGE_HEIGHT = 176.0f;
 
 private:
 	Tizen::Base::String* __pDescription;

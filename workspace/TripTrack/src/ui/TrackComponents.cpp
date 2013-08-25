@@ -68,7 +68,6 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 TrackListPanel::TrackListPanel(Rectangle &rect) :
 		Panel(), __pTrackListView(null), __pTrackListBackgroundBitmap(null) {
 	Panel::Construct(Rectangle(0, 0, rect.width, rect.height));
-	//Panel::SetBackgroundColor(Color::GetColor(COLOR_ID_GREY));
 }
 
 TrackListPanel::~TrackListPanel(void) {

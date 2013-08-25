@@ -5,6 +5,8 @@
 
 extern const wchar_t* IDS_HELLO;
 extern const wchar_t* IDS_STRING1;
+extern const wchar_t* ID_STRING_DEFAULT_POI_DESCRIPTION;
+extern const wchar_t* ID_STRING_DEFAULT_POI_TITLE;
 extern const wchar_t* ID_STRING_TIMELINE_VIEW_TITLE;
 extern const wchar_t* ID_STRING_TRACK_VIEW_TITLE;
 

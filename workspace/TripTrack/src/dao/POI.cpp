@@ -5,15 +5,20 @@
  *      Author: bohemius
  */
 
+#include <FGraphics.h>
+#include <FSystem.h>
 #include "dao/POI.h"
 #include "geo/Tracker.h"
 #include "util/BootstrapManager.h"
+#include "util/GraphicsUtils.h"
 #include "dao/StorageManager.h"
 
 using namespace Tizen::Locations;
 using namespace Tizen::Base::Collection;
 using namespace Tizen::Base;
 using namespace Tizen::Io;
+using namespace Tizen::Graphics;
+using namespace Tizen::System;
 
 POI::POI() {
 	__pCoordinates = new Coordinates();
@@ -30,6 +35,8 @@ long long int POI::GetDefImageId() const {
 
 void POI::SetDefImageId(long long int defImageId) {
 	__defImageId = defImageId;
+	//now that the default media id is set update the POI
+	StorageManager::getInstance()->CRUDoperation(this, I_CRUDable::UPDATE);
 }
 
 Tizen::Base::Collection::LinkedListT<TTMedia*>* POI::GetAssociatedMedia() const {
@@ -78,25 +85,25 @@ result POI::Construct(long long int id) {
 	AppLog("Reading poi data from database for poi id: [%d]", id);
 	__id = id;
 	pEnum = store->CRUDoperation(this, I_CRUDable::READ);
-	if (pEnum == 0) {
-		AppLogException("Error reading poi with id: [%d]", id);
-		r = E_FAILURE;
-		return r;
-	}
 
 	double latitude, longitude, altitude;
 	String dateString;
 
 	//Description, Title, Latitude, Longitude, Altitude, Timestamp, DefaultMediaID
-	while (pEnum->MoveNext() == E_SUCCESS) {
-		pEnum->GetStringAt(0, *__pDescription);
-		pEnum->GetStringAt(1, *__pTitle);
-		pEnum->GetDoubleAt(2, latitude);
-		pEnum->GetDoubleAt(3, longitude);
-		pEnum->GetDoubleAt(4, altitude);
-		pEnum->GetStringAt(5, dateString);
-		pEnum->GetInt64At(6, __defImageId);
-	}
+	//while (pEnum->MoveNext() == E_SUCCESS) {
+	r = pEnum->MoveNext();
+	if (r != E_SUCCESS)
+		AppLogException("Error moving next: [%s]", GetErrorMessage(r));
+	r = pEnum->GetStringAt(0, *__pDescription);
+	if (r != E_SUCCESS)
+		AppLogException("Error getting string@0: [%s]", GetErrorMessage(r));
+	pEnum->GetStringAt(1, *__pTitle);
+	pEnum->GetDoubleAt(2, latitude);
+	pEnum->GetDoubleAt(3, longitude);
+	pEnum->GetDoubleAt(4, altitude);
+	pEnum->GetStringAt(5, dateString);
+	pEnum->GetInt64At(6, __defImageId);
+	//}
 
 	__pCoordinates->Set(latitude, longitude, altitude);
 	r = DateTime::Parse(dateString, *__pTimestamp);
@@ -119,23 +126,32 @@ result POI::Construct(Tizen::Base::String& Title,
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 	result r = E_SUCCESS;
 
-	AppLog( "Creating a new poi [%ls].", __pTitle->GetPointer());
+	AppLog( "Creating a new poi [%ls].", Title.GetPointer());
 
 	__pTimestamp->SetValue(location.GetTimestamp());
-	__pCoordinates->Set(location.GetCoordinates().GetLatitude(),
+	r = __pCoordinates->Set(location.GetCoordinates().GetLatitude(),
 			location.GetCoordinates().GetLongitude(),
 			location.GetCoordinates().GetAltitude());
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error setting coordinates, looks like cannot get a valid location using home location:[%s] ", GetErrorMessage(r));
+		//TODO do the home location in the settings
+		__pCoordinates->Set(0.0, 0.0, 0.0);
+		//use current system time
+		SystemTime::GetCurrentTime(*__pTimestamp);
+		r = E_SUCCESS;
+	}
 	__pTitle = &Title;
 	__pDescription = &Description;
 
 	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
-	if (r != E_SUCCESS) {
+	//get the inserted ID using last_insert_rowid()
+	__id = db->GetLastInsertRowId();
+	if (r != E_SUCCESS || __id < 0) {
 		AppLogException(
 				"Error storing the new poi [%ls] in the database: [%s]", __pTitle->GetPointer(), GetErrorMessage(r));
 		return r;
 	}
-	//get the inserted ID using last_insert_rowid()
-	__id = db->GetLastInsertRowId();
 
 	AppLog(
 			"Successfully stored the new poi [%ls] in the database with ID: [%d]", __pTitle->GetPointer(), __id);
@@ -147,12 +163,26 @@ result POI::Construct(Tizen::Base::String& Title,
 result POI::Construct(Tizen::Base::String& Title,
 		Tizen::Base::String& Description, Tizen::Locations::Location location,
 		Tizen::Base::String& SourceUri) {
-	//create poi tile base using the supplied image
-	TTMedia* pDefMedia = new TTMedia();
+
 	result r = E_SUCCESS;
 
-	ByteBuffer* pImgBuffer; //TODO image util class for scaling in the app
+	//create poi using supplied parameters
+	r = Construct(Title, Description, location);
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error creating poi  [%ls]: [%s]", __pTitle->GetPointer(), GetErrorMessage(r));
 
+	//process the camera image and create a tile
+	Bitmap* pCapturedBitmap = GraphicsUtils::CreateBitmap(SourceUri);
+	r = pCapturedBitmap->Scale(
+			FloatDimension(TILE_IMAGE_WIDTH, TILE_IMAGE_HEIGHT));
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Bitmap [%ls] scaling failed: [%s]", SourceUri.GetPointer(), GetErrorMessage(r));
+	ByteBuffer* pImgBuffer = GraphicsUtils::CreateImageBuffer(pCapturedBitmap);
+
+	//create the media using the image
+	TTMedia* pDefMedia = new TTMedia();
 	r = pDefMedia->Construct(SourceUri, __id, pImgBuffer);
 	if (r != E_SUCCESS) {
 		AppLogException(
@@ -160,10 +190,8 @@ result POI::Construct(Tizen::Base::String& Title,
 		return r;
 	}
 	AddMedia(pDefMedia);
-	__defImageId = pDefMedia->GetId();
+	SetDefImageId(pDefMedia->GetId());
 
-	//now that the default media id is set call construct
-	r = Construct(Title, Description, location);
 	return r;
 }
 
@@ -183,13 +211,21 @@ Tizen::Io::DbStatement* POI::Read(void) {
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);
 	AppLog( "Creating sql statement for SELECT for poi with ID: [%d]", __id);
-	if (pStmt == 0 || r != E_SUCCESS) {
+	r = GetLastResult();
+	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error creating sql statement for SELECT for poi with ID [%d]: [%s]", __id, GetErrorMessage(r));
 		return 0;
 	}
+	AppAssert(pStmt);
 	AppLog( "Sql SELECT statement created for poi with ID: [%d]", __id);
-	pStmt->BindInt64(0, __id);
+
+	r = pStmt->BindInt64(0, __id);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error binding __id for SELECT for poi with ID [%d]: [%s]", __id, GetErrorMessage(r));
+		return 0;
+	}
 	return pStmt;
 }
 

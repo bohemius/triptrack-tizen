@@ -31,12 +31,33 @@ Tizen::Io::DbEnumerator* StorageManager::CRUDoperation(I_CRUDable* entity,
 	case I_CRUDable::CREATE:
 		return PerformTransaction(entity->Write());
 	case I_CRUDable::READ:
-		return PerformTransaction(entity->Read());
+		return PerformSelectTransaction(entity->Read());
 	case I_CRUDable::UPDATE:
 		return PerformTransaction(entity->Update());
 	case I_CRUDable::DELETE:
 		return PerformTransaction(entity->Delete());
 	}
+}
+
+Tizen::Io::DbEnumerator* StorageManager::PerformSelectTransaction(
+		DbStatement* statement) {
+	result r = E_SUCCESS;
+	DbEnumerator* retVal = 0;
+	Database* db = BootstrapManager::getInstance()->getDatabase();
+
+	AppLog("Performing select transaction with statement");
+	retVal = db->ExecuteStatementN(*statement);
+	r = GetLastResult();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error performing select transaction: [%s]", GetErrorMessage(r));
+		return 0;
+	}
+	AppLog("Select complete");
+
+	retVal->Reset();
+	delete statement;
+	return retVal;
 }
 
 Tizen::Io::DbEnumerator* StorageManager::PerformTransaction(
@@ -62,7 +83,7 @@ Tizen::Io::DbEnumerator* StorageManager::PerformTransaction(
 
 LinkedListT<POI*>* StorageManager::GetPois(void) {
 	result r = E_SUCCESS;
-	DbEnumerator* pEnum = 0;
+	DbEnumerator* pEnum = null;
 	LinkedListT<POI*>* retVal = new LinkedListT<POI*>();
 	String sql;
 	long long int id;
@@ -73,7 +94,7 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 	AppLog("Getting all poi IDs from the database.");
 	pEnum = db->QueryN(sql);
 
-	r = GetLastResult();
+	//r = GetLastResult();
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error getting poi IDs from database: [%s]", GetErrorMessage(r));
@@ -81,28 +102,33 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 	}
 	AppLog("Creating collection of pois.");
 
-	while (pEnum->MoveNext() == E_SUCCESS) {
-		r = pEnum->GetInt64At(0, id);
-		if (r != E_SUCCESS) {
-			AppLogException("Error getting poi id: [%s]", GetErrorMessage(r));
-			return 0;
+	if (pEnum != null && r == E_SUCCESS)
+		while (pEnum->MoveNext() == E_SUCCESS) {
+			r = pEnum->GetInt64At(0, id);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error getting poi id: [%s]", GetErrorMessage(r));
+				return 0;
+			}
+			POI* pPoi = new POI();
+			r = pPoi->Construct(id);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error constructing poi with ID [%d]: [%s]", id, GetErrorMessage(r));
+				return 0;
+			}
+			r = retVal->Add(pPoi);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error adding poi [%ls] to collection: [%s]", pPoi->GetTitle()->GetPointer(), GetErrorMessage(r));
+				return 0;
+			}
+			AppLog(
+					"Successfully added poi [%ls] to collection.", pPoi->GetTitle()->GetPointer());
 		}
-		POI* pPoi = new POI();
-		r = pPoi->Construct(id);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error constructing poi with ID [%d]: [%s]", id, GetErrorMessage(r));
-			return 0;
-		}
-		r = retVal->Add(pPoi);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error adding poi [%ls] to collection: [%s]", pPoi->GetTitle()->GetPointer(), GetErrorMessage(r));
-			return 0;
-		}
-		AppLog(
-				"Successfully added poi [%ls] to collection.", pPoi->GetTitle()->GetPointer());
-	}
+	else
+		AppLog("No POIs in the database, returning empty collection.");
+
 	AppLog(
 			"Successfully read and added [%d] pois to collection.", retVal->GetCount());
 	delete pEnum;
@@ -120,8 +146,7 @@ LinkedListT<TTMedia*>* StorageManager::GetMedia(long long int poiId) {
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 
 	sql.Append(L"SELECT ID FROM media WHERE POI_ID = ?");
-	AppLog(
-			"Getting all media IDs for POI_ID [%d] from the database.", poiId);
+	AppLog( "Getting all media IDs for POI_ID [%d] from the database.", poiId);
 	AppLog(
 			"Creating SELECT statement for all media IDs for POI_ID [%d]", poiId);
 
@@ -144,28 +169,31 @@ LinkedListT<TTMedia*>* StorageManager::GetMedia(long long int poiId) {
 	}
 	AppLog("Creating collection of media for POI_ID [%d].", poiId);
 
-	while (pEnum->MoveNext() == E_SUCCESS) {
-		r = pEnum->GetInt64At(0, id);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error getting media id: [%s]", GetErrorMessage(r));
-			return 0;
+	if (pEnum != null && r == E_SUCCESS)
+		while (pEnum->MoveNext() == E_SUCCESS) {
+			r = pEnum->GetInt64At(0, id);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error getting media id: [%s]", GetErrorMessage(r));
+				return 0;
+			}
+			TTMedia* pTTMedia = new TTMedia();
+			r = pTTMedia->Construct(id);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error constructing media with ID [%d]: [%s]", id, GetErrorMessage(r));
+				return 0;
+			}
+			r = retVal->Add(pTTMedia);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error adding media with id [%d] to collection: [%s]", id, GetErrorMessage(r));
+				return 0;
+			}
+			AppLog( "Successfully added media with id [%d] to collection.", id);
 		}
-		TTMedia* pTTMedia = new TTMedia();
-		r = pTTMedia->Construct(id);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error constructing media with ID [%d]: [%s]", id, GetErrorMessage(r));
-			return 0;
-		}
-		r = retVal->Add(pTTMedia);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error adding media with id [%d] to collection: [%s]", id, GetErrorMessage(r));
-			return 0;
-		}
-		AppLog( "Successfully added media with id [%d] to collection.", id);
-	}
+	else
+		AppLog("No media in the database, returning empty collection.");
 	AppLog(
 			"Successfully read and added [%d] media to collection.", retVal->GetCount());
 	delete pEnum;
@@ -194,28 +222,32 @@ LinkedListT<Tracker*>* StorageManager::GetTracks(void) {
 	}
 	AppLog("Creating collection of tracks.");
 
-	while (pEnum->MoveNext() == E_SUCCESS) {
-		r = pEnum->GetInt64At(0, id);
-		if (r != E_SUCCESS) {
-			AppLogException("Error getting track id: [%s]", GetErrorMessage(r));
-			return 0;
+	if (pEnum != null && r == E_SUCCESS)
+		while (pEnum->MoveNext() == E_SUCCESS) {
+			r = pEnum->GetInt64At(0, id);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error getting track id: [%s]", GetErrorMessage(r));
+				return 0;
+			}
+			Tracker* pTracker = new Tracker();
+			r = pTracker->Construct(id);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error constructing tracker with ID [%d]: [%s]", id, GetErrorMessage(r));
+				return 0;
+			}
+			r = retVal->Add(pTracker);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error adding tracker [%ls] to collection: [%s]", pTracker->GetTitle()->GetPointer(), GetErrorMessage(r));
+				return 0;
+			}
+			AppLog(
+					"Successfully added tracker [%ls] to collection.", pTracker->GetTitle()->GetPointer());
 		}
-		Tracker* pTracker = new Tracker();
-		r = pTracker->Construct(id);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error constructing tracker with ID [%d]: [%s]", id, GetErrorMessage(r));
-			return 0;
-		}
-		r = retVal->Add(pTracker);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error adding tracker [%ls] to collection: [%s]", pTracker->GetTitle()->GetPointer(), GetErrorMessage(r));
-			return 0;
-		}
-		AppLog(
-				"Successfully added tracker [%ls] to collection.", pTracker->GetTitle()->GetPointer());
-	}
+	else
+		AppLog("No tracks in the database, returning empty collection.");
 	AppLog(
 			"Successfully read and added [%d] tracks to collection.", retVal->GetCount());
 	delete pEnum;
@@ -258,28 +290,32 @@ LinkedListT<TTLocation*>* StorageManager::GetLocations(
 	}
 	AppLog("Creating collection of locations for track ID [%d].", trackerId);
 
-	while (pEnum->MoveNext() == E_SUCCESS) {
-		r = pEnum->GetInt64At(0, id);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error getting location id: [%s]", GetErrorMessage(r));
-			return 0;
+	if (pEnum != null && r == E_SUCCESS)
+		while (pEnum->MoveNext() == E_SUCCESS) {
+			r = pEnum->GetInt64At(0, id);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error getting location id: [%s]", GetErrorMessage(r));
+				return 0;
+			}
+			TTLocation* pLoc = new TTLocation();
+			r = pLoc->Construct(id);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error constructing location with ID [%d]: [%s]", id, GetErrorMessage(r));
+				return 0;
+			}
+			r = retVal->Add(pLoc);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error adding location with id [%d] to collection: [%s]", id, GetErrorMessage(r));
+				return 0;
+			}
+			AppLog(
+					"Successfully added location with id [%d] to collection.", id);
 		}
-		TTLocation* pLoc = new TTLocation();
-		r = pLoc->Construct(id);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error constructing location with ID [%d]: [%s]", id, GetErrorMessage(r));
-			return 0;
-		}
-		r = retVal->Add(pLoc);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error adding location with id [%d] to collection: [%s]", id, GetErrorMessage(r));
-			return 0;
-		}
-		AppLog( "Successfully added location with id [%d] to collection.", id);
-	}
+	else
+		AppLog("No locations in the database, returning empty collection.");
 	AppLog(
 			"Successfully read and added [%d] locations to collection.", retVal->GetCount());
 	delete pEnum;

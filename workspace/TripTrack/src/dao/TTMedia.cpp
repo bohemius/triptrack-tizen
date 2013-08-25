@@ -72,14 +72,14 @@ result TTMedia::Construct(Tizen::Base::String& SourceURI, long long int PoiId, B
 	result r = E_SUCCESS;
 
 	__pSourceUri = &SourceURI;
-	//TODO use image utils to create a thumbnail content from a camera pic at given URI
 	AppLog(
 			"Creating a new media with source URI [%ls].", __pSourceUri->GetPointer());
 
 	__poiId = PoiId;
-	__pContent = new ByteBuffer();
-	__pContent->CopyFrom(*buffer);
+	__pContent = buffer;
+	//__pContent->CopyFrom(*buffer);
 	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
+	r=GetLastResult();
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error storing the new media with source URI [%ls] in the database: [%s]", __pSourceUri->GetPointer(), GetErrorMessage(r));

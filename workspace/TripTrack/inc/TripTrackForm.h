@@ -13,6 +13,7 @@
 #include <FLocations.h>
 #include <FUi.h>
 #include "ui/TrackComponents.h"
+#include "ui/PoiComponents.h"
 
 class LocationManagerThread;
 
@@ -57,6 +58,7 @@ public:
 private:
 	void LaunchLocationSettings(void);
 	void OpenCamera(void);
+	void ProcessCameraResult(Tizen::Base::String* imagePath);
 	bool CheckLocationSetting(void);
 	result LoadResources(void);
 
@@ -85,6 +87,7 @@ private:
 	Tizen::Graphics::Bitmap* __pBgBitmap;
 
 	TrackListPanel* __pTrackListPanel;
+	PoiIconListPanel* __pPoiIconListPanel;
 };
 
 #endif /* TRIPTRACKFORM_H_ */

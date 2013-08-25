@@ -11,9 +11,13 @@
 #include <FApp.h>
 #include <FUi.h>
 #include <FGraphics.h>
+#include <FBase.h>
+#include "dao/TTMedia.h"
+#include "dao/POI.h"
 
-class PoiIconListPanel : public Tizen::Ui::Controls::Panel, public Tizen::Ui::Controls::IIconListViewItemProvider
-, public Tizen::Ui::Controls::IIconListViewItemEventListener {
+class PoiIconListPanel: public Tizen::Ui::Controls::Panel,
+		public Tizen::Ui::Controls::IIconListViewItemProvider,
+		public Tizen::Ui::Controls::IIconListViewItemEventListener {
 
 public:
 	PoiIconListPanel(Tizen::Graphics::Rectangle &rect);
@@ -31,9 +35,18 @@ public:
 			Tizen::Ui::Controls::IconListViewItem* pItem);
 	virtual int GetItemCount(void);
 
+	result UpdatePoiCollection(void);
+
 private:
 	result LoadResources(void);
 	Tizen::Ui::Controls::IconListView* __pPoiIconListView;
+	Tizen::Base::Collection::LinkedListT<POI*>* __pPoiCollection;
+
+	float tile_width, tile_height;
+
+	static const float TILES_PER_ROW = 4.0f;
+	static const float TILES_SPACING_X = 8.0f;
+	static const float TILES_SPACING_Y = 12.0f;
 
 	static const int ID_FORMAT_CUSTOM = 503;
 };

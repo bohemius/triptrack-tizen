@@ -9,6 +9,9 @@
 #include <FLocCoordinates.h>
 #include <FSysSettingInfo.h>
 #include <FSysSystemTime.h>
+#include <FLocations.h>
+#include "dao/TTMedia.h"
+#include "util/GraphicsUtils.h"
 #include "TripTrackForm.h"
 #include "LocationManagerThread.h"
 #include "AppResourceId.h"
@@ -24,9 +27,11 @@ using namespace Tizen::Locations;
 using namespace Tizen::Ui;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Ui::Scenes;
+using namespace Tizen::Locations;
 
 TripTrackForm::TripTrackForm(void) :
-		__viewType(VIEW_TYPE_NONE) {
+		__viewType(VIEW_TYPE_NONE), __pTrackListPanel(null), __pPoiIconListPanel(
+				null) {
 }
 
 TripTrackForm::~TripTrackForm(void) {
@@ -55,8 +60,6 @@ result TripTrackForm::OnDraw() {
 
 result TripTrackForm::OnInitializing(void) {
 	result r = E_SUCCESS;
-
-	const int TEXT_SIZE = 30;
 
 	r = LoadResources();
 	if (r != E_SUCCESS) {
@@ -111,11 +114,10 @@ void TripTrackForm::OnAppControlCompleteResponseReceived(
 								String(
 										L"http://tizen.org/appcontrol/data/selected"))));
 				if (pValueList) {
-					for (int i = 0; i < pValueList->GetCount(); i++) {
-						String* pValue =
-								dynamic_cast<String*>(pValueList->GetAt(i));
-						AppLog("Captured image path: [%ls]", pValue->GetPointer());
-					}
+					String* pValue = dynamic_cast<String*>(pValueList->GetAt(0));
+					AppLog("Captured image path: [%ls]", pValue->GetPointer());
+					ProcessCameraResult(pValue);
+					SetPoiView();
 				}
 			}
 		} else if (appControlResult == APP_CTRL_RESULT_FAILED) {
@@ -147,6 +149,29 @@ void TripTrackForm::OpenCamera(void) {
 		pAc->Start(null, &mime, &extraData, this);
 		delete pAc;
 	}
+}
+
+void TripTrackForm::ProcessCameraResult(String* imagePath) {
+	result r = E_SUCCESS;
+
+	//get location the picture was taken at
+	LocationCriteria* criteria = new LocationCriteria();
+	criteria->SetAccuracy(LOC_ACCURACY_TEN_METERS);
+	Location location = LocationProvider::GetLocation(*criteria);
+
+	//create a new poi
+	POI* pPoi = new POI();
+	String title(I18N::GetLocalizedString(ID_STRING_DEFAULT_POI_TITLE));
+	String description(
+			I18N::GetLocalizedString(ID_STRING_DEFAULT_POI_DESCRIPTION));
+
+	r = pPoi->Construct(title, description, location, *imagePath);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing a new poi from camera capture [%ls]: [%s]", imagePath->GetPointer(), GetErrorMessage(r));
+	}
+
+	delete criteria;
 }
 
 result TripTrackForm::LoadResources(void) {
@@ -234,11 +259,62 @@ void TripTrackForm::OnAccuracyChanged(LocationAccuracy accuracy) {
 }
 
 void TripTrackForm::SetPoiView(void) {
+	result r = E_SUCCESS;
 
+	/*if (__viewType == VIEW_TYPE_POI_VIEW)
+	 return;
+	 else
+	 RemoveAllControls();
+
+	 Rectangle sqr = GetClientAreaBounds();
+	 __pPoiIconListPanel = new PoiIconListPanel(sqr);
+	 r = __pPoiIconListPanel->Construct();
+	 if (r != E_SUCCESS) {
+	 AppLogException(
+	 "Error constructing poi icon list view panel: [%s]", GetErrorMessage(r));
+	 return;
+	 }
+	 r = AddControl(*__pPoiIconListPanel);
+	 if (r != E_SUCCESS) {
+	 AppLogException(
+	 "Error showing poi icon list view panel: [%s]", GetErrorMessage(r));
+	 return;
+	 }
+	 __viewType = VIEW_TYPE_POI_VIEW;
+
+	 Footer* pFooter = GetFooter();
+
+	 pFooter->RemoveAllItems();
+	 pFooter->SetStyle(FOOTER_STYLE_BUTTON_ICON);
+
+	 Color* itemColor = new Color(46, 151, 199);
+	 pFooter->SetItemColor(FOOTER_ITEM_STATUS_NORMAL, *itemColor);
+	 Color* footerColor = new Color(70, 70, 70);
+	 pFooter->SetColor(*footerColor);
+
+	 FooterItem addItem, cameraItem;
+	 addItem.Construct(ID_FOOTER_BUTTON_ADD_POI);
+	 addItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pAddBitmap);
+	 pFooter->AddItem(addItem);
+	 cameraItem.Construct(ID_FOOTER_BUTTON_CAMERA_POI);
+	 cameraItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pCameraBitmap);
+	 pFooter->AddItem(cameraItem);
+
+	 pFooter->AddActionEventListener(*this);*/
 	if (__viewType == VIEW_TYPE_POI_VIEW) {
 		return;
 	}
+
 	RemoveAllControls();
+	Rectangle sqr = GetClientAreaBounds();
+	__pPoiIconListPanel = new PoiIconListPanel(sqr);
+	r = __pPoiIconListPanel->Construct();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing poi icon list view panel: [%s]", GetErrorMessage(r));
+		return;
+	}
+	r = AddControl(*__pPoiIconListPanel);
 	__viewType = VIEW_TYPE_POI_VIEW;
 
 	Footer* pFooter = GetFooter();
@@ -264,6 +340,51 @@ void TripTrackForm::SetPoiView(void) {
 
 void TripTrackForm::SetTrackView(void) {
 	result r = E_SUCCESS;
+
+	/*if (__viewType == VIEW_TYPE_TRACK_VIEW)
+	 return;
+	 else
+	 RemoveAllControls();
+
+	 Rectangle sqr = GetClientAreaBounds();
+	 __pTrackListPanel = new TrackListPanel(sqr);
+	 r = __pTrackListPanel->Construct();
+	 if (r != E_SUCCESS) {
+	 AppLogException(
+	 "Error constructing track view panel: [%s]", GetErrorMessage(r));
+	 return;
+	 }
+	 r = AddControl(*__pTrackListPanel);
+	 if (r != E_SUCCESS) {
+	 AppLogException(
+	 "Error showing track view panel: [%s]", GetErrorMessage(r));
+	 return;
+	 }
+	 __viewType = VIEW_TYPE_TRACK_VIEW;
+
+	 Footer* pFooter = GetFooter();
+
+	 pFooter->RemoveAllItems();
+	 pFooter->SetStyle(FOOTER_STYLE_BUTTON_ICON);
+
+	 Color* itemColor = new Color(46, 151, 199);
+	 pFooter->SetItemColor(FOOTER_ITEM_STATUS_NORMAL, *itemColor);
+	 Color* buttonColor = new Color(*itemColor);
+	 buttonColor->SetGreen(itemColor->GetGreen() - 20);
+	 pFooter->SetButtonColor(BUTTON_ITEM_STATUS_NORMAL, *buttonColor);
+
+	 FooterItem addItem, editItem, deleteItem;
+	 addItem.Construct(ID_FOOTER_BUTTTON_ADD_TRACK);
+	 addItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pAddBitmap);
+	 pFooter->AddItem(addItem);
+	 editItem.Construct(ID_FOOTER_BUTTON_EDIT_TRACK);
+	 editItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pEditBitmap);
+	 pFooter->AddItem(editItem);
+	 deleteItem.Construct(ID_FOOTER_BUTTON_DELETE_TRACK);
+	 deleteItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pDeleteBitmap);
+	 pFooter->AddItem(deleteItem);
+
+	 pFooter->AddActionEventListener(*this);*/
 
 	if (__viewType == VIEW_TYPE_TRACK_VIEW) {
 		return;

@@ -8,7 +8,7 @@
         <Feature Name="http://tizen.org/feature/platform.core.fpu.arch.vfpv3">true</Feature>
     </Requirements>
     <Apps>
-        <ApiVersion>2.1</ApiVersion>
+        <ApiVersion>2.2</ApiVersion>
         <Privileges>
             <Privilege>http://tizen.org/privilege/location</Privilege>
             <Privilege>http://tizen.org/privilege/application.launch</Privilege>
