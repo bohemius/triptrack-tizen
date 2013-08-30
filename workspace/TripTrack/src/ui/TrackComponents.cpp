@@ -168,10 +168,12 @@ Tizen::Ui::Controls::ListItemBase* TrackListPanel::CreateItem(int index,
 	TrackListElement* pTrackItem = new TrackListElement();
 	FloatRectangle customElementRect(30.0f, 10.0f, 500.0f, 90.0f);
 
+	//TODO if the item is not currently tracking it should be of different type than LIST_ANNEX_STYLE_ONOFF_SLIDING
 	pItem->Construct(Dimension(itemWidth, 112), LIST_ANNEX_STYLE_ONOFF_SLIDING);
 	pItem->AddElement(customElementRect, ID_FORMAT_CUSTOM, *pTrackItem);
 	if (_trackingIndex != -1 && _trackingIndex != index)
-		pItem->SetBackgroundColor(LIST_ITEM_DRAWING_STATUS_NORMAL, Color::GetColor(COLOR_ID_GREY));
+		pItem->SetBackgroundColor(LIST_ITEM_DRAWING_STATUS_NORMAL,
+				Color::GetColor(COLOR_ID_GREY));
 
 	return pItem;
 }

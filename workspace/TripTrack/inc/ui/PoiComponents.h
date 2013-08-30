@@ -45,10 +45,16 @@ private:
 	float tile_width, tile_height;
 
 	static const float TILES_PER_ROW = 4.0f;
-	static const float TILES_SPACING_X = 8.0f;
-	static const float TILES_SPACING_Y = 12.0f;
+	static const float TILES_SPACING_X = 14.0f;
+	static const float TILES_SPACING_Y = 16.0f;
 
 	static const int ID_FORMAT_CUSTOM = 503;
+
+	Tizen::Graphics::Bitmap* __pTile1;
+	Tizen::Graphics::Bitmap* __pTile2;
+	Tizen::Graphics::Bitmap* __pTile3;
+	Tizen::Graphics::Bitmap* __pTile4;
+	Tizen::Graphics::Bitmap* __pTile5;
 };
 
 #endif /* POICOMPONENTS_H_ */

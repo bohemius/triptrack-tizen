@@ -261,61 +261,28 @@ void TripTrackForm::OnAccuracyChanged(LocationAccuracy accuracy) {
 void TripTrackForm::SetPoiView(void) {
 	result r = E_SUCCESS;
 
-	/*if (__viewType == VIEW_TYPE_POI_VIEW)
-	 return;
-	 else
-	 RemoveAllControls();
-
-	 Rectangle sqr = GetClientAreaBounds();
-	 __pPoiIconListPanel = new PoiIconListPanel(sqr);
-	 r = __pPoiIconListPanel->Construct();
-	 if (r != E_SUCCESS) {
-	 AppLogException(
-	 "Error constructing poi icon list view panel: [%s]", GetErrorMessage(r));
-	 return;
-	 }
-	 r = AddControl(*__pPoiIconListPanel);
-	 if (r != E_SUCCESS) {
-	 AppLogException(
-	 "Error showing poi icon list view panel: [%s]", GetErrorMessage(r));
-	 return;
-	 }
-	 __viewType = VIEW_TYPE_POI_VIEW;
-
-	 Footer* pFooter = GetFooter();
-
-	 pFooter->RemoveAllItems();
-	 pFooter->SetStyle(FOOTER_STYLE_BUTTON_ICON);
-
-	 Color* itemColor = new Color(46, 151, 199);
-	 pFooter->SetItemColor(FOOTER_ITEM_STATUS_NORMAL, *itemColor);
-	 Color* footerColor = new Color(70, 70, 70);
-	 pFooter->SetColor(*footerColor);
-
-	 FooterItem addItem, cameraItem;
-	 addItem.Construct(ID_FOOTER_BUTTON_ADD_POI);
-	 addItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pAddBitmap);
-	 pFooter->AddItem(addItem);
-	 cameraItem.Construct(ID_FOOTER_BUTTON_CAMERA_POI);
-	 cameraItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pCameraBitmap);
-	 pFooter->AddItem(cameraItem);
-
-	 pFooter->AddActionEventListener(*this);*/
 	if (__viewType == VIEW_TYPE_POI_VIEW) {
 		return;
 	}
 
-	RemoveAllControls();
-	Rectangle sqr = GetClientAreaBounds();
-	__pPoiIconListPanel = new PoiIconListPanel(sqr);
-	r = __pPoiIconListPanel->Construct();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructing poi icon list view panel: [%s]", GetErrorMessage(r));
-		return;
+	if (__viewType == VIEW_TYPE_TRACK_VIEW) {
+		__pTrackListPanel->SetShowState(false);
 	}
-	r = AddControl(*__pPoiIconListPanel);
-	__viewType = VIEW_TYPE_POI_VIEW;
+
+	__viewType=VIEW_TYPE_POI_VIEW;
+	if (__pPoiIconListPanel == null) {
+		Rectangle sqr = GetClientAreaBounds();
+		__pPoiIconListPanel = new PoiIconListPanel(sqr);
+		r = __pPoiIconListPanel->Construct();
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error constructing poi icon list view panel: [%s]", GetErrorMessage(r));
+			return;
+		}
+		r = AddControl(*__pPoiIconListPanel);
+	}
+	else
+		__pPoiIconListPanel->SetShowState(true);
 
 	Footer* pFooter = GetFooter();
 
@@ -341,66 +308,26 @@ void TripTrackForm::SetPoiView(void) {
 void TripTrackForm::SetTrackView(void) {
 	result r = E_SUCCESS;
 
-	/*if (__viewType == VIEW_TYPE_TRACK_VIEW)
-	 return;
-	 else
-	 RemoveAllControls();
-
-	 Rectangle sqr = GetClientAreaBounds();
-	 __pTrackListPanel = new TrackListPanel(sqr);
-	 r = __pTrackListPanel->Construct();
-	 if (r != E_SUCCESS) {
-	 AppLogException(
-	 "Error constructing track view panel: [%s]", GetErrorMessage(r));
-	 return;
-	 }
-	 r = AddControl(*__pTrackListPanel);
-	 if (r != E_SUCCESS) {
-	 AppLogException(
-	 "Error showing track view panel: [%s]", GetErrorMessage(r));
-	 return;
-	 }
-	 __viewType = VIEW_TYPE_TRACK_VIEW;
-
-	 Footer* pFooter = GetFooter();
-
-	 pFooter->RemoveAllItems();
-	 pFooter->SetStyle(FOOTER_STYLE_BUTTON_ICON);
-
-	 Color* itemColor = new Color(46, 151, 199);
-	 pFooter->SetItemColor(FOOTER_ITEM_STATUS_NORMAL, *itemColor);
-	 Color* buttonColor = new Color(*itemColor);
-	 buttonColor->SetGreen(itemColor->GetGreen() - 20);
-	 pFooter->SetButtonColor(BUTTON_ITEM_STATUS_NORMAL, *buttonColor);
-
-	 FooterItem addItem, editItem, deleteItem;
-	 addItem.Construct(ID_FOOTER_BUTTTON_ADD_TRACK);
-	 addItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pAddBitmap);
-	 pFooter->AddItem(addItem);
-	 editItem.Construct(ID_FOOTER_BUTTON_EDIT_TRACK);
-	 editItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pEditBitmap);
-	 pFooter->AddItem(editItem);
-	 deleteItem.Construct(ID_FOOTER_BUTTON_DELETE_TRACK);
-	 deleteItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pDeleteBitmap);
-	 pFooter->AddItem(deleteItem);
-
-	 pFooter->AddActionEventListener(*this);*/
-
 	if (__viewType == VIEW_TYPE_TRACK_VIEW) {
 		return;
 	}
-
-	RemoveAllControls();
-	__viewType = VIEW_TYPE_TRACK_VIEW;
-	Rectangle sqr = GetClientAreaBounds();
-	__pTrackListPanel = new TrackListPanel(sqr);
-	r = __pTrackListPanel->Construct();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructing track view panel: [%s]", GetErrorMessage(r));
-		return;
+	if (__viewType == VIEW_TYPE_POI_VIEW) {
+		__pPoiIconListPanel->SetShowState(false);
 	}
-	AddControl(*__pTrackListPanel);
+
+	__viewType = VIEW_TYPE_TRACK_VIEW;
+	if (__pTrackListPanel == null) {
+		Rectangle sqr = GetClientAreaBounds();
+		__pTrackListPanel = new TrackListPanel(sqr);
+		r = __pTrackListPanel->Construct();
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error constructing track view panel: [%s]", GetErrorMessage(r));
+			return;
+		}
+		AddControl(*__pTrackListPanel);
+	} else
+		__pTrackListPanel->SetShowState(true);
 
 	Footer* pFooter = GetFooter();
 
@@ -417,12 +344,12 @@ void TripTrackForm::SetTrackView(void) {
 	addItem.Construct(ID_FOOTER_BUTTTON_ADD_TRACK);
 	addItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pAddBitmap);
 	pFooter->AddItem(addItem);
-	editItem.Construct(ID_FOOTER_BUTTON_EDIT_TRACK);
+	/*editItem.Construct(ID_FOOTER_BUTTON_EDIT_TRACK);
 	editItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pEditBitmap);
 	pFooter->AddItem(editItem);
 	deleteItem.Construct(ID_FOOTER_BUTTON_DELETE_TRACK);
 	deleteItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pDeleteBitmap);
-	pFooter->AddItem(deleteItem);
+	pFooter->AddItem(deleteItem);*/
 
 	pFooter->AddActionEventListener(*this);
 }

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS Location (
     Latitude  REAL    NOT NULL,
     Longitude REAL    NOT NULL,
     Altitude  REAL,
-    Timestamp TEXT    NOT NULL,
+    TimeSig TEXT    NOT NULL,
     Speed     REAL,
     Course    REAL,
     Track_ID  INTEGER,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS POI (
     Latitude       REAL    NOT NULL,
     Longitude      REAL    NOT NULL,
     Altitude       REAL,
-    Timestamp      TEXT    NOT NULL,
+    TimeSig      TEXT    NOT NULL,
     ID             INTEGER,
     DefaultMediaID INTEGER,
     CONSTRAINT PK_POI PRIMARY KEY ( ID ) 

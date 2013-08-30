@@ -31,7 +31,7 @@ Tizen::Io::DbEnumerator* StorageManager::CRUDoperation(I_CRUDable* entity,
 	case I_CRUDable::CREATE:
 		return PerformTransaction(entity->Write());
 	case I_CRUDable::READ:
-		return PerformSelectTransaction(entity->Read());
+		return PerformTransaction(entity->Read());
 	case I_CRUDable::UPDATE:
 		return PerformTransaction(entity->Update());
 	case I_CRUDable::DELETE:
@@ -63,14 +63,13 @@ Tizen::Io::DbEnumerator* StorageManager::PerformSelectTransaction(
 Tizen::Io::DbEnumerator* StorageManager::PerformTransaction(
 		DbStatement* statement) {
 	result r = E_SUCCESS;
-	DbEnumerator* retVal = 0;
+	DbEnumerator* retVal = null;
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 
 	AppLog("Performing transaction with statement: [%d]", statement);
 	db->BeginTransaction();
 	retVal = db->ExecuteStatementN(*statement);
-	db->CommitTransaction();
-	r = GetLastResult();
+	r = db->CommitTransaction();
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error performing transaction with statement [%d]: [%s]", statement, GetErrorMessage(r));
@@ -78,6 +77,8 @@ Tizen::Io::DbEnumerator* StorageManager::PerformTransaction(
 	}
 	AppLog("Transaction complete, received dbEnum: [%d]", retVal);
 	delete statement;
+	//r = retVal->MoveNext();
+	//AppLog("move next result: [%s]",GetErrorMessage(r));
 	return retVal;
 }
 
@@ -88,7 +89,7 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 	String sql;
 	long long int id;
 
-	Database* db = BootstrapManager::getInstance()->getDatabase();
+	/*Database* db = BootstrapManager::getInstance()->getDatabase();
 
 	sql.Append(L"SELECT ID FROM poi");
 	AppLog("Getting all poi IDs from the database.");
@@ -100,9 +101,10 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 				"Error getting poi IDs from database: [%s]", GetErrorMessage(r));
 		return 0;
 	}
-	AppLog("Creating collection of pois.");
 
-	if (pEnum != null && r == E_SUCCESS)
+	if (pEnum != null && r == E_SUCCESS) {
+		long long int* pois = new long long int[1024];
+		long long int count = 0;
 		while (pEnum->MoveNext() == E_SUCCESS) {
 			r = pEnum->GetInt64At(0, id);
 			if (r != E_SUCCESS) {
@@ -110,11 +112,17 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 						"Error getting poi id: [%s]", GetErrorMessage(r));
 				return 0;
 			}
+			pois[count++] = id;
+		}
+		delete pEnum;
+
+		AppLog("Creating collection of pois.");
+		for (long long int i = 0; i < count; i++) {
 			POI* pPoi = new POI();
-			r = pPoi->Construct(id);
+			r = pPoi->Construct(pois[i]);
 			if (r != E_SUCCESS) {
 				AppLogException(
-						"Error constructing poi with ID [%d]: [%s]", id, GetErrorMessage(r));
+						"Error constructing poi with ID [%d]: [%s]", i, GetErrorMessage(r));
 				return 0;
 			}
 			r = retVal->Add(pPoi);
@@ -126,12 +134,18 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 			AppLog(
 					"Successfully added poi [%ls] to collection.", pPoi->GetTitle()->GetPointer());
 		}
-	else
+	} else
 		AppLog("No POIs in the database, returning empty collection.");
 
 	AppLog(
-			"Successfully read and added [%d] pois to collection.", retVal->GetCount());
-	delete pEnum;
+			"Successfully read and added [%d] pois to collection.", retVal->GetCount());*/
+	POI* pPoi= new POI();
+	r = pPoi->Construct(1);
+	POI* pPoi2= new POI();
+	r = pPoi2->Construct(2);
+	retVal->Add(pPoi);
+	retVal->Add(pPoi2);
+
 	return retVal;
 }
 

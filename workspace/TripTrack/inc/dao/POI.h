@@ -43,6 +43,7 @@ public:
 	virtual Tizen::Io::DbStatement* Write(void);
 	virtual Tizen::Io::DbStatement* Delete(void);
 	virtual Tizen::Io::DbStatement* Update(void);
+	result POI::ReadFromDb(void);
 	Tizen::Base::DateTime* GetTimestamp() const;
 	void SetTimestamp(Tizen::Base::DateTime* timestamp);
 

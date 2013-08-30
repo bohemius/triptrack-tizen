@@ -19,10 +19,11 @@ using namespace Tizen::Base;
 using namespace Tizen::Io;
 using namespace Tizen::Graphics;
 using namespace Tizen::System;
+using namespace Tizen::App;
 
-POI::POI() {
-	__pCoordinates = new Coordinates();
-	__pTimestamp = new DateTime();
+POI::POI() :
+		__pCoordinates(null), __pTimestamp(null), __pDescription(null), __pTitle(
+				null) {
 }
 
 POI::~POI() {
@@ -78,45 +79,23 @@ void POI::DeleteMedia(TTMedia* media) {
 }
 
 result POI::Construct(long long int id) {
-	StorageManager* store = StorageManager::getInstance();
-	DbEnumerator* pEnum = 0;
-	result r = E_SUCCESS;
 
-	AppLog("Reading poi data from database for poi id: [%d]", id);
-	__id = id;
-	pEnum = store->CRUDoperation(this, I_CRUDable::READ);
+	__id=id;
+	AppLog("Reading poi data from database for poi id: [%d]", __id);
+	Read();
 
-	double latitude, longitude, altitude;
-	String dateString;
+	AppLog(
+			"Constructed poi with values desc=[%S], title=[%S], latitude=[%f], longitutde=[%f], altitude=[%f]. time=[%S], defImgId=[%lld], id=[%lld]",
+			__pDescription->GetPointer(),
+			__pTitle->GetPointer(),
+			__pCoordinates->GetLatitude(),
+			__pCoordinates->GetLongitude(),
+			__pCoordinates->GetAltitude(),
+			__pTimestamp->ToString().GetPointer(),
+			GetDefImageId(),
+			GetId());
 
-	//Description, Title, Latitude, Longitude, Altitude, Timestamp, DefaultMediaID
-	//while (pEnum->MoveNext() == E_SUCCESS) {
-	r = pEnum->MoveNext();
-	if (r != E_SUCCESS)
-		AppLogException("Error moving next: [%s]", GetErrorMessage(r));
-	r = pEnum->GetStringAt(0, *__pDescription);
-	if (r != E_SUCCESS)
-		AppLogException("Error getting string@0: [%s]", GetErrorMessage(r));
-	pEnum->GetStringAt(1, *__pTitle);
-	pEnum->GetDoubleAt(2, latitude);
-	pEnum->GetDoubleAt(3, longitude);
-	pEnum->GetDoubleAt(4, altitude);
-	pEnum->GetStringAt(5, dateString);
-	pEnum->GetInt64At(6, __defImageId);
-	//}
-
-	__pCoordinates->Set(latitude, longitude, altitude);
-	r = DateTime::Parse(dateString, *__pTimestamp);
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error parsing timestamp for poi with id [%d]: [%s]", __id, GetErrorMessage(r));
-		return r;
-	}
-	__pAssociatedMedia = StorageManager::getInstance()->GetMedia(__id);
-	AppLog("Successfully loaded data for poi [%ls]", __pTitle->GetPointer());
-
-	delete pEnum;
-	return r;
+	return E_SUCCESS;
 }
 
 result POI::Construct(Tizen::Base::String& Title,
@@ -166,13 +145,13 @@ result POI::Construct(Tizen::Base::String& Title,
 
 	result r = E_SUCCESS;
 
-	//create poi using supplied parameters
+//create poi using supplied parameters
 	r = Construct(Title, Description, location);
 	if (r != E_SUCCESS)
 		AppLogException(
 				"Error creating poi  [%ls]: [%s]", __pTitle->GetPointer(), GetErrorMessage(r));
 
-	//process the camera image and create a tile
+//process the camera image and create a tile
 	Bitmap* pCapturedBitmap = GraphicsUtils::CreateBitmap(SourceUri);
 	r = pCapturedBitmap->Scale(
 			FloatDimension(TILE_IMAGE_WIDTH, TILE_IMAGE_HEIGHT));
@@ -181,7 +160,7 @@ result POI::Construct(Tizen::Base::String& Title,
 				"Bitmap [%ls] scaling failed: [%s]", SourceUri.GetPointer(), GetErrorMessage(r));
 	ByteBuffer* pImgBuffer = GraphicsUtils::CreateImageBuffer(pCapturedBitmap);
 
-	//create the media using the image
+//create the media using the image
 	TTMedia* pDefMedia = new TTMedia();
 	r = pDefMedia->Construct(SourceUri, __id, pImgBuffer);
 	if (r != E_SUCCESS) {
@@ -199,14 +178,21 @@ long long int POI::GetId() const {
 	return __id;
 }
 
+result POI::ReadFromDb(void) {
+	result r = E_SUCCESS;
+
+	return r;
+}
+
 Tizen::Io::DbStatement* POI::Read(void) {
 	String sqlStatement;
 	DbStatement* pStmt = null;
+	DbEnumerator* pEnum = null;
 	Database* db;
 	result r = E_SUCCESS;
 
 	sqlStatement.Append(
-			L"SELECT Description, Title, Latitude, Longitude, Altitude, Timestamp, DefaultMediaID FROM poi WHERE ID = ?");
+			L"SELECT Description, Title, Latitude, Longitude, Altitude, TimeSig, DefaultMediaID FROM poi WHERE ID = ?");
 
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);
@@ -215,7 +201,7 @@ Tizen::Io::DbStatement* POI::Read(void) {
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error creating sql statement for SELECT for poi with ID [%d]: [%s]", __id, GetErrorMessage(r));
-		return 0;
+		return null;
 	}
 	AppAssert(pStmt);
 	AppLog( "Sql SELECT statement created for poi with ID: [%d]", __id);
@@ -224,9 +210,75 @@ Tizen::Io::DbStatement* POI::Read(void) {
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error binding __id for SELECT for poi with ID [%d]: [%s]", __id, GetErrorMessage(r));
-		return 0;
+		return null;
 	}
-	return pStmt;
+	double latitude, longitude, altitude;
+	long long int defId;
+	String dateString, title, desc;
+	DateTime timeStamp;
+
+	pEnum = db->ExecuteStatementN(*pStmt);
+	//Description, Title, Latitude, Longitude, Altitude, Timestamp, DefaultMediaID
+	while (pEnum->MoveNext() == E_SUCCESS) {
+		pEnum->GetStringAt(0, desc);
+		pEnum->GetStringAt(1, title);
+		pEnum->GetDoubleAt(2, latitude);
+		pEnum->GetDoubleAt(3, longitude);
+		pEnum->GetDoubleAt(4, altitude);
+		pEnum->GetStringAt(5, dateString);
+		pEnum->GetInt64At(6, defId);
+	}
+
+	Coordinates* pCoor = new Coordinates();
+	pCoor->Set(latitude, longitude, altitude);
+
+	r = DateTime::Parse(dateString, timeStamp);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error parsing timestamp for poi with id [%d]: [%s]", __id, GetErrorMessage(r));
+		return null;
+	}
+	AppLog(
+			"Read values desc=[%S], title=[%S], latitude=[%f], longitutde=[%f], altitude=[%f]. time=[%S], defImgId=[%lld]", desc.GetPointer(), title.GetPointer(), latitude, longitude, altitude, dateString.GetPointer(), defId);
+
+	SetDescription(&desc);
+	SetTitle(&title);
+	SetTimestamp(&timeStamp);
+	SetLocation(pCoor);
+	SetDefImageId(defId);
+
+	delete pEnum;
+	delete pStmt;
+
+	AppLog("Successfully loaded data for poi [%ls]", __pTitle->GetPointer());
+	return null;
+	/*String sqlStatement;
+	 DbStatement* pStmt = null;
+	 Database* db;
+	 result r = E_SUCCESS;
+
+	 sqlStatement.Append(
+	 L"SELECT Description, Title, Latitude, Longitude, Altitude, TimeSig, DefaultMediaID FROM poi WHERE ID = ?");
+
+	 db = BootstrapManager::getInstance()->getDatabase();
+	 pStmt = db->CreateStatementN(sqlStatement);
+	 AppLog( "Creating sql statement for SELECT for poi with ID: [%d]", __id);
+	 r = GetLastResult();
+	 if (r != E_SUCCESS) {
+	 AppLogException(
+	 "Error creating sql statement for SELECT for poi with ID [%d]: [%s]", __id, GetErrorMessage(r));
+	 return 0;
+	 }
+	 AppAssert(pStmt);
+	 AppLog( "Sql SELECT statement created for poi with ID: [%d]", __id);
+
+	 r = pStmt->BindInt64(0, __id);
+	 if (r != E_SUCCESS) {
+	 AppLogException(
+	 "Error binding __id for SELECT for poi with ID [%d]: [%s]", __id, GetErrorMessage(r));
+	 return 0;
+	 }
+	 return pStmt;*/
 }
 
 Tizen::Io::DbStatement* POI::Write(void) {
@@ -236,7 +288,7 @@ Tizen::Io::DbStatement* POI::Write(void) {
 	result r = E_SUCCESS;
 
 	sqlStatement.Append(
-			L"INSERT INTO poi (Description, Title, Latitude, Longitude, Altitude, Timestamp, DefaultMediaID) VALUES (?,?,?,?,?,?,?)");
+			L"INSERT INTO poi (Description, Title, Latitude, Longitude, Altitude, TimeSig, DefaultMediaID) VALUES (?,?,?,?,?,?,?)");
 
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);
@@ -290,7 +342,7 @@ Tizen::Io::DbStatement* POI::Update(void) {
 	result r = E_SUCCESS;
 
 	sqlStatement.Append(
-			L"UPDATE poi SET Description = ?, Title = ?, Latitude = ?, Longitude = ?, Altitude = ?, Timestamp = ?, DefaultMediaID = ? WHERE ID = ?");
+			L"UPDATE poi SET Description = ?, Title = ?, Latitude = ?, Longitude = ?, Altitude = ?, TimeSig = ?, DefaultMediaID = ? WHERE ID = ?");
 
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);

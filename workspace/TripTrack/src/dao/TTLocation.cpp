@@ -148,7 +148,7 @@ Tizen::Io::DbStatement* TTLocation::Read(void) {
 	result r = E_SUCCESS;
 
 	sqlStatement.Append(
-			L"SELECT Latitude, Longitude, Altitude, Timestamp, Speed, Course FROM location WHERE ID = ?");
+			L"SELECT Latitude, Longitude, Altitude, TimeSig, Speed, Course FROM location WHERE ID = ?");
 
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);
@@ -172,7 +172,7 @@ Tizen::Io::DbStatement* TTLocation::Write(void) {
 	result r = E_SUCCESS;
 
 	sqlStatement.Append(
-			L"INSERT INTO location (Latitude, Longitude, Altitude, Timestamp, Speed, Course, Track_ID) VALUES (?,?,?,?,?,?,?)");
+			L"INSERT INTO location (Latitude, Longitude, Altitude, TimeSig, Speed, Course, Track_ID) VALUES (?,?,?,?,?,?,?)");
 
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);
@@ -228,7 +228,7 @@ Tizen::Io::DbStatement* TTLocation::Update(void) {
 	result r = E_SUCCESS;
 
 	sqlStatement.Append(
-			L"UPDATE location SET  Latitude = ?, Longitude = ?, Altitude = ?, Timestamp = ?, Speed = ?, Course = ? WHERE ID = ?");
+			L"UPDATE location SET  Latitude = ?, Longitude = ?, Altitude = ?, TimeSig = ?, Speed = ?, Course = ? WHERE ID = ?");
 
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);
