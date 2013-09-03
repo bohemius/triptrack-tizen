@@ -35,18 +35,18 @@ result PoiIconListPanel::Construct(void) {
 	}
 
 	__pPoiIconListView = new IconListView();
-	tile_width = (GetBoundsF().width - (TILES_PER_ROW - 1.0f) * TILES_SPACING_X
-			+ TILES_SPACING_X) / TILES_PER_ROW;
-	tile_height = tile_width * 1.764f;
+	tile_width = (GetBoundsF().width - TILES_PER_ROW * TILES_SPACING_X
+			- TILES_SPACING_X) / TILES_PER_ROW;
+	tile_height = (GetBoundsF().height - TILES_PER_COLUMN * TILES_SPACING_Y - TILES_SPACING_Y) / TILES_PER_COLUMN;
 
-	/*r = __pPoiIconListView->Construct(
-			FloatRectangle(0.0f, 0.0f, GetBoundsF().width, GetBoundsF().height),
-			FloatDimension(tile_width, tile_height), ICON_LIST_VIEW_STYLE_NORMAL,
-			ICON_LIST_VIEW_SCROLL_DIRECTION_VERTICAL);*/
 	r = __pPoiIconListView->Construct(
+			FloatRectangle(TILES_OFFSET_X, TILES_OFFSET_Y, GetBoundsF().width, GetBoundsF().height),
+			FloatDimension(tile_width, tile_height), ICON_LIST_VIEW_STYLE_NORMAL,
+			ICON_LIST_VIEW_SCROLL_DIRECTION_VERTICAL);
+	/*r = __pPoiIconListView->Construct(
 				FloatRectangle(0.0f, 0.0f, 720.0f, 1026.0f),
 				FloatDimension(175.0f, 198.0f ), ICON_LIST_VIEW_STYLE_MARK,
-				ICON_LIST_VIEW_SCROLL_DIRECTION_VERTICAL);
+				ICON_LIST_VIEW_SCROLL_DIRECTION_VERTICAL);*/
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error constructing poi icon list view: [%s]", GetErrorMessage(r));

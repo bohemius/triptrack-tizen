@@ -44,9 +44,12 @@ private:
 
 	float tile_width, tile_height;
 
-	static const float TILES_PER_ROW = 4.0f;
-	static const float TILES_SPACING_X = 14.0f;
-	static const float TILES_SPACING_Y = 16.0f;
+	static const float TILES_PER_ROW = 2.0f;
+	static const float TILES_PER_COLUMN = 2.0f;
+	static const float TILES_SPACING_X = 20.0f;
+	static const float TILES_SPACING_Y = 30.0f;
+	static const float TILES_OFFSET_X = 0.0f;
+	static const float TILES_OFFSET_Y = 30.0f;
 
 	static const int ID_FORMAT_CUSTOM = 503;
 

@@ -19,11 +19,11 @@ const int Tracker::ACTIVE;
 const int Tracker::PAUSED;
 const int Tracker::LOCKED;
 
-Tracker::Tracker() {
+Tracker::Tracker() : __pDescription(null), __pTitle(null) {
 }
 
 Tracker::~Tracker() {
-	// TODO Auto-generated destructor stub
+	// TODO deallocate tracker related items
 }
 
 result Tracker::AddLocation(Location location) {
@@ -79,31 +79,21 @@ TTLocation* Tracker::EndPosition(void) {
 
 //Constructs existing tracker from database using trackerId
 result Tracker::Construct(long long int id) {
-	StorageManager* store = StorageManager::getInstance();
-	DbEnumerator* pEnum = 0;
-	result r = E_SUCCESS;
-
-	AppLog("Reading tracker data from database for tracker id: [%d]", id);
 	__trackerId = id;
-	pEnum = store->CRUDoperation(this, I_CRUDable::READ);
-	if (pEnum == 0) {
-		AppLogException("Error reading tracker with id: [%d]", id);
-		r = E_FAILURE;
-		return r;
-	}
 
-	while (pEnum->MoveNext() == E_SUCCESS) {
-		pEnum->GetStringAt(0, *__pDescription);
-		pEnum->GetStringAt(1, *__pTitle);
-		pEnum->GetDoubleAt(2, __distance);
-		pEnum->GetIntAt(3, __status);
-	}
-	__pTrackPoints=StorageManager::getInstance()->GetLocations(__trackerId);
 	AppLog(
-			"Successfully loaded data for tracker: [%ls]", __pTitle->GetPointer());
+			"Reading media data from database for media id: [%lld]", __trackerId);
+	Read();
 
-	delete pEnum;
-	return r;
+	AppLog(
+			"Constructed track with values desc=[%S], title=[%S], distance=[%f], status=[%d], id=[%lld]",
+			__pDescription->GetPointer(),
+			__pTitle->GetPointer(),
+			__distance,
+			__status,
+			__trackerId);
+
+	return E_SUCCESS;
 }
 
 //Constructs a new tracker using the supplied parameters, sets the status to paused
@@ -127,11 +117,11 @@ result Tracker::Construct(Tizen::Base::String &Description,
 		return r;
 	}
 	//get the inserted ID using last_insert_rowid()
-	__trackerId=db->GetLastInsertRowId();
+	__trackerId = db->GetLastInsertRowId();
 	AppLog(
 			"Successfully stored the new tracker [%ls] in the database with ID: [%d]", __pTitle->GetPointer(), __trackerId);
 	delete pEnum;
-	__pTrackPoints=new LinkedListT<TTLocation*>();
+	__pTrackPoints = new LinkedListT<TTLocation*>();
 	return r;
 }
 
@@ -166,6 +156,7 @@ long long int Tracker::GetTrackerId() const {
 Tizen::Io::DbStatement* Tracker::Read(void) {
 	String sqlStatement;
 	DbStatement* pStmt = null;
+	DbEnumerator* pEnum = null;
 	Database* db;
 	result r = E_SUCCESS;
 
@@ -175,16 +166,72 @@ Tizen::Io::DbStatement* Tracker::Read(void) {
 	db = BootstrapManager::getInstance()->getDatabase();
 	pStmt = db->CreateStatementN(sqlStatement);
 	AppLog(
-			"Creating sql statement for SELECT for tracker with ID: [%d]", __trackerId);
-	if (pStmt == 0 || r != E_SUCCESS) {
+			"Creating sql statement for SELECT for track with ID: [%d]", __trackerId);
+	r = GetLastResult();
+	if (r != E_SUCCESS) {
 		AppLogException(
-				"Error creating sql statement for SELECT for tracker with ID [%d]: [%s]", __trackerId, GetErrorMessage(r));
-		return 0;
+				"Error creating sql statement for SELECT for track with ID [%d]: [%s]", __trackerId, GetErrorMessage(r));
+		return null;
 	}
+	AppAssert(pStmt);
 	AppLog(
-			"Sql SELECT statement created for tracker with ID: [%d]", __trackerId);
-	pStmt->BindInt64(0, __trackerId);
-	return pStmt;
+			"Sql SELECT statement created for track with ID: [%d]", __trackerId);
+
+	r = pStmt->BindInt64(0, __trackerId);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error binding __trackerId for SELECT for track with ID [%d]: [%s]", __trackerId, GetErrorMessage(r));
+		return null;
+	}
+
+	double distance;
+	String title, desc;
+	int status;
+
+	pEnum = db->ExecuteStatementN(*pStmt);
+	//Description, Title, Distance, Status
+	while (pEnum->MoveNext() == E_SUCCESS) {
+		pEnum->GetStringAt(0, desc);
+		pEnum->GetStringAt(1, title);
+		pEnum->GetDoubleAt(2, distance);
+		pEnum->GetIntAt(3, status);
+	}
+
+	AppLog(
+			"Read values desc=[%S], title=[%S], distance=[%f], status=[%d]", desc.GetPointer(), title.GetPointer(), distance, status);
+
+	SetDescription(&desc);
+	SetTitle(&title);
+	SetStatus(status);
+	SetDistance(distance);
+
+	delete pEnum;
+	delete pStmt;
+
+	AppLog("Successfully loaded data for track [%ls]", __pTitle->GetPointer());
+	return null;
+
+	/*String sqlStatement;
+	 DbStatement* pStmt = null;
+	 Database* db;
+	 result r = E_SUCCESS;
+
+	 sqlStatement.Append(
+	 L"SELECT Description, Title, Distance, Status FROM Track WHERE ID = ?");
+
+	 db = BootstrapManager::getInstance()->getDatabase();
+	 pStmt = db->CreateStatementN(sqlStatement);
+	 AppLog(
+	 "Creating sql statement for SELECT for tracker with ID: [%d]", __trackerId);
+	 if (pStmt == 0 || r != E_SUCCESS) {
+	 AppLogException(
+	 "Error creating sql statement for SELECT for tracker with ID [%d]: [%s]", __trackerId, GetErrorMessage(r));
+	 return 0;
+	 }
+	 AppLog(
+	 "Sql SELECT statement created for tracker with ID: [%d]", __trackerId);
+	 pStmt->BindInt64(0, __trackerId);
+	 return pStmt;*/
 }
 
 Tizen::Io::DbStatement* Tracker::Write(void) {
@@ -271,6 +318,10 @@ double Tracker::GetDistance() const {
 
 int Tracker::GetStatus() const {
 	return __status;
+}
+
+void Tracker::SetDistance(double distance) {
+	__distance = distance;
 }
 
 void Tracker::SetStatus(int status) {

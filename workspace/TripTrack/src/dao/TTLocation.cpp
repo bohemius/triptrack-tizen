@@ -15,9 +15,8 @@ using namespace Tizen::Base;
 using namespace Tizen::System;
 using namespace Tizen::Io;
 
-TTLocation::TTLocation() {
-	__pCoordinates = new Coordinates();
-	__pTimeStamp = new DateTime();
+TTLocation::TTLocation() :
+		__pCoordinates(null), __pTimeStamp(null) {
 }
 
 TTLocation::~TTLocation() {
@@ -27,44 +26,23 @@ TTLocation::~TTLocation() {
 
 //Constructs existing location from database using locationId
 result TTLocation::Construct(long long int id) {
-	StorageManager* store = StorageManager::getInstance();
-	DbEnumerator* pEnum = 0;
-	result r = E_SUCCESS;
-
-	AppLog("Reading location data from database for location id: [%d]", id);
 	__locationId = id;
-	pEnum = store->CRUDoperation(this, I_CRUDable::READ);
-	if (pEnum == 0) {
-		AppLogException("Error reading location with id: [%d]", id);
-		r = E_FAILURE;
-		return r;
-	}
 
-	double latitude, longitude, altitude;
-	String dateString;
+	AppLog(
+			"Reading location data from database for location id: [%lld]", __locationId);
+	Read();
 
-	while (pEnum->MoveNext() == E_SUCCESS) {
-		pEnum->GetDoubleAt(0, latitude);
-		pEnum->GetDoubleAt(1, longitude);
-		pEnum->GetDoubleAt(2, altitude);
-		pEnum->GetStringAt(3, dateString);
-		pEnum->GetDoubleAt(4, __speed);
-		pEnum->GetDoubleAt(5, __course);
-	}
+	AppLog(
+				"Constructed location with values latitude=[%f], longitude=[%f], altitude=[%f], time=[%S], speed=[%f], course=[%f], id=[%lld]",
+				__pCoordinates->GetLatitude(),
+				__pCoordinates->GetLongitude(),
+				__pCoordinates->GetAltitude(),
+				__pTimeStamp->ToString().GetPointer(),
+				__speed,
+				__course,
+				__locationId);
 
-	__pCoordinates->Set(latitude, longitude, altitude);
-
-	r = DateTime::Parse(dateString, *__pTimeStamp);
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error parsing timestamp for location with id [%d]: [%s]", __locationId, GetErrorMessage(r));
-		return r;
-	}
-
-	AppLog("Successfully loaded data for location id: [%d]", __locationId);
-
-	delete pEnum;
-	return r;
+	return E_SUCCESS;
 }
 
 //Constructs a new location using Location usually supplied by the device GPS
@@ -80,7 +58,9 @@ result TTLocation::Construct(Location location) {
 
 	__speed = location.GetSpeed();
 	__course = location.GetCourse();
-	__pCoordinates->Set(location.GetCoordinates().GetLatitude(),location.GetCoordinates().GetLongitude(),location.GetCoordinates().GetAltitude());
+	__pCoordinates->Set(location.GetCoordinates().GetLatitude(),
+			location.GetCoordinates().GetLongitude(),
+			location.GetCoordinates().GetAltitude());
 
 	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
 	if (r != E_SUCCESS) {
@@ -89,7 +69,7 @@ result TTLocation::Construct(Location location) {
 		return r;
 	}
 	//get the inserted ID using last_insert_rowid()
-	__locationId=db->GetLastInsertRowId();
+	__locationId = db->GetLastInsertRowId();
 
 	AppLog(
 			"Successfully stored the new location with timestamp [%ls] in the database with ID: [%d]", __pTimeStamp->ToString().GetPointer(), __locationId);
@@ -144,6 +124,7 @@ double TTLocation::getAltitude(void) {
 Tizen::Io::DbStatement* TTLocation::Read(void) {
 	String sqlStatement;
 	DbStatement* pStmt = null;
+	DbEnumerator* pEnum = null;
 	Database* db;
 	result r = E_SUCCESS;
 
@@ -151,18 +132,86 @@ Tizen::Io::DbStatement* TTLocation::Read(void) {
 			L"SELECT Latitude, Longitude, Altitude, TimeSig, Speed, Course FROM location WHERE ID = ?");
 
 	db = BootstrapManager::getInstance()->getDatabase();
-	pStmt = db->CreateStatementN(sqlStatement);
 	AppLog(
 			"Creating sql statement for SELECT for location with ID: [%d]", __locationId);
-	if (pStmt == 0 || r != E_SUCCESS) {
+	pStmt = db->CreateStatementN(sqlStatement);
+	r = GetLastResult();
+	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error creating sql statement for SELECT for location with ID [%d]: [%s]", __locationId, GetErrorMessage(r));
-		return 0;
+		return null;
 	}
+	AppAssert(pStmt);
 	AppLog(
 			"Sql SELECT statement created for location with ID: [%d]", __locationId);
-	pStmt->BindInt64(0, __locationId);
-	return pStmt;
+
+	r = pStmt->BindInt64(0, __locationId);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error binding __locationId for SELECT for location with ID [%d]: [%s]", __locationId, GetErrorMessage(r));
+		return null;
+	}
+
+	double latitude, longitude, altitude, speed, course;
+	String dateString;
+	DateTime timeStamp;
+
+	pEnum = db->ExecuteStatementN(*pStmt);
+	//Latitude, Longitude, Altitude, TimeSig, Speed, Course
+	while (pEnum->MoveNext() == E_SUCCESS) {
+		pEnum->GetDoubleAt(0, latitude);
+		pEnum->GetDoubleAt(1, longitude);
+		pEnum->GetDoubleAt(2, altitude);
+		pEnum->GetStringAt(3, dateString);
+		pEnum->GetDoubleAt(4, speed);
+		pEnum->GetDoubleAt(5, course);
+	}
+
+	Coordinates* pCoor = new Coordinates();
+	pCoor->Set(latitude, longitude, altitude);
+
+	r = DateTime::Parse(dateString, timeStamp);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error parsing timestamp for location with id [%d]: [%s]", __locationId, GetErrorMessage(r));
+		return null;
+	}
+	AppLog(
+			"Read values latitude=[%f], longitude=[%f], altitude=[%f], time=[%S], speed=[%f], course=[%f]", latitude, longitude, altitude, timeStamp.ToString().GetPointer(), speed, course);
+
+	setCoordinates(pCoor);
+	setSpeed(speed);
+	setCourse(course);
+	setTimestamp(&timeStamp);
+
+	delete pEnum;
+	delete pStmt;
+
+	AppLog(
+			"Successfully loaded data for location with id [%lld]", __locationId);
+	return null;
+
+	/*String sqlStatement;
+	 DbStatement* pStmt = null;
+	 Database* db;
+	 result r = E_SUCCESS;
+
+	 sqlStatement.Append(
+	 L"SELECT Latitude, Longitude, Altitude, TimeSig, Speed, Course FROM location WHERE ID = ?");
+
+	 db = BootstrapManager::getInstance()->getDatabase();
+	 pStmt = db->CreateStatementN(sqlStatement);
+	 AppLog(
+	 "Creating sql statement for SELECT for location with ID: [%d]", __locationId);
+	 if (pStmt == 0 || r != E_SUCCESS) {
+	 AppLogException(
+	 "Error creating sql statement for SELECT for location with ID [%d]: [%s]", __locationId, GetErrorMessage(r));
+	 return 0;
+	 }
+	 AppLog(
+	 "Sql SELECT statement created for location with ID: [%d]", __locationId);
+	 pStmt->BindInt64(0, __locationId);
+	 return pStmt;*/
 }
 
 Tizen::Io::DbStatement* TTLocation::Write(void) {
@@ -250,7 +299,7 @@ Tizen::Io::DbStatement* TTLocation::Update(void) {
 	pStmt->BindString(3, dateString);
 	pStmt->BindDouble(4, __speed);
 	pStmt->BindDouble(5, __course);
-	pStmt->BindInt64(6,__locationId);
+	pStmt->BindInt64(6, __locationId);
 	return pStmt;
 }
 
@@ -258,4 +307,7 @@ long long int TTLocation::GetLocationId() const {
 	return __locationId;
 }
 
+void TTLocation::SetLocationId(long long int locationId) {
+	__locationId = locationId;
+}
 

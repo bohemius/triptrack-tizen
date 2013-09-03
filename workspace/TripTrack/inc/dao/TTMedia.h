@@ -25,6 +25,8 @@ public:
 	void SetContent(Tizen::Base::ByteBuffer* content);
 	Tizen::Base::String* GetSourceUri() const;
 	void SetSourceUri(Tizen::Base::String* sourceUri);
+	long long int GetPoiId() const;
+	void SetPoiId(long long int poiId);
 
 private:
 	Tizen::Base::ByteBuffer* __pContent;

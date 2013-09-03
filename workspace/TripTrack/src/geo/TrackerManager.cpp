@@ -91,6 +91,8 @@ result TrackerManager::RemoveTracker(Tracker* pTracker) {
 
 //Creates a collection of existing trackers from the database
 result TrackerManager::Construct(void) {
+	result r=E_SUCCESS;
+	return r;
 }
 
 Tizen::Base::Collection::LinkedListT<Tracker*>* TrackerManager::GetTracks() const {

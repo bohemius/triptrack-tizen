@@ -41,6 +41,7 @@ public:
 	virtual Tizen::Io::DbStatement* Delete(void);
 	virtual Tizen::Io::DbStatement* Update(void);
 	long long int GetLocationId() const;
+	void SetLocationId(long long int locationId);
 
 private:
 	Tizen::Locations::Coordinates* __pCoordinates;

@@ -23,7 +23,6 @@ public:
 	static StorageManager* getInstance(void);
 	Tizen::Io::DbEnumerator* CRUDoperation(I_CRUDable* entity, enum I_CRUDable::CRUD_OP);
 	Tizen::Io::DbEnumerator* PerformTransaction(Tizen::Io::DbStatement* statement);
-	Tizen::Io::DbEnumerator* StorageManager::PerformSelectTransaction(Tizen::Io::DbStatement* statement);
 	Tizen::Base::Collection::LinkedListT<POI*>* GetPois(void);
 	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetMedia(long long int poiId);
 	Tizen::Base::Collection::LinkedListT<Tracker*>* GetTracks(void);

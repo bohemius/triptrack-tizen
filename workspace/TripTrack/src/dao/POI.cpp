@@ -22,8 +22,8 @@ using namespace Tizen::System;
 using namespace Tizen::App;
 
 POI::POI() :
-		__pCoordinates(null), __pTimestamp(null), __pDescription(null), __pTitle(
-				null) {
+		__pDescription(null), __pTitle(null), __pTimestamp(null), __pCoordinates(
+				null), __defImageId(-1) {
 }
 
 POI::~POI() {
@@ -36,8 +36,6 @@ long long int POI::GetDefImageId() const {
 
 void POI::SetDefImageId(long long int defImageId) {
 	__defImageId = defImageId;
-	//now that the default media id is set update the POI
-	StorageManager::getInstance()->CRUDoperation(this, I_CRUDable::UPDATE);
 }
 
 Tizen::Base::Collection::LinkedListT<TTMedia*>* POI::GetAssociatedMedia() const {
@@ -49,6 +47,8 @@ Tizen::Base::String* POI::GetDescription() const {
 }
 
 void POI::SetDescription(Tizen::Base::String* description) {
+	if (__pDescription != null)
+		delete __pDescription;
 	__pDescription = description;
 }
 
@@ -57,6 +57,8 @@ Coordinates* POI::GetLocation() const {
 }
 
 void POI::SetLocation(Coordinates* location) {
+	if (__pCoordinates != null)
+		delete __pCoordinates;
 	__pCoordinates = location;
 }
 
@@ -65,6 +67,8 @@ Tizen::Base::String* POI::GetTitle() const {
 }
 
 void POI::SetTitle(Tizen::Base::String* title) {
+	if (__pTitle != null)
+		delete __pTitle;
 	__pTitle = title;
 }
 
@@ -79,21 +83,12 @@ void POI::DeleteMedia(TTMedia* media) {
 }
 
 result POI::Construct(long long int id) {
-
-	__id=id;
+	__id = id;
 	AppLog("Reading poi data from database for poi id: [%d]", __id);
 	Read();
 
 	AppLog(
-			"Constructed poi with values desc=[%S], title=[%S], latitude=[%f], longitutde=[%f], altitude=[%f]. time=[%S], defImgId=[%lld], id=[%lld]",
-			__pDescription->GetPointer(),
-			__pTitle->GetPointer(),
-			__pCoordinates->GetLatitude(),
-			__pCoordinates->GetLongitude(),
-			__pCoordinates->GetAltitude(),
-			__pTimestamp->ToString().GetPointer(),
-			GetDefImageId(),
-			GetId());
+			"Constructed poi with values desc=[%S], title=[%S], latitude=[%f], longitude=[%f], altitude=[%f], time=[%S], defImgId=[%lld], id=[%lld]", __pDescription->GetPointer(), __pTitle->GetPointer(), __pCoordinates->GetLatitude(), __pCoordinates->GetLongitude(), __pCoordinates->GetAltitude(), __pTimestamp->ToString().GetPointer(), GetDefImageId(), GetId());
 
 	return E_SUCCESS;
 }
@@ -178,12 +173,6 @@ long long int POI::GetId() const {
 	return __id;
 }
 
-result POI::ReadFromDb(void) {
-	result r = E_SUCCESS;
-
-	return r;
-}
-
 Tizen::Io::DbStatement* POI::Read(void) {
 	String sqlStatement;
 	DbStatement* pStmt = null;
@@ -241,9 +230,9 @@ Tizen::Io::DbStatement* POI::Read(void) {
 	AppLog(
 			"Read values desc=[%S], title=[%S], latitude=[%f], longitutde=[%f], altitude=[%f]. time=[%S], defImgId=[%lld]", desc.GetPointer(), title.GetPointer(), latitude, longitude, altitude, dateString.GetPointer(), defId);
 
-	SetDescription(&desc);
-	SetTitle(&title);
-	SetTimestamp(&timeStamp);
+	SetDescription(new String(desc));
+	SetTitle(new String(title));
+	SetTimestamp(new DateTime(timeStamp));
 	SetLocation(pCoor);
 	SetDefImageId(defId);
 
@@ -374,6 +363,8 @@ Tizen::Base::DateTime* POI::GetTimestamp() const {
 }
 
 void POI::SetTimestamp(Tizen::Base::DateTime* timestamp) {
+	if (__pTimestamp != null)
+		delete __pTimestamp;
 	__pTimestamp = timestamp;
 }
 
