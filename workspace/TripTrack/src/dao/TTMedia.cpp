@@ -12,7 +12,7 @@ using namespace Tizen::Base;
 using namespace Tizen::Io;
 
 TTMedia::TTMedia() :
-		__pContent(null), __pSourceUri(null) {
+		__pContent(null), __pSourceUri(null), __poiId(-1) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -30,7 +30,10 @@ Tizen::Base::ByteBuffer* TTMedia::GetContent() const {
 }
 
 void TTMedia::SetContent(Tizen::Base::ByteBuffer* content) {
-	__pContent = content;
+	if (__pContent != null)
+		delete __pContent;
+	__pContent = new ByteBuffer();
+	__pContent->Construct(*content);
 }
 
 Tizen::Base::String* TTMedia::GetSourceUri() const {
@@ -114,6 +117,11 @@ Tizen::Io::DbStatement* TTMedia::Read(void) {
 	String sourcePath;
 	long long int poiId;
 	ByteBuffer content;
+	r = content.Construct(MAX_TILE_BASE_SIZE);
+	if (r != E_SUCCESS) {
+		AppLogException("Error constructing image byte buffer: [%s]", GetErrorMessage(r));
+		return null;
+	}
 
 	pEnum = db->ExecuteStatementN(*pStmt);
 	//source,thumbnail, POI_ID
@@ -123,11 +131,12 @@ Tizen::Io::DbStatement* TTMedia::Read(void) {
 		pEnum->GetInt64At(2, poiId);
 	}
 
+	//content.Flip();
 	AppLog(
 			"Read values sourcePath=[%S], content size=[%d], poiId=[%lld]",
-			sourcePath.GetPointer(), content.GetLimit(), __poiId);
+			sourcePath.GetPointer(), content.GetLimit(), poiId);
 
-	SetSourceUri(&sourcePath);
+	SetSourceUri(new String(sourcePath));
 	SetContent(&content);
 	SetPoiId(poiId);
 
@@ -235,6 +244,8 @@ Tizen::Io::DbStatement* TTMedia::Update(void) {
 }
 
 void TTMedia::SetSourceUri(Tizen::Base::String* sourceUri) {
+	if (__pSourceUri != null)
+		delete __pSourceUri;
 	__pSourceUri = sourceUri;
 }
 

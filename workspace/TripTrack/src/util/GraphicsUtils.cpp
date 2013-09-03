@@ -43,13 +43,18 @@ Tizen::Graphics::Bitmap* GraphicsUtils::CreateBitmap(
 		Tizen::Base::ByteBuffer* imgBuffer, float &width, float &height) {
 
 	result r = E_SUCCESS;
-	Image img;
+	Image* img=new Image();
 	Bitmap* retVal = null;
 
-	r = img.Construct();
+	r = img->Construct();
+	if (r != E_SUCCESS) {
+		AppLogException("Error constructing image object for decoding: [%s]", GetErrorMessage(r));
+		return null;
+	}
 
 	//Encode the image
-	retVal = img.DecodeN(*imgBuffer, BITMAP_PIXEL_FORMAT_RGB565, width, height);
+	retVal = img->DecodeN(*imgBuffer, BITMAP_PIXEL_FORMAT_RGB565, width, height);
+	r = GetLastResult();
 	if (retVal == null || r != E_SUCCESS) {
 		AppLogException(
 				"Error creating bitmap from image buffer: [%s]", GetErrorMessage(r));

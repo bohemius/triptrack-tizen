@@ -33,6 +33,8 @@ private:
 	Tizen::Base::String* __pSourceUri;
 	long long int __id;
 	long long int __poiId;
+
+	static const int MAX_TILE_BASE_SIZE= 30720; //30KB
 };
 
 #endif /* TTMEDIA_H_ */
