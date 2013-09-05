@@ -102,8 +102,6 @@ Tizen::Ui::Controls::IconListViewItem* PoiIconListPanel::CreateItem(int index) {
 	if (r != E_SUCCESS)
 		AppLogException("Error constructing image buffer: [%s]", GetErrorMessage(r));
 	Bitmap* pPoiTile;
-	//r = pPoiTile->Construct(*buf,	Dimension((int) tile_width, (int) tile_height),	BITMAP_PIXEL_FORMAT_RGB565);
-	//pPoiTile = img->DecodeN(*buf,BITMAP_PIXEL_FORMAT_RGB565,tile_width, tile_height);
 	pPoiTile=imgBuf.GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565, BUFFER_SCALING_AUTO);
 	if (r != E_SUCCESS) {
 		AppLogException(
