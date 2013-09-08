@@ -1,6 +1,7 @@
 #delete
 #add
 #modify
+.svn/entries
 author-signature.xml
 signature1.xml
 bin/TripTrack.exe

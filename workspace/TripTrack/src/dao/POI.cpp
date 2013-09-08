@@ -100,12 +100,18 @@ result POI::Construct(Tizen::Base::String& Title,
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 	result r = E_SUCCESS;
 
-	AppLog( "Creating a new poi [%ls].", Title.GetPointer());
+	AppLog( "Creating a new poi [%ls] with location [%f],[%f] and date [%ls].",
+			Title.GetPointer(),
+			location.GetCoordinates().GetLongitude(),
+			location.GetCoordinates().GetLatitude(),
+			location.GetTimestamp().ToString().GetPointer());
 
-	__pTimestamp->SetValue(location.GetTimestamp());
-	r = __pCoordinates->Set(location.GetCoordinates().GetLatitude(),
+	SetTimestamp(new DateTime(location.GetTimestamp()));
+	//__pTimestamp->SetValue(location.GetTimestamp());
+	// r = __pCoordinates->Set(location.GetCoordinates().GetLatitude(),
 			location.GetCoordinates().GetLongitude(),
 			location.GetCoordinates().GetAltitude());
+	SetLocation(new Coordinates(location.GetCoordinates()));
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error setting coordinates, looks like cannot get a valid location using home location:[%s] ", GetErrorMessage(r));
@@ -115,8 +121,8 @@ result POI::Construct(Tizen::Base::String& Title,
 		SystemTime::GetCurrentTime(*__pTimestamp);
 		r = E_SUCCESS;
 	}
-	__pTitle = &Title;
-	__pDescription = &Description;
+	SetTitle(new String(Title));
+	SetDescription(new String(Description));
 
 	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
 	//get the inserted ID using last_insert_rowid()
