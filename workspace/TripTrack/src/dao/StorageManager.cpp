@@ -132,16 +132,19 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 
 LinkedListT<TTMedia*>* StorageManager::GetMedia(long long int poiId) {
 	result r = E_SUCCESS;
-	DbEnumerator* pEnum = 0;
+	DbEnumerator* pEnum = null;
+	DbStatement* pStmt = null;
 	LinkedListT<TTMedia*>* retVal = new LinkedListT<TTMedia*>();
 	String sql;
-	long long int id;
 
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 
 	sql.Append(L"SELECT ID FROM media WHERE POI_ID = ?");
-	AppLog( "Getting all media IDs for POI_ID [%d] from the database.", poiId);
-	pEnum = db->QueryN(sql);
+	pStmt=db->CreateStatementN(sql);
+	pStmt->BindInt64(0,poiId);
+
+	AppLog( "Getting all media IDs for POI_ID [%d] from the database. SQL=[%ls]", poiId, sql.GetPointer());
+	pEnum = db->ExecuteStatementN(*pStmt);
 
 	r = GetLastResult();
 	if (r != E_SUCCESS) {
@@ -169,6 +172,7 @@ LinkedListT<TTMedia*>* StorageManager::GetMedia(long long int poiId) {
 		}
 
 		delete pEnum;
+		delete pStmt;
 		poiBuffer.Rewind();
 
 		AppLog("Creating collection of media.");

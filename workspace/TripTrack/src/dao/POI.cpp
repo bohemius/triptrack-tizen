@@ -249,6 +249,7 @@ Tizen::Io::DbStatement* POI::Read(void) {
 	SetTimestamp(new DateTime(timeStamp));
 	SetLocation(pCoor);
 	SetDefImageId(defId);
+	__pAssociatedMedia=new LinkedListT<TTMedia*>();
 
 	delete pEnum;
 	delete pStmt;

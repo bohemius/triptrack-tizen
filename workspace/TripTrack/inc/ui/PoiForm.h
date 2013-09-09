@@ -15,7 +15,10 @@
 class PoiForm: public Tizen::Ui::Controls::Form,
 		public Tizen::Ui::IActionEventListener,
 		public Tizen::Ui::Controls::IFormBackEventListener,
-		public Tizen::Ui::Scenes::ISceneEventListener {
+		public Tizen::Ui::Scenes::ISceneEventListener,
+		public Tizen::Ui::Controls::IIconListViewItemProvider,
+		public Tizen::Ui::Controls::IIconListViewItemEventListener,
+		public Tizen::App::IAppControlResponseListener {
 public:
 	PoiForm();
 	bool Initialize(void);
@@ -34,6 +37,18 @@ public:
 	virtual void OnSceneDeactivated(
 			const Tizen::Ui::Scenes::SceneId& currentSceneId,
 			const Tizen::Ui::Scenes::SceneId& nextSceneId);
+	virtual void OnAppControlCompleteResponseReceived(
+			const Tizen::App::AppId &appId,
+			const Tizen::Base::String &operationId,
+			Tizen::App::AppCtrlResult appControlResult,
+			const Tizen::Base::Collection::IMap *pExtraData);
+	virtual void OnIconListViewItemStateChanged(
+			Tizen::Ui::Controls::IconListView &view, int index,
+			Tizen::Ui::Controls::IconListViewItemStatus status);
+	virtual Tizen::Ui::Controls::IconListViewItem* CreateItem(int index);
+	virtual bool DeleteItem(int index,
+			Tizen::Ui::Controls::IconListViewItem* pItem);
+	virtual int GetItemCount(void);
 
 private:
 	result LoadResources(void);
@@ -62,8 +77,10 @@ private:
 
 	Tizen::Graphics::Rectangle* __pDescRect;
 	Tizen::Graphics::Rectangle* __pTitleRect;
+	Tizen::Graphics::Rectangle* __pClientBounds;
 	Tizen::Ui::Controls::Label* __pTitleLabel;
 	Tizen::Ui::Controls::Label* __pDescriptionLabel;
+	Tizen::Ui::Controls::ScrollPanel* __pPoiScrollPanel;
 	Tizen::Ui::Controls::IconListView* __pMediaIconListView;
 
 	POI* __pPoi;

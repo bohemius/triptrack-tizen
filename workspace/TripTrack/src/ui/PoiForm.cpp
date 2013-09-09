@@ -9,10 +9,12 @@
 #include <FGraphics.h>
 #include <FMedia.h>
 #include "ui/PoiForm.h"
+#include "dao/StorageManager.h"
 #include "AppResourceId.h"
 #include "SceneRegister.h"
 
 using namespace Tizen::Base;
+using namespace Tizen::Base::Collection;
 using namespace Tizen::Media;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Graphics;
@@ -20,7 +22,7 @@ using namespace Tizen::App;
 using namespace Tizen::Ui::Scenes;
 
 PoiForm::PoiForm() :
-		__pTitleLabel(null), __pDescriptionLabel(null), __pMediaIconListView(
+		__pTitleLabel(null), __pDescriptionLabel(null), __pPoiScrollPanel(null), __pMediaIconListView(
 				null), __pPoi(null) {
 }
 
@@ -45,18 +47,11 @@ result PoiForm::OnInitializing(void) {
 		AppLogException("Error loading resources: [%s]", GetErrorMessage(r));
 	}
 
-	//load the icon list
-	r = LoadImageList();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error loading media for poi with id [%ld] from database: [%s]", __pPoi->GetId(), GetErrorMessage(r));
-	}
-
-	Rectangle clientBounds = GetClientAreaBounds();
-	__pTitleRect = new Rectangle(0, 0, clientBounds.width,
-			clientBounds.height / 6);
-	__pDescRect = new Rectangle(0, clientBounds.height / 6 + 1,
-			clientBounds.width, clientBounds.height / 6);
+	__pClientBounds = new Rectangle(GetClientAreaBounds());
+	__pTitleRect = new Rectangle(0, 0, __pClientBounds->width,
+			__pClientBounds->height / 6);
+	__pDescRect = new Rectangle(0, __pClientBounds->height / 6 + 1,
+			__pClientBounds->width, __pClientBounds->height / 6);
 	Color* itemColor = new Color(46, 151, 199);
 	Color* footerColor = new Color(70, 70, 70);
 
@@ -138,10 +133,26 @@ void PoiForm::OnSceneActivatedN(
 
 	result r = E_SUCCESS;
 
+	/*Get the poi from passed arguments*/
 	Object* param = pArgs->GetAt(0);
 	__pPoi = static_cast<POI*>(param);
 	AppLog("PoiForm got POI [%ls]", __pPoi->GetTitle()->GetPointer());
 
+	//load the icon list
+	r = LoadImageList();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error loading media for poi with id [%ld] from database: [%s]", __pPoi->GetId(), GetErrorMessage(r));
+	}
+
+	/*Create the scroll panel*/
+	if (__pPoiScrollPanel == null) {
+		__pPoiScrollPanel=new ScrollPanel();
+		r = __pPoiScrollPanel->Construct(*__pClientBounds);
+	} else
+		__pPoiScrollPanel->RemoveAllControls();
+
+	/*Create the media for title background*/
 	TTMedia* pMedia = new TTMedia();
 	r = pMedia->Construct(__pPoi->GetDefImageId());
 	if (r != E_SUCCESS)
@@ -161,6 +172,7 @@ void PoiForm::OnSceneActivatedN(
 		AppLogException(
 				"Error construction bitmap image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
 
+	/*set the title label*/
 	if (__pTitleLabel == null) {
 		__pTitleLabel = new Label();
 		r = __pTitleLabel->Construct(*__pTitleRect, *(__pPoi->GetTitle()));
@@ -169,31 +181,36 @@ void PoiForm::OnSceneActivatedN(
 					"Error constructing title label for poi form: [%s]", GetErrorMessage(r));
 
 		__pTitleLabel->SetBackgroundBitmap(*pTitleBgBitmap);
-		__pTitleLabel->SetMargin(TITLE_PADDING_Y,TITLE_PADDING_X);
+		__pTitleLabel->SetMargin(TITLE_PADDING_Y, TITLE_PADDING_X);
 		__pTitleLabel->SetTextHorizontalAlignment(ALIGNMENT_LEFT);
 		__pTitleLabel->SetTextVerticalAlignment(ALIGNMENT_BOTTOM);
 		__pTitleLabel->SetTextConfig(TITLE_TEXT_SIZE, LABEL_TEXT_STYLE_BOLD);
 		__pTitleLabel->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
-		AddControl(__pTitleLabel);
 	} else
 		__pTitleLabel->SetText(*(__pPoi->GetTitle()));
+	__pPoiScrollPanel->AddControl(__pTitleLabel);
 
+	/*set the description label*/
 	if (__pDescriptionLabel == null) {
 		__pDescriptionLabel = new Label();
-		r = __pDescriptionLabel->Construct(*__pDescRect, *(__pPoi->GetDescription()));
+		r = __pDescriptionLabel->Construct(*__pDescRect,
+				*(__pPoi->GetDescription()));
 		if (r != E_SUCCESS)
 			AppLogException(
 					"Error constructing description label for poi form: [%s]", GetErrorMessage(r));
 
-		__pDescriptionLabel->SetTextConfig(DESCRIPTION_TEXT_SIZE, LABEL_TEXT_STYLE_NORMAL);
-		__pDescriptionLabel->SetMargin(DESCRIPTION_PADDING_Y, DESCRIPTION_PADDING_X);
+		__pDescriptionLabel->SetTextConfig(DESCRIPTION_TEXT_SIZE,
+				LABEL_TEXT_STYLE_NORMAL);
+		__pDescriptionLabel->SetMargin(DESCRIPTION_PADDING_Y,
+				DESCRIPTION_PADDING_X);
 		__pDescriptionLabel->SetTextVerticalAlignment(ALIGNMENT_TOP);
 		__pDescriptionLabel->SetTextHorizontalAlignment(ALIGNMENT_LEFT);
 		__pDescriptionLabel->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
-		AddControl(__pDescriptionLabel);
 	} else
-		__pDescriptionLabel->SetText(String(L"Test description"));
+		__pDescriptionLabel->SetText(*(__pPoi->GetDescription()));
+	__pPoiScrollPanel->AddControl(__pDescriptionLabel);
 
+	AddControl(__pPoiScrollPanel);
 }
 
 void PoiForm::OnSceneDeactivated(
@@ -201,8 +218,35 @@ void PoiForm::OnSceneDeactivated(
 		const Tizen::Ui::Scenes::SceneId& nextSceneId) {
 }
 
+void PoiForm::OnAppControlCompleteResponseReceived(
+		const Tizen::App::AppId& appId, const Tizen::Base::String& operationId,
+		Tizen::App::AppCtrlResult appControlResult,
+		const Tizen::Base::Collection::IMap* pExtraData) {
+}
+
+void PoiForm::OnIconListViewItemStateChanged(
+		Tizen::Ui::Controls::IconListView& view, int index,
+		Tizen::Ui::Controls::IconListViewItemStatus status) {
+}
+
+Tizen::Ui::Controls::IconListViewItem* PoiForm::CreateItem(int index) {
+}
+
+bool PoiForm::DeleteItem(int index,
+		Tizen::Ui::Controls::IconListViewItem* pItem) {
+}
+
+int PoiForm::GetItemCount(void) {
+	return __pPoi->GetAssociatedMedia()->GetCount();
+}
+
 result PoiForm::LoadImageList(void) {
 	result r = E_SUCCESS;
+
+	StorageManager* store = StorageManager::getInstance();
+	LinkedListT<TTMedia*>* pMediaList = store->GetMedia(__pPoi->GetId());
+	__pPoi->GetAssociatedMedia()->RemoveAll();
+	__pPoi->GetAssociatedMedia()->AddItems(*pMediaList);
 
 	return r;
 }
