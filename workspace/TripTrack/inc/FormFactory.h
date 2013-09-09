@@ -4,7 +4,7 @@
 #include <FUi.h>
 
 extern const wchar_t* FORM_MAIN;
-extern const wchar_t* FORM_REGION_MONITOR;
+extern const wchar_t* FORM_POI;
 
 class FormFactory
 	: public Tizen::Ui::Scenes::IFormFactory

@@ -118,6 +118,9 @@ void TripTrackForm::OnAppControlCompleteResponseReceived(
 					AppLog("Captured image path: [%ls]", pValue->GetPointer());
 					ProcessCameraResult(pValue);
 					SetPoiView();
+					result r = __pPoiIconListPanel->UpdatePoiCollection();
+					if (r!=E_SUCCESS)
+						AppLogException("Error updating poi icon list panel: [%s]", GetErrorMessage(r));
 				}
 			}
 		} else if (appControlResult == APP_CTRL_RESULT_FAILED) {

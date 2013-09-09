@@ -8,6 +8,7 @@
 #include "ui/PoiComponents.h"
 #include "dao/StorageManager.h"
 #include "util/GraphicsUtils.h"
+#include "SceneRegister.h"
 
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Base;
@@ -15,6 +16,7 @@ using namespace Tizen::Base::Collection;
 using namespace Tizen::Graphics;
 using namespace Tizen::App;
 using namespace Tizen::Media;
+using namespace Tizen::Ui::Scenes;
 
 PoiIconListPanel::PoiIconListPanel(Tizen::Graphics::Rectangle& rect) :
 		Panel(), __pPoiIconListView(null), __pPoiCollection(null) {
@@ -77,6 +79,21 @@ result PoiIconListPanel::Construct(void) {
 void PoiIconListPanel::OnIconListViewItemStateChanged(
 		Tizen::Ui::Controls::IconListView& view, int index,
 		Tizen::Ui::Controls::IconListViewItemStatus status) {
+	result r = E_SUCCESS;
+
+	POI* selectedPoi;
+	LinkedList* parameterList = new LinkedList();
+
+	r = __pPoiCollection->GetAt(index, selectedPoi);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting poi with index [%d] from poi collection: [%s]", index, GetErrorMessage(r));
+	} else {
+		parameterList->Add(selectedPoi);
+		SceneManager* pSceneMngr = SceneManager::GetInstance();
+		pSceneMngr->GoForward(
+				ForwardSceneTransition(SCENE_POI_FORM), parameterList);
+	}
 }
 
 Tizen::Ui::Controls::IconListViewItem* PoiIconListPanel::CreateItem(int index) {
@@ -91,18 +108,21 @@ Tizen::Ui::Controls::IconListViewItem* PoiIconListPanel::CreateItem(int index) {
 				"Error setting poi from poi collection: [%s]", GetErrorMessage(r));
 	}
 
-	r = pMedia->Construct(pPoi->GetId());
+	r = pMedia->Construct(pPoi->GetDefImageId());
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error getting default image data from database for poi [%ls]: [%s]", pPoi->GetTitle()->GetPointer(), GetErrorMessage(r));
 	}
 
 	ImageBuffer imgBuf;
-	r = imgBuf.Construct(*(pMedia->GetContent()),(int) tile_width, (int) tile_height,IMAGE_SCALING_METHOD_BICUBIC);
+	r = imgBuf.Construct(*(pMedia->GetContent()), (int) tile_width,
+			(int) tile_height, IMAGE_SCALING_METHOD_BICUBIC);
 	if (r != E_SUCCESS)
-		AppLogException("Error constructing image buffer: [%s]", GetErrorMessage(r));
+		AppLogException(
+				"Error constructing image buffer: [%s]", GetErrorMessage(r));
 	Bitmap* pPoiTile;
-	pPoiTile=imgBuf.GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565, BUFFER_SCALING_AUTO);
+	pPoiTile = imgBuf.GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565,
+			BUFFER_SCALING_AUTO);
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error construction bitmap image from media with id [%d]: [%s]", pMedia->GetId(), GetErrorMessage(r));
@@ -153,11 +173,22 @@ int PoiIconListPanel::GetItemCount(void) {
 result PoiIconListPanel::UpdatePoiCollection(void) {
 	result r = E_SUCCESS;
 
-	__pPoiCollection->RemoveAll();
+	if (__pPoiCollection == null)
+		return E_OBJ_NOT_FOUND;
+	else {
+		__pPoiCollection->RemoveAll();
+		delete __pPoiCollection;
+		__pPoiCollection = null;
+	}
+
 	//load pois from the database
 	StorageManager* pStore = StorageManager::getInstance();
 
-	__pPoiCollection->AddItems(*pStore->GetPois());
+	__pPoiCollection = pStore->GetPois();
+	if (__pPoiCollection == null) {
+		AppLogException("Error getting pois from database.");
+		return E_FAILURE;
+	}
 
 	r = __pPoiIconListView->UpdateList();
 	if (r != E_SUCCESS) {
@@ -173,15 +204,6 @@ result PoiIconListPanel::LoadResources(void) {
 
 	__pPoiCollection = StorageManager::getInstance()->GetPois();
 	AppLog("Loaded [%d] pois", __pPoiCollection->GetCount());
-
-	//load sample bitmaps until i get the reading from db working to show something
-	AppResource* pAppRes = Application::GetInstance()->GetAppResource();
-
-	__pTile1 = pAppRes->GetBitmapN(L"sample1.png");
-	__pTile2 = pAppRes->GetBitmapN(L"sample2.png");
-	__pTile3 = pAppRes->GetBitmapN(L"sample3.png");
-	__pTile4 = pAppRes->GetBitmapN(L"sample4.png");
-	__pTile5 = pAppRes->GetBitmapN(L"sample5.png");
 
 	return r;
 }

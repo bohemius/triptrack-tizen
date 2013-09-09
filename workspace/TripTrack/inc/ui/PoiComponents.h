@@ -52,12 +52,6 @@ private:
 	static const float TILES_OFFSET_Y = 30.0f;
 
 	static const int ID_FORMAT_CUSTOM = 503;
-
-	Tizen::Graphics::Bitmap* __pTile1;
-	Tizen::Graphics::Bitmap* __pTile2;
-	Tizen::Graphics::Bitmap* __pTile3;
-	Tizen::Graphics::Bitmap* __pTile4;
-	Tizen::Graphics::Bitmap* __pTile5;
 };
 
 #endif /* POICOMPONENTS_H_ */

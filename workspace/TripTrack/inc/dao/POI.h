@@ -14,7 +14,7 @@
 #include "dao/TTMedia.h"
 #include "dao/ICRUD.h"
 
-class POI: public I_CRUDable {
+class POI: public I_CRUDable, public Tizen::Base::Object {
 public:
 	POI();
 	virtual ~POI();

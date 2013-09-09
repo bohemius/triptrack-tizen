@@ -6,6 +6,7 @@
  */
 
 #include "dao/StorageManager.h"
+#include "dao/TTMedia.h"
 #include "util/BootstrapManager.h"
 
 using namespace Tizen::Base;
@@ -102,7 +103,7 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 		poiBuffer.Rewind();
 
 		AppLog("Creating collection of pois.");
-		while (poiBuffer.GetPosition()<count) {
+		while (poiBuffer.GetPosition() < count) {
 			POI* pPoi = new POI();
 			r = poiBuffer.Get(id);
 			r = pPoi->Construct(id);
@@ -132,7 +133,6 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 LinkedListT<TTMedia*>* StorageManager::GetMedia(long long int poiId) {
 	result r = E_SUCCESS;
 	DbEnumerator* pEnum = 0;
-	DbStatement* pStmt = null;
 	LinkedListT<TTMedia*>* retVal = new LinkedListT<TTMedia*>();
 	String sql;
 	long long int id;
@@ -141,29 +141,22 @@ LinkedListT<TTMedia*>* StorageManager::GetMedia(long long int poiId) {
 
 	sql.Append(L"SELECT ID FROM media WHERE POI_ID = ?");
 	AppLog( "Getting all media IDs for POI_ID [%d] from the database.", poiId);
-	AppLog(
-			"Creating SELECT statement for all media IDs for POI_ID [%d]", poiId);
-
-	pStmt = db->CreateStatementN(sql);
-	if (pStmt == 0 || r != E_SUCCESS) {
-		AppLogException(
-				"Error creating sql statement for SELECT for all media IDs for POI_ID [%d]: [%s]", poiId, GetErrorMessage(r));
-		return 0;
-	}
-	AppLog(
-			"Sql SELECT statement created for all media IDs for POI_ID [%d]", poiId);
-	pStmt->BindInt64(0, poiId);
-	pEnum = db->ExecuteStatementN(*pStmt);
+	pEnum = db->QueryN(sql);
 
 	r = GetLastResult();
-	if (pEnum == 0 || r != E_SUCCESS) {
+	if (r != E_SUCCESS) {
 		AppLogException(
-				"Error getting all media IDs for POI_ID [%d] from database: [%s]", poiId, GetErrorMessage(r));
-		return 0;
+				"Error getting media IDs for poi with ID [%ld] from database: [%s]", poiId, GetErrorMessage(r));
+		return null;
 	}
-	AppLog("Creating collection of media for POI_ID [%d].", poiId);
 
-	if (pEnum != null && r == E_SUCCESS)
+	if (pEnum != null) {
+
+		LongLongBuffer poiBuffer;
+		poiBuffer.Construct(1024);
+		long long int count = 0;
+		long long int id;
+
 		while (pEnum->MoveNext() == E_SUCCESS) {
 			r = pEnum->GetInt64At(0, id);
 			if (r != E_SUCCESS) {
@@ -171,27 +164,38 @@ LinkedListT<TTMedia*>* StorageManager::GetMedia(long long int poiId) {
 						"Error getting media id: [%s]", GetErrorMessage(r));
 				return 0;
 			}
-			TTMedia* pTTMedia = new TTMedia();
-			r = pTTMedia->Construct(id);
+			poiBuffer.Set(id);
+			count++;
+		}
+
+		delete pEnum;
+		poiBuffer.Rewind();
+
+		AppLog("Creating collection of media.");
+		while (poiBuffer.GetPosition() < count) {
+			TTMedia* pMedia = new TTMedia();
+			r = poiBuffer.Get(id);
+			r = pMedia->Construct(id);
 			if (r != E_SUCCESS) {
 				AppLogException(
 						"Error constructing media with ID [%d]: [%s]", id, GetErrorMessage(r));
 				return 0;
 			}
-			r = retVal->Add(pTTMedia);
+			r = retVal->Add(pMedia);
 			if (r != E_SUCCESS) {
 				AppLogException(
-						"Error adding media with id [%d] to collection: [%s]", id, GetErrorMessage(r));
+						"Error adding media with uri [%ls] to collection: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
 				return 0;
 			}
-			AppLog( "Successfully added media with id [%d] to collection.", id);
+			AppLog(
+					"Successfully added media [%ls] to collection.", pMedia->GetSourceUri()->GetPointer());
 		}
-	else
+	} else
 		AppLog("No media in the database, returning empty collection.");
+
 	AppLog(
-			"Successfully read and added [%d] media to collection.", retVal->GetCount());
-	delete pEnum;
-	delete pStmt;
+			"Successfully read and added [%d] media items to collection.", retVal->GetCount());
+
 	return retVal;
 }
 

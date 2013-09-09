@@ -1,9 +1,11 @@
 #include "FormFactory.h"
 #include "TripTrackForm.h"
+#include "ui/PoiForm.h"
 
 using namespace Tizen::Ui::Scenes;
 
 const wchar_t* FORM_MAIN = L"Form_Main";
+const wchar_t* FORM_POI = L"Form_Poi";
 
 FormFactory::FormFactory(void)
 {
@@ -23,6 +25,13 @@ FormFactory::CreateFormN(const Tizen::Base::String& formId, const Tizen::Ui::Sce
 	if (formId == FORM_MAIN)
 	{
 		TripTrackForm* pForm = new TripTrackForm();
+		pForm->Initialize();
+		pSceneManager->AddSceneEventListener(sceneId, *pForm);
+		pNewForm = pForm;
+	}
+
+	else if (formId == FORM_POI) {
+		PoiForm* pForm = new PoiForm();
 		pForm->Initialize();
 		pSceneManager->AddSceneEventListener(sceneId, *pForm);
 		pNewForm = pForm;

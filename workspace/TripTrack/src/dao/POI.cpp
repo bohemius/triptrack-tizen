@@ -100,29 +100,36 @@ result POI::Construct(Tizen::Base::String& Title,
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 	result r = E_SUCCESS;
 
-	AppLog( "Creating a new poi [%ls] with location [%f],[%f] and date [%ls].",
-			Title.GetPointer(),
-			location.GetCoordinates().GetLongitude(),
-			location.GetCoordinates().GetLatitude(),
-			location.GetTimestamp().ToString().GetPointer());
+	AppLog(
+			"Creating a new poi [%ls] with location [%f],[%f] and date [%ls].", Title.GetPointer(), location.GetCoordinates().GetLongitude(), location.GetCoordinates().GetLatitude(), location.GetTimestamp().ToString().GetPointer());
 
 	SetTimestamp(new DateTime(location.GetTimestamp()));
+	Coordinates coor;
+	DateTime poiTime;
 	//__pTimestamp->SetValue(location.GetTimestamp());
 	// r = __pCoordinates->Set(location.GetCoordinates().GetLatitude(),
-			location.GetCoordinates().GetLongitude(),
-			location.GetCoordinates().GetAltitude());
-	SetLocation(new Coordinates(location.GetCoordinates()));
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error setting coordinates, looks like cannot get a valid location using home location:[%s] ", GetErrorMessage(r));
-		//TODO do the home location in the settings
-		__pCoordinates->Set(0.0, 0.0, 0.0);
-		//use current system time
-		SystemTime::GetCurrentTime(*__pTimestamp);
-		r = E_SUCCESS;
+	if (location.IsValid()) {
+		coor = location.GetCoordinates();
+		poiTime = location.GetTimestamp();
+	} else {
+		Location lastLocation = LocationProvider::GetLastKnownLocation();
+		if (!lastLocation.IsValid()) {
+			AppLogException(
+					"Error getting valid location using home coordinates:[%s] ", GetErrorMessage(r));
+			//TODO do the home location in the settings
+			coor.Set(0.0, 0.0, 0.0);
+			//use current system time
+			SystemTime::GetCurrentTime(poiTime);
+
+		} else {
+			coor = lastLocation.GetCoordinates();
+			poiTime = lastLocation.GetTimestamp();
+		}
 	}
+	SetLocation(new Coordinates(coor));
 	SetTitle(new String(Title));
 	SetDescription(new String(Description));
+	SetTimestamp(new DateTime(poiTime));
 
 	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
 	//get the inserted ID using last_insert_rowid()
@@ -171,6 +178,7 @@ result POI::Construct(Tizen::Base::String& Title,
 	}
 	AddMedia(pDefMedia);
 	SetDefImageId(pDefMedia->GetId());
+	StorageManager::getInstance()->CRUDoperation(this, I_CRUDable::UPDATE);
 
 	return r;
 }
