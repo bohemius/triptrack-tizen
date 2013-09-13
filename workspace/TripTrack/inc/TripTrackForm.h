@@ -87,7 +87,7 @@ private:
 	Tizen::Graphics::Bitmap* __pBgBitmap;
 
 	TrackListPanel* __pTrackListPanel;
-	PoiIconListPanel* __pPoiIconListPanel;
+	PoiScrollPanel* __pPoiScrollPanel;
 };
 
 #endif /* TRIPTRACKFORM_H_ */

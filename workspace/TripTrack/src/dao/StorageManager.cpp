@@ -130,6 +130,60 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 	return retVal;
 }
 
+Tizen::Base::Collection::HashMapT<DateTime, LinkedListT<POI*>*>* StorageManager::GetPoiHash(
+		void) {
+	HashMapT<DateTime, LinkedListT<POI*>*>* retVal = new HashMapT<DateTime,
+			LinkedListT<POI*>*>();
+	LinkedListT<POI*>* pCollection = GetPois();
+
+	IEnumeratorT<POI*>* pEnum = pCollection->GetEnumeratorN();
+
+	int count = 0;
+	while (pEnum->MoveNext() == E_SUCCESS) {
+		POI* pPoi = null;
+		result r = pEnum->GetCurrent(pPoi);
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error getting poi from collection.", GetErrorMessage(r));
+		}
+		DateTime date = *(pPoi->GetTimestamp());
+		bool flag;
+		r = retVal->ContainsKey(date, flag);
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error looking up key in poi hash.", GetErrorMessage(r));
+		else {
+			if (flag == false) {
+				LinkedListT<POI*>* pPoiGroupCollection =
+						new LinkedListT<POI*>();
+				r = pPoiGroupCollection->Add(pPoi);
+				if (r != E_SUCCESS)
+					AppLogException(
+							"Error adding poi to collection.", GetErrorMessage(r));
+				r = retVal->Add(date, pPoiGroupCollection);
+				if (r != E_SUCCESS)
+					AppLogException(
+							"Error adding collection to hash.", GetErrorMessage(r));
+			} else {
+				LinkedListT<POI*>* pPoiGroupCollection = null;
+				r = retVal->GetValue(date, pPoiGroupCollection);
+				if (r != E_SUCCESS)
+					AppLogException(
+							"Error getting collection from hash.", GetErrorMessage(r));
+				else
+					r = pPoiGroupCollection->Add(pPoi);
+				if (r != E_SUCCESS)
+					AppLogException(
+							"Error adding po to collection.", GetErrorMessage(r));
+			}
+			count++;
+		}
+	}
+	AppLog(
+			"Processed and added [%d] pois from collection to hashtable. Orig count was [%]", count, pCollection->GetCount());
+	return retVal;
+}
+
 LinkedListT<TTMedia*>* StorageManager::GetMedia(long long int poiId) {
 	result r = E_SUCCESS;
 	DbEnumerator* pEnum = null;
@@ -139,11 +193,12 @@ LinkedListT<TTMedia*>* StorageManager::GetMedia(long long int poiId) {
 
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 
-	sql.Append(L"SELECT ID FROM media WHERE POI_ID = ?");
-	pStmt=db->CreateStatementN(sql);
-	pStmt->BindInt64(0,poiId);
+	sql.Append(L"SELECT ID FROM media WHERE POI_ID = ? ORDER BY TimeSig");
+	pStmt = db->CreateStatementN(sql);
+	pStmt->BindInt64(0, poiId);
 
-	AppLog( "Getting all media IDs for POI_ID [%d] from the database. SQL=[%ls]", poiId, sql.GetPointer());
+	AppLog(
+			"Getting all media IDs for POI_ID [%d] from the database. SQL=[%ls]", poiId, sql.GetPointer());
 	pEnum = db->ExecuteStatementN(*pStmt);
 
 	r = GetLastResult();
@@ -290,7 +345,7 @@ LinkedListT<TTLocation*>* StorageManager::GetLocations(
 				"Error getting all location IDs for tracker ID [%d] from database: [%s]", trackerId, GetErrorMessage(r));
 		return 0;
 	}
-	AppLog("Creating collection of locations for track ID [%d].", trackerId);
+	AppLog( "Creating collection of locations for track ID [%d].", trackerId);
 
 	if (pEnum != null && r == E_SUCCESS)
 		while (pEnum->MoveNext() == E_SUCCESS) {

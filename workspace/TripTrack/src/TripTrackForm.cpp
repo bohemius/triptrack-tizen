@@ -30,7 +30,7 @@ using namespace Tizen::Ui::Scenes;
 using namespace Tizen::Locations;
 
 TripTrackForm::TripTrackForm(void) :
-		__viewType(VIEW_TYPE_NONE), __pTrackListPanel(null), __pPoiIconListPanel(
+		__viewType(VIEW_TYPE_NONE), __pTrackListPanel(null), __pPoiScrollPanel(
 				null) {
 }
 
@@ -118,9 +118,10 @@ void TripTrackForm::OnAppControlCompleteResponseReceived(
 					AppLog("Captured image path: [%ls]", pValue->GetPointer());
 					ProcessCameraResult(pValue);
 					SetPoiView();
-					result r = __pPoiIconListPanel->UpdatePoiCollection();
-					if (r!=E_SUCCESS)
-						AppLogException("Error updating poi icon list panel: [%s]", GetErrorMessage(r));
+					result r = __pPoiScrollPanel->UpdatePoiCollection();
+					if (r != E_SUCCESS)
+						AppLogException(
+								"Error updating poi icon list panel: [%s]", GetErrorMessage(r));
 				}
 			}
 		} else if (appControlResult == APP_CTRL_RESULT_FAILED) {
@@ -272,20 +273,24 @@ void TripTrackForm::SetPoiView(void) {
 		__pTrackListPanel->SetShowState(false);
 	}
 
-	__viewType=VIEW_TYPE_POI_VIEW;
-	if (__pPoiIconListPanel == null) {
-		Rectangle sqr = GetClientAreaBounds();
-		__pPoiIconListPanel = new PoiIconListPanel(sqr);
-		r = __pPoiIconListPanel->Construct();
+	__viewType = VIEW_TYPE_POI_VIEW;
+	if (__pPoiScrollPanel == null) {
+		FloatRectangle sqr = FloatRectangle(
+				GetClientAreaBoundsF().x + PoiIconListPanel::TILES_OFFSET_X,
+				GetClientAreaBoundsF().y,
+				GetClientAreaBoundsF().width
+						- 2 * PoiIconListPanel::TILES_OFFSET_X,
+				GetClientAreaBoundsF().height);
+		__pPoiScrollPanel = new PoiScrollPanel();
+		r = __pPoiScrollPanel->Construct();
 		if (r != E_SUCCESS) {
 			AppLogException(
-					"Error constructing poi icon list view panel: [%s]", GetErrorMessage(r));
+					"Error constructing poi scroll panel: [%s]", GetErrorMessage(r));
 			return;
 		}
-		r = AddControl(*__pPoiIconListPanel);
-	}
-	else
-		__pPoiIconListPanel->SetShowState(true);
+		r = AddControl(*__pPoiScrollPanel);
+	} else
+		__pPoiScrollPanel->SetShowState(true);
 
 	Footer* pFooter = GetFooter();
 
@@ -315,7 +320,7 @@ void TripTrackForm::SetTrackView(void) {
 		return;
 	}
 	if (__viewType == VIEW_TYPE_POI_VIEW) {
-		__pPoiIconListPanel->SetShowState(false);
+		__pPoiScrollPanel->SetShowState(false);
 	}
 
 	__viewType = VIEW_TYPE_TRACK_VIEW;
@@ -348,11 +353,11 @@ void TripTrackForm::SetTrackView(void) {
 	addItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pAddBitmap);
 	pFooter->AddItem(addItem);
 	/*editItem.Construct(ID_FOOTER_BUTTON_EDIT_TRACK);
-	editItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pEditBitmap);
-	pFooter->AddItem(editItem);
-	deleteItem.Construct(ID_FOOTER_BUTTON_DELETE_TRACK);
-	deleteItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pDeleteBitmap);
-	pFooter->AddItem(deleteItem);*/
+	 editItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pEditBitmap);
+	 pFooter->AddItem(editItem);
+	 deleteItem.Construct(ID_FOOTER_BUTTON_DELETE_TRACK);
+	 deleteItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pDeleteBitmap);
+	 pFooter->AddItem(deleteItem);*/
 
 	pFooter->AddActionEventListener(*this);
 }

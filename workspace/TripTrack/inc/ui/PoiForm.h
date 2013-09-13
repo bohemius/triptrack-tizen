@@ -53,6 +53,8 @@ public:
 private:
 	result LoadResources(void);
 	result LoadImageList(void);
+	void OpenCamera(void);
+	void ProcessCameraResult(Tizen::Base::String* imagePath);
 
 private:
 	static const int ID_FOOTER_BUTTON_CAMERA = 200;
@@ -68,6 +70,12 @@ private:
 	static const int DESCRIPTION_PADDING_Y = 30;
 	static const int DESCRIPTION_TEXT_SIZE = 30;
 
+	static const float TILES_PER_ROW = 3.0f;
+	static const float TILES_SPACING_X = 20.0f;
+	static const float TILES_SPACING_Y = 30.0f;
+	static const float TILES_OFFSET_X = 0.0f;
+	static const float TILES_OFFSET_Y = 30.0f;
+
 	Tizen::Graphics::Bitmap* __pEditBitmap;
 	Tizen::Graphics::Bitmap* __pCameraBitmap;
 	Tizen::Graphics::Bitmap* __pLocationBitmap;
@@ -77,13 +85,16 @@ private:
 
 	Tizen::Graphics::Rectangle* __pDescRect;
 	Tizen::Graphics::Rectangle* __pTitleRect;
+	Tizen::Graphics::FloatRectangle* __pListRect;
 	Tizen::Graphics::Rectangle* __pClientBounds;
 	Tizen::Ui::Controls::Label* __pTitleLabel;
 	Tizen::Ui::Controls::Label* __pDescriptionLabel;
-	Tizen::Ui::Controls::ScrollPanel* __pPoiScrollPanel;
+	Tizen::Ui::Controls::Panel* __pPoiPanel;
 	Tizen::Ui::Controls::IconListView* __pMediaIconListView;
 
 	POI* __pPoi;
+
+	float tile_width, tile_height;
 };
 
 #endif /* POIFORM_H_ */

@@ -62,12 +62,13 @@ result TTMedia::Construct(Tizen::Base::String& SourceURI, long long int PoiId,
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 	result r = E_SUCCESS;
 
-	__pSourceUri = &SourceURI;
+	SetSourceUri(new String(SourceURI));
 	AppLog(
 			"Creating a new media with source URI [%ls].", __pSourceUri->GetPointer());
 
 	__poiId = PoiId;
-	__pContent = buffer;
+	//__pContent = buffer;
+	SetContent(buffer);
 	//__pContent->CopyFrom(*buffer);
 	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
 	r = GetLastResult();
