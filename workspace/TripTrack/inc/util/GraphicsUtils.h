@@ -18,6 +18,7 @@ public:
 	static Tizen::Graphics::Bitmap* CreateBitmap(Tizen::Base::String &file);
 	static Tizen::Graphics::Bitmap* CreateBitmap(Tizen::Base::ByteBuffer* imgBuffer, float &width, float &height);
 	static Tizen::Base::ByteBuffer* CreateImageBuffer(Tizen::Graphics::Bitmap* bitmap);
+	static Tizen::Graphics::FloatRectangle* GetTTMediaDimensions(void);
 };
 
 #endif /* GRAPHICSUTILS_H_ */

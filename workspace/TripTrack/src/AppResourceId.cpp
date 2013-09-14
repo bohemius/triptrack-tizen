@@ -4,6 +4,7 @@
 using namespace Tizen::App;
 using namespace Tizen::Base;
 
+const wchar_t* IDC_ICONLISTVIEW1 = L"IDC_ICONLISTVIEW1";
 const wchar_t* IDS_HELLO = L"IDS_HELLO";
 const wchar_t* IDS_STRING1 = L"IDS_STRING1";
 const wchar_t* ID_STRING_DEFAULT_POI_DESCRIPTION = L"ID_STRING_DEFAULT_POI_DESCRIPTION";

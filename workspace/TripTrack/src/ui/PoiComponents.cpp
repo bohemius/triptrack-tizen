@@ -20,138 +20,51 @@ using namespace Tizen::Media;
 using namespace Tizen::Ui::Scenes;
 using namespace Tizen::Ui;
 
-PoiIconListPanel::PoiIconListPanel(LinkedListT<POI*>* pCollection) :
-		Panel(), __pPoiIconListView(null), __pPoiCollection(pCollection) {
+PoiIconListPanel::PoiIconListPanel(Rectangle &rect) :
+		__pPoiGroupedListView(null), __pContainerRectangle(null), __pBitmapRectangle(
+				null), __pPoiMap(null) {
+	Panel::Construct(Rectangle(0, 0, rect.width, rect.height));
 }
 
 PoiIconListPanel::~PoiIconListPanel(void) {
-	delete __pPoiCollection;
-	delete __pPoiIconListView;
+	delete __pPoiMap;
+	delete __pPoiGroupedListView;
 }
 
 result PoiIconListPanel::Construct() {
 	result r = E_SUCCESS;
 
-	int count = __pPoiCollection->GetCount();
-	int rowCount;
-	if (count % 2 > 0)
-		rowCount = rowCount / 2 + 1;
-	else
-		rowCount = rowCount / 2;
-
-	__pPoiIconListView = new IconListView();
-	tile_width = (GetBoundsF().width
-			- (TILES_PER_ROW * TILES_SPACING_X + TILES_SPACING_X))
-			/ TILES_PER_ROW;
-	tile_height = (GetBoundsF().height - TILES_PER_COLUMN * TILES_SPACING_Y
-			- TILES_SPACING_Y) / TILES_PER_COLUMN;
-
-	r = __pPoiIconListView->Construct(
-			FloatRectangle(TILES_OFFSET_X, TILES_OFFSET_Y,
-					tile_width * TILES_PER_ROW + TILES_SPACING_X,
-					(tile_height * 2 * TILES_SPACING_Y) * rowCount
-							+ TILES_OFFSET_Y),
-			FloatDimension(tile_width, tile_height),
-			ICON_LIST_VIEW_STYLE_NORMAL);
-	/*r = __pPoiIconListView->Construct(
-	 FloatRectangle(0.0f, 0.0f, 720.0f, 1026.0f),
-	 FloatDimension(175.0f, 198.0f ), ICON_LIST_VIEW_STYLE_MARK,
-	 ICON_LIST_VIEW_SCROLL_DIRECTION_VERTICAL);*/
+	//load items into the hashmap
+	r = LoadResources();
 	if (r != E_SUCCESS) {
 		AppLogException(
-				"Error constructing poi icon list view: [%s]", GetErrorMessage(r));
+				"Error loading resources for poi scroll panel: [%s]", GetErrorMessage(r));
 		return r;
 	}
-	r = __pPoiIconListView->SetItemProvider(*this);
+	//define dimensions
+	__pContainerRectangle = new Rectangle(0, 0, GetBounds().width,
+			GetBounds().height);
+	__pBitmapRectangle = GraphicsUtils::GetTTMediaDimensions();
+
+	__pPoiGroupedListView = new GroupedListView();
+	r = __pPoiGroupedListView->Construct(*__pContainerRectangle,
+			GROUPED_LIST_VIEW_STYLE_INDEXED, false, false);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing poi grouped list view: [%s]", GetErrorMessage(r));
+		return r;
+	}
+	r = __pPoiGroupedListView->SetItemProvider(*this);
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error setting poi icon list item provider: [%s]", GetErrorMessage(r));
 		return r;
 	}
-	__pPoiIconListView->AddIconListViewItemEventListener(*this);
-	__pPoiIconListView->SetCheckBoxPosition(
-			ICON_LIST_VIEW_CHECK_BOX_POSITION_TOP_LEFT);
-	__pPoiIconListView->SetItemSpacing(TILES_SPACING_X, TILES_SPACING_Y);
-	__pPoiIconListView->SetItemBorderStyle(
-			ICON_LIST_VIEW_ITEM_BORDER_STYLE_NONE);
-	__pPoiIconListView->SetItemTextSize(100);
-	AddControl(*__pPoiIconListView);
+	__pPoiGroupedListView->AddGroupedListViewItemEventListener(*this);
+
+	AddControl(*__pPoiGroupedListView);
 
 	return r;
-}
-
-void PoiIconListPanel::OnIconListViewItemStateChanged(
-		Tizen::Ui::Controls::IconListView& view, int index,
-		Tizen::Ui::Controls::IconListViewItemStatus status) {
-	result r = E_SUCCESS;
-
-	POI* selectedPoi;
-	LinkedList* parameterList = new LinkedList();
-
-	r = __pPoiCollection->GetAt(index, selectedPoi);
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error getting poi with index [%d] from poi collection: [%s]", index, GetErrorMessage(r));
-	} else {
-		parameterList->Add(selectedPoi);
-		SceneManager* pSceneMngr = SceneManager::GetInstance();
-		pSceneMngr->GoForward(ForwardSceneTransition(SCENE_POI_FORM),
-				parameterList);
-	}
-}
-
-Tizen::Ui::Controls::IconListViewItem* PoiIconListPanel::CreateItem(int index) {
-	result r = E_SUCCESS;
-
-	TTMedia* pMedia = new TTMedia();
-
-	POI* pPoi = null;
-	r = __pPoiCollection->GetAt(index, pPoi);
-	if (r != E_SUCCESS || pPoi == null) {
-		AppLogException(
-				"Error setting poi from poi collection: [%s]", GetErrorMessage(r));
-	}
-
-	r = pMedia->Construct(pPoi->GetDefImageId());
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error getting default image data from database for poi [%ls]: [%s]", pPoi->GetTitle()->GetPointer(), GetErrorMessage(r));
-	}
-
-	ImageBuffer imgBuf;
-	r = imgBuf.Construct(*(pMedia->GetContent()), (int) tile_width,
-			(int) tile_height, IMAGE_SCALING_METHOD_BICUBIC);
-	if (r != E_SUCCESS)
-		AppLogException(
-				"Error constructing image buffer: [%s]", GetErrorMessage(r));
-	Bitmap* pPoiTile;
-	pPoiTile = imgBuf.GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565,
-			BUFFER_SCALING_AUTO);
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error construction bitmap image from media with id [%d]: [%s]", pMedia->GetId(), GetErrorMessage(r));
-	}
-	IconListViewItem* pPoiItem = new (std::nothrow) IconListViewItem();
-	r = pPoiItem->Construct(*pPoiTile, BuildTileText(pPoi));
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructing icon list item for poi [%s]: [%s]", pPoi->GetTitle()->GetPointer(), GetErrorMessage(r));
-	}
-
-	delete pMedia;
-	delete pPoiTile;
-
-	return pPoiItem;
-}
-
-bool PoiIconListPanel::DeleteItem(int index,
-		Tizen::Ui::Controls::IconListViewItem* pItem) {
-	delete pItem;
-	return true;
-}
-
-int PoiIconListPanel::GetItemCount(void) {
-	return __pPoiCollection->GetCount();
 }
 
 Tizen::Base::String* PoiIconListPanel::BuildTileText(POI* pPoi) {
@@ -166,98 +79,211 @@ Tizen::Base::String* PoiIconListPanel::BuildTileText(POI* pPoi) {
 	return retVal;
 }
 
-result PoiScrollPanel::UpdatePoiCollection(void) {
+void PoiIconListPanel::OnGroupedListViewContextItemStateChanged(
+		Tizen::Ui::Controls::GroupedListView& listView, int groupIndex,
+		int itemIndex, int elementId,
+		Tizen::Ui::Controls::ListContextItemStatus state) {
+}
+
+void PoiIconListPanel::OnGroupedListViewItemStateChanged(
+		Tizen::Ui::Controls::GroupedListView& listView, int groupIndex,
+		int itemIndex, int elementId,
+		Tizen::Ui::Controls::ListItemStatus state) {
 	result r = E_SUCCESS;
 
-	if (__pPoiMap == null)
-		return E_OBJ_NOT_FOUND;
-	else {
-		__pPoiMap->RemoveAll();
-		delete __pPoiMap;
-		__pPoiMap = null;
+	POI* selectedPoi = null;
+	LinkedList* parameterList = new LinkedList();
+
+	IListT<long long int>* pTimeCollection = __pPoiMap->GetKeysN();
+	long long int timeTicks;
+	r = pTimeCollection->GetAt(groupIndex, timeTicks);
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error getting time key from poi map", GetErrorMessage(r));
+
+	LinkedListT<POI*>* pPoiCollection = null;
+	r = __pPoiMap->GetValue(timeTicks, pPoiCollection);
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error getting poi collection for time key [%ld] from poi map", timeTicks, GetErrorMessage(r));
+
+	r = pPoiCollection->GetAt(itemIndex, selectedPoi);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting poi with item index [%d] and group index [%d] from poi collection:", itemIndex, groupIndex, GetErrorMessage(r));
+	} else {
+		parameterList->Add(selectedPoi);
+		SceneManager* pSceneMngr = SceneManager::GetInstance();
+		pSceneMngr->GoForward(ForwardSceneTransition(SCENE_POI_FORM),
+				parameterList);
 	}
-
-	//load pois from the database
-	StorageManager* pStore = StorageManager::getInstance();
-
-	__pPoiMap = pStore->GetPoiHash();
-	if (__pPoiMap == null) {
-		AppLogException("Error getting pois from database.");
-		return E_FAILURE;
-	}
-
-	//TODO update
-	/*
-	 if (r != E_SUCCESS) {
-	 AppLogException(
-	 "Error updating poi icon list: [%s]", GetErrorMessage(r));
-	 return r;
-	 }*/
-	return r;
 }
 
-PoiScrollPanel::PoiScrollPanel(void) :
-		__pPoiMap(null), __pPanelCollection(null) {
+void PoiIconListPanel::OnGroupedListViewItemSwept(
+		Tizen::Ui::Controls::GroupedListView& listView, int groupIndex,
+		int itemIndex, Tizen::Ui::Controls::SweepDirection direction) {
 }
 
-PoiScrollPanel::~PoiScrollPanel(void) {
+int PoiIconListPanel::GetGroupCount(void) {
+	return __pPoiMap->GetCount();
 }
 
-result PoiScrollPanel::Construct(void) {
+int PoiIconListPanel::GetItemCount(int groupIndex) {
+	result r = E_SUCCESS;
+	long long int timeTicks;
+
+	IListT<long long int>* pTimeCollection = __pPoiMap->GetKeysN();
+	r = pTimeCollection->GetAt(groupIndex, timeTicks);
+	if (r != E_SUCCESS)
+		AppLogException("Error getting time key:", GetErrorMessage(r));
+
+	LinkedListT<POI*>* pPoiCollection = null;
+	r = __pPoiMap->GetValue(timeTicks, pPoiCollection);
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error poi collection using time key [%ld]:", timeTicks, GetErrorMessage(r));
+	return pPoiCollection->GetCount();
+}
+
+Tizen::Ui::Controls::ListItemBase* PoiIconListPanel::CreateItem(int groupIndex,
+		int itemIndex, int itemWidth) {
+
 	result r = E_SUCCESS;
 
-	__pPanelCollection = new LinkedListT<PoiIconListPanel*>();
+	float width = ((float) itemWidth);
+	FloatDimension elementDimension = FloatDimension(width,
+			width * __pBitmapRectangle->height / __pBitmapRectangle->width
+					* 0.85);
+	FloatRectangle elementRectangle = FloatRectangle(0.0, 0.0,
+			elementDimension.width, elementDimension.height);
 
-	VerticalBoxLayout layout;
-	r = layout.Construct(VERTICAL_DIRECTION_DOWNWARD);
-	if (r != E_SUCCESS) {
+	long long int groupTimeTicks;
+	r = __pPoiMap->GetKeysN()->GetAt(groupIndex, groupTimeTicks);
+	if (r != E_SUCCESS)
+		AppLogException("Ërror getting date key from map:", GetErrorMessage(r));
+
+	LinkedListT<POI*>* pPoiCollection = null;
+	r = __pPoiMap->GetValue(groupTimeTicks, pPoiCollection);
+	if (r != E_SUCCESS)
 		AppLogException(
-				"Error constructing vertical layout", GetErrorMessage(r));
-		return r;
-	}
-	ScrollPanel::Construct(layout, GetBoundsF());
-	r = LoadResources();
-	if (r != E_SUCCESS) {
+				"Ërror poi collection for date key [%ld] from map:", groupTimeTicks, GetErrorMessage(r));
+
+	POI* pPoi = null;
+	r = pPoiCollection->GetAt(itemIndex, pPoi);
+	if (r != E_SUCCESS)
 		AppLogException(
-				"Error loading resources for poi scroll panel: [%s]", GetErrorMessage(r));
-		return r;
-	}
+				"Ërror getting poi from poi collection:", GetErrorMessage(r));
 
-	int count = 0;
-	IEnumeratorT<DateTime>* pEnum = __pPoiMap->GetKeysN()->GetEnumeratorN();
-	while (pEnum->MoveNext() == E_SUCCESS) {
-		LinkedListT<POI*>* pCollection = null;
-		DateTime date;
-		r = pEnum->GetCurrent(date);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error getting date from enumerator:", GetErrorMessage(r));
-			return r;
-		}
-		r = __pPoiMap->GetValue(date, pCollection);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error getting poi collection for date [%ls] from hashmap:", date.ToString(). GetPointer(), GetErrorMessage(r));
-			return r;
-		}
-		PoiIconListPanel* pPoiPanel = new PoiIconListPanel(pCollection);
-		r = __pPanelCollection->Add(pPoiPanel);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error add poi icon list panel to collection:", GetErrorMessage(r));
-			return r;
-		}
-	}
+	CustomItem* retVal = new CustomItem();
+	r = retVal->Construct(elementDimension, LIST_ANNEX_STYLE_NORMAL);
+	if (r != E_SUCCESS)
+		AppLogException("Ërror constructing custom item:", GetErrorMessage(r));
 
-	return r;
+	PoiListElement* poiElement = new PoiListElement(pPoi);
+	r = retVal->AddElement(elementRectangle, ID_FORMAT_CUSTOM, *poiElement);
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Ërror adding element to custom item:", GetErrorMessage(r));
+	return retVal;
 }
 
-result PoiScrollPanel::LoadResources(void) {
+Tizen::Ui::Controls::GroupItem* PoiIconListPanel::CreateGroupItem(
+		int groupIndex, int itemWidth) {
+
+	GroupItem* retVal = new GroupItem();
+	result r = E_SUCCESS;
+
+	IListT<long long int>* pTimeCollection = __pPoiMap->GetKeysN();
+
+	long long int groupTimeTicks;
+	DateTime currentTime;
+
+	r = Tizen::System::SystemTime::GetCurrentTime(currentTime);
+	if (r != E_SUCCESS)
+		AppLogException("Error getting system time:", GetErrorMessage(r));
+
+	r = pTimeCollection->GetAt(groupIndex, groupTimeTicks);
+	if (r != E_SUCCESS)
+		AppLogException("Error getting group time:", GetErrorMessage(r));
+
+	DateTime groupTime;
+	r = groupTime.SetValue(groupTimeTicks);
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error seting time value using tick [%ld]", groupTimeTicks, GetErrorMessage(r));
+
+	String timeText(L"");
+	timeText.Append(groupTime.GetMonth());
+	timeText.Append(L"/");
+	timeText.Append(groupTime.GetDay());
+	timeText.Append(L"/");
+	timeText.Append(groupTime.GetYear());
+
+	r = retVal->Construct(Dimension(0, 100));
+	if (r != E_SUCCESS)
+		AppLogException("Error constructing group item:", GetErrorMessage(r));
+	r = retVal->SetElement(timeText, null);
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error setting group item element:", GetErrorMessage(r));
+
+	retVal->SetTextColor(Color::GetColor(COLOR_ID_GREY));
+	retVal->SetTextSize(50);
+
+	return retVal;
+}
+
+bool PoiIconListPanel::DeleteItem(int groupIndex, int itemIndex,
+		Tizen::Ui::Controls::ListItemBase* pItem, int itemWidth) {
+	//not used
+	return false;
+}
+
+bool PoiIconListPanel::DeleteGroupItem(int groupIndex,
+		Tizen::Ui::Controls::GroupItem* pItem, int itemWidth) {
+	//not used
+	return false;
+}
+
+result PoiIconListPanel::LoadResources(void) {
 	result r = E_SUCCESS;
 
 	__pPoiMap = StorageManager::getInstance()->GetPoiHash();
-	AppLog("Loaded [%d] pois", __pPoiMap->GetCount());
+	AppLog("Loaded [%d] poi groups", __pPoiMap->GetCount());
 
 	return r;
+}
+
+PoiListElement::PoiListElement(POI* pPoi) :
+		__pPoi(pPoi) {
+}
+
+PoiListElement::~PoiListElement(void) {
+}
+
+bool PoiListElement::OnDraw(Tizen::Graphics::Canvas& canvas,
+		const Tizen::Graphics::FloatRectangle& rect,
+		Tizen::Ui::Controls::ListItemDrawingStatus itemStatus) {
+	result r = E_SUCCESS;
+
+	TTMedia* pMedia = new TTMedia();
+	r = pMedia->Construct(__pPoi->GetDefImageId());
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing default media for poi [%ld]:", __pPoi->GetId(), GetErrorMessage(r));
+		return false;
+	}
+	Bitmap* pBitmap = GraphicsUtils::CreateBitmap(*(pMedia->GetSourceUri()));
+
+	FloatRectangle presentationRect = FloatRectangle(rect.x + BITMAP_PADDING_X,
+			rect.y + BITMAP_PADDING_Y, rect.width - 2.0 * BITMAP_PADDING_X,
+			rect.height - 2.0 * BITMAP_PADDING_Y);
+
+	r = canvas.DrawBitmap(presentationRect, *pBitmap);
+	if (r != E_SUCCESS) {
+		AppLogException("Error drawing bitmap:", GetErrorMessage(r));
+		return false;
+	}
+	return true;
 }
 

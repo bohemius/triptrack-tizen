@@ -130,10 +130,11 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 	return retVal;
 }
 
-Tizen::Base::Collection::HashMapT<DateTime, LinkedListT<POI*>*>* StorageManager::GetPoiHash(
+Tizen::Base::Collection::HashMapT<long long int, LinkedListT<POI*>*>* StorageManager::GetPoiHash(
 		void) {
-	HashMapT<DateTime, LinkedListT<POI*>*>* retVal = new HashMapT<DateTime,
+	HashMapT<long long int, LinkedListT<POI*>*>* retVal = new HashMapT<long long int,
 			LinkedListT<POI*>*>();
+	retVal->Construct(10,10);
 	LinkedListT<POI*>* pCollection = GetPois();
 
 	IEnumeratorT<POI*>* pEnum = pCollection->GetEnumeratorN();
@@ -146,9 +147,12 @@ Tizen::Base::Collection::HashMapT<DateTime, LinkedListT<POI*>*>* StorageManager:
 			AppLogException(
 					"Error getting poi from collection.", GetErrorMessage(r));
 		}
-		DateTime date = *(pPoi->GetTimestamp());
+		DateTime* pDate = new DateTime();
+		pDate->SetValue(pPoi->GetTimestamp()->GetYear(),
+				pPoi->GetTimestamp()->GetMonth(),
+				pPoi->GetTimestamp()->GetDay(), 0, 0, 0);
 		bool flag;
-		r = retVal->ContainsKey(date, flag);
+		r = retVal->ContainsKey(pDate->GetTicks(), flag);
 		if (r != E_SUCCESS)
 			AppLogException(
 					"Error looking up key in poi hash.", GetErrorMessage(r));
@@ -160,14 +164,16 @@ Tizen::Base::Collection::HashMapT<DateTime, LinkedListT<POI*>*>* StorageManager:
 				if (r != E_SUCCESS)
 					AppLogException(
 							"Error adding poi to collection.", GetErrorMessage(r));
-				r = retVal->Add(date, pPoiGroupCollection);
+				r = retVal->Add(pDate->GetTicks(), pPoiGroupCollection);
 				if (r != E_SUCCESS)
 					AppLogException(
 							"Error adding collection to hash.", GetErrorMessage(r));
+				else
+					count++;
 			} else {
 				LinkedListT<POI*>* pPoiGroupCollection = null;
-				r = retVal->GetValue(date, pPoiGroupCollection);
-				if (r != E_SUCCESS)
+				r = retVal->GetValue(pDate->GetTicks(), pPoiGroupCollection);
+				if (r != E_SUCCESS || pPoiGroupCollection == null)
 					AppLogException(
 							"Error getting collection from hash.", GetErrorMessage(r));
 				else
@@ -175,12 +181,13 @@ Tizen::Base::Collection::HashMapT<DateTime, LinkedListT<POI*>*>* StorageManager:
 				if (r != E_SUCCESS)
 					AppLogException(
 							"Error adding po to collection.", GetErrorMessage(r));
+				else
+					count++;
 			}
-			count++;
 		}
 	}
 	AppLog(
-			"Processed and added [%d] pois from collection to hashtable. Orig count was [%]", count, pCollection->GetCount());
+			"Processed and added [%d] pois from collection to hashtable. Orig count was [%d]", count, pCollection->GetCount());
 	return retVal;
 }
 
@@ -193,7 +200,7 @@ LinkedListT<TTMedia*>* StorageManager::GetMedia(long long int poiId) {
 
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 
-	sql.Append(L"SELECT ID FROM media WHERE POI_ID = ? ORDER BY TimeSig");
+	sql.Append(L"SELECT ID FROM media WHERE POI_ID = ?");
 	pStmt = db->CreateStatementN(sql);
 	pStmt->BindInt64(0, poiId);
 
