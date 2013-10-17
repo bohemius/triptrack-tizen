@@ -12,6 +12,7 @@
 #include <FLocations.h>
 #include "dao/TTMedia.h"
 #include "util/GraphicsUtils.h"
+#include "ui/CommonComponents.h"
 #include "TripTrackForm.h"
 #include "LocationManagerThread.h"
 #include "AppResourceId.h"
@@ -119,9 +120,9 @@ void TripTrackForm::OnAppControlCompleteResponseReceived(
 					ProcessCameraResult(pValue);
 					SetPoiView();
 					/*result r = __pPoiListPanel->UpdatePoiCollection();
-					if (r != E_SUCCESS)
-						AppLogException(
-								"Error updating poi icon list panel: [%s]", GetErrorMessage(r));*/
+					 if (r != E_SUCCESS)
+					 AppLogException(
+					 "Error updating poi icon list panel: [%s]", GetErrorMessage(r));*/
 				}
 			}
 		} else if (appControlResult == APP_CTRL_RESULT_FAILED) {
@@ -209,6 +210,11 @@ void TripTrackForm::OnActionPerformed(const Tizen::Ui::Control& source,
 	case ID_FOOTER_BUTTON_CAMERA_POI: {
 		AppLog("Starting camera");
 		OpenCamera();
+	}
+		break;
+	case ID_FOOTER_BUTTON_ADD_POI: {
+		AppLog("Opening create POI form popup");
+		ShowPopUp();
 	}
 		break;
 	default:
@@ -358,7 +364,25 @@ void TripTrackForm::SetTrackView(void) {
 }
 
 void TripTrackForm::ShowPopUp(void) {
-	//TODO for data edits
+	result r = E_SUCCESS;
+
+	EditFormPopup* pEditPopup = new EditFormPopup();
+	SampleFieldProvider* pProvider = new SampleFieldProvider();
+
+	r = pProvider->Construct();
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error constructing form field provider: [%s]", GetErrorMessage(r));
+
+	Rectangle bounds = GetClientAreaBounds();
+	r = pEditPopup->Construct(pProvider,
+			Dimension((int) bounds.width * 0.90, (int) bounds.height * 0.90),
+			I18N::GetLocalizedString(ID_STRING_CREATE_POI_POPUP_TITLE));
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error constructing edit form popup: [%s]", GetErrorMessage(r));
+
+	pEditPopup->Show();
 }
 
 void TripTrackForm::ShowMessageBox(const String& title, const String& message) {

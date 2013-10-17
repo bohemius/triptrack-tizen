@@ -10,9 +10,12 @@
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Base::Collection;
 using namespace Tizen::Graphics;
+using namespace Tizen::Base;
+using namespace Tizen::Ui;
 
 EditFormPopup::EditFormPopup(void) :
-		__pFieldMap(null), __pExTxtAreasMap(null), __pFieldProvider(null) {
+		__pFieldMap(null), __pExTxtAreasMap(null), __pFieldProvider(null), __pPopupEventListener(
+				null) {
 }
 
 EditFormPopup::~EditFormPopup(void) {
@@ -21,7 +24,7 @@ EditFormPopup::~EditFormPopup(void) {
 }
 
 result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
-		Dimension dimension) {
+		Dimension dimension, String title) {
 	result r = E_SUCCESS;
 
 	r = Popup::Construct(true, dimension);
@@ -30,7 +33,7 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 		return r;
 	}
 
-	const int xMargin = 10;
+	const int xMargin = 20;
 	const int yMargin = (int) dimension.height / 6 * 0.20;
 	const int fieldHeight = 120;
 	const int fieldWidth = (int) dimension.width - 2 * xMargin;
@@ -80,6 +83,11 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 
 		y += fieldHeight + yMargin;
 	}
+
+	__pPopupEventListener = new PopupEventListener();
+	SetPropagatedKeyEventListener(__pPopupEventListener);
+	SetTitleText(title);
+	return r;
 }
 
 result EditFormPopup::Save(void) {
@@ -124,3 +132,98 @@ result EditFormPopup::Save(void) {
 	}
 	return r;
 }
+
+void EditFormPopup::OnFormBackRequested(Tizen::Ui::Controls::Form& source) {
+	SetShowState(false);
+	Invalidate(true);
+}
+
+const int SampleFieldProvider::FORM_FIELD_ID_DESCRIPTION = 2;
+const int SampleFieldProvider::FORM_FIELD_ID_TITLE = 1;
+
+SampleFieldProvider::SampleFieldProvider(void) :
+		__pFormFields(null) {
+}
+
+SampleFieldProvider::~SampleFieldProvider(void) {
+	if (__pFormFields != null) {
+		__pFormFields->RemoveAll();
+		delete __pFormFields;
+		__pFormFields = null;
+	}
+}
+
+IFormFieldProvider::FormField* SampleFieldProvider::GetFieldAt(int id) {
+	result r = E_SUCCESS;
+
+	FormField* retVal = null;
+	r = __pFormFields->GetValue(id, retVal);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting field with id [%d] from field map: [%s]", id, GetErrorMessage(r));
+		return null;
+	}
+	return retVal;
+}
+
+HashMapT<int, IFormFieldProvider::FormField*>* SampleFieldProvider::GetFields(
+		void) {
+	return __pFormFields;
+}
+
+result SampleFieldProvider::SetFieldAt(int id, FormField* formField) {
+	result r = E_SUCCESS;
+
+	r = __pFormFields->SetValue(id, formField);
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error setting field with id [%d] in field map: [%s]", id, GetErrorMessage(r));
+	return r;
+}
+
+result SampleFieldProvider::Construct(void) {
+	result r = E_SUCCESS;
+
+	__pFormFields = new HashMapT<int, FormField*>();
+	r = __pFormFields->Construct(2, 1.5);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing field map: [%s]", GetErrorMessage(r));
+		return r;
+	}
+
+	FormField* pTitleField = new FormField;
+	pTitleField->fieldName = new String(L"Title");
+	pTitleField->fieldData = new String(L"");
+	r = __pFormFields->Add(FORM_FIELD_ID_TITLE, pTitleField);
+	if (r != E_SUCCESS) {
+		AppLogException( "Error adding to field map: [%s]", GetErrorMessage(r));
+		return r;
+	}
+
+	FormField* pDescField = new FormField;
+	pDescField->fieldName = new String(L"Description");
+	pDescField->fieldData = new String(L"");
+	__pFormFields->Add(FORM_FIELD_ID_DESCRIPTION, pDescField);
+	if (r != E_SUCCESS) {
+		AppLogException( "Error adding to field map: [%s]", GetErrorMessage(r));
+		return r;
+	}
+}
+
+int SampleFieldProvider::GetFieldCount(void) {
+	return __pFormFields->GetCount();
+}
+
+bool PopupEventListener::OnKeyReleased(Tizen::Ui::Control& source,
+		const Tizen::Ui::KeyEventInfo& keyEventInfo) {
+	KeyCode key = keyEventInfo.GetKeyCode();
+	if (key == KEY_BACK || key == KEY_ESC) {
+		EditFormPopup* pPopup = static_cast<EditFormPopup*>(&source);
+		pPopup->SetShowState(false);
+		pPopup->Invalidate(true);
+	}
+
+	return false;
+}
+

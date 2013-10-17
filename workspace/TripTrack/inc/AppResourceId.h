@@ -6,6 +6,7 @@
 extern const wchar_t* IDC_ICONLISTVIEW1;
 extern const wchar_t* IDS_HELLO;
 extern const wchar_t* IDS_STRING1;
+extern const wchar_t* ID_STRING_CREATE_POI_POPUP_TITLE;
 extern const wchar_t* ID_STRING_DEFAULT_POI_DESCRIPTION;
 extern const wchar_t* ID_STRING_DEFAULT_POI_TITLE;
 extern const wchar_t* ID_STRING_TIMELINE_VIEW_TITLE;
