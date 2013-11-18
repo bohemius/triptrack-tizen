@@ -14,13 +14,12 @@ using namespace Tizen::Base;
 using namespace Tizen::Ui;
 
 EditFormPopup::EditFormPopup(void) :
-		__pFieldMap(null), __pExTxtAreasMap(null), __pFieldProvider(null), __pPopupEventListener(
-				null) {
+		__pFieldList(null), __pExTxtAreasList(null), __pFieldProvider(null) {
 }
 
 EditFormPopup::~EditFormPopup(void) {
-	__pExTxtAreasMap->RemoveAll();
-	delete (__pExTxtAreasMap);
+	__pExTxtAreasList->RemoveAll();
+	delete (__pExTxtAreasList);
 }
 
 result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
@@ -40,29 +39,21 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 	const int buttonWidth = (int) dimension.width / 2 - 2 * xMargin;
 	int y = 0;
 
-	__pFieldMap = fieldProvider->GetFields();
-	IEnumeratorT<int>* pEnum = __pFieldMap->GetKeysN()->GetEnumeratorN();
+	__pFieldList = fieldProvider->GetFields();
+	IEnumeratorT<IFormFieldProvider::FormField*>* pEnum =
+			__pFieldList->GetEnumeratorN();
 
-	__pExTxtAreasMap = new HashMapT<int, ExpandableEditArea*>();
-	__pExTxtAreasMap->Construct(5, 10);
+	__pExTxtAreasList = new LinkedListT<ExpandableEditArea*>();
 
 	y = yMargin;
 	while (pEnum->MoveNext() == E_SUCCESS) {
-		int key;
-
-		r = pEnum->GetCurrent(key);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error getting key from collection:[%s]", GetErrorMessage(r));
-			return r;
-		}
 
 		IFormFieldProvider::FormField* pFormField;
 
-		r = __pFieldMap->GetValue(key, pFormField);
+		r = pEnum->GetCurrent(pFormField);
 		if (r != E_SUCCESS) {
 			AppLogException(
-					"Error getting form field for key [%d] from collection:[%s]", key, GetErrorMessage(r));
+					"Error getting form field from collection:[%s]", GetErrorMessage(r));
 			return r;
 		}
 
@@ -74,72 +65,26 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 		pEditArea->SetTitleText(*(pFormField->fieldName));
 		pEditArea->SetText(*(pFormField->fieldData));
 		AddControl(pEditArea);
-		r = __pExTxtAreasMap->Add(key, pEditArea);
+		r = __pExTxtAreasList->Add(pEditArea);
 		if (r != E_SUCCESS) {
 			AppLogException(
-					"Error adding edit area with key [%d] to map:[%s]", key, GetErrorMessage(r));
+					"Error adding edit area to map:[%s]", GetErrorMessage(r));
 			return r;
 		}
 
 		y += fieldHeight + yMargin;
 	}
 
-	__pPopupEventListener = new PopupEventListener();
-	SetPropagatedKeyEventListener(__pPopupEventListener);
+	SetPropagatedKeyEventListener(this);
 	SetTitleText(title);
 	return r;
 }
 
 result EditFormPopup::Save(void) {
 	result r = E_SUCCESS;
-	IEnumeratorT<int>* pEnum = __pExTxtAreasMap->GetKeysN()->GetEnumeratorN();
-
-	while (pEnum->MoveNext() == E_SUCCESS) {
-		int key;
-		r = pEnum->GetCurrent(key);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error getting key from collection:[%s]", GetErrorMessage(r));
-			return r;
-		}
-
-		IFormFieldProvider::FormField* pFormField = null;
-
-		r = __pFieldMap->GetValue(key, pFormField);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error getting form field for key [%d] from collection:[%s]", key, GetErrorMessage(r));
-			return r;
-		}
-
-		ExpandableEditArea* pEditArea = null;
-
-		r = __pExTxtAreasMap->GetValue(key, pEditArea);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error getting edit area for key [%d] from collection:[%s]", key, GetErrorMessage(r));
-			return r;
-		}
-
-		pFormField->fieldData->Clear();
-		pFormField->fieldData->Append(pEditArea->GetText());
-		r = __pFieldProvider->SetFieldAt(key, pFormField);
-		if (r != E_SUCCESS) {
-			AppLogException(
-					"Error setting field data for key [%d] in field provider:[%s]", key, GetErrorMessage(r));
-			return r;
-		}
-	}
+	//TODO
 	return r;
 }
-
-void EditFormPopup::OnFormBackRequested(Tizen::Ui::Controls::Form& source) {
-	SetShowState(false);
-	Invalidate(true);
-}
-
-const int SampleFieldProvider::FORM_FIELD_ID_DESCRIPTION = 2;
-const int SampleFieldProvider::FORM_FIELD_ID_TITLE = 1;
 
 SampleFieldProvider::SampleFieldProvider(void) :
 		__pFormFields(null) {
@@ -153,58 +98,57 @@ SampleFieldProvider::~SampleFieldProvider(void) {
 	}
 }
 
-IFormFieldProvider::FormField* SampleFieldProvider::GetFieldAt(int id) {
+IFormFieldProvider::FormField* SampleFieldProvider::GetField(int id) {
 	result r = E_SUCCESS;
 
 	FormField* retVal = null;
-	r = __pFormFields->GetValue(id, retVal);
+	r = __pFormFields->GetAt(id, retVal);
 	if (r != E_SUCCESS) {
 		AppLogException(
-				"Error getting field with id [%d] from field map: [%s]", id, GetErrorMessage(r));
+				"Error getting field with id [%d] from field collection: [%s]", id, GetErrorMessage(r));
 		return null;
 	}
 	return retVal;
 }
 
-HashMapT<int, IFormFieldProvider::FormField*>* SampleFieldProvider::GetFields(
+LinkedListT<IFormFieldProvider::FormField*>* SampleFieldProvider::GetFields(
 		void) {
 	return __pFormFields;
 }
 
-result SampleFieldProvider::SetFieldAt(int id, FormField* formField) {
+result SampleFieldProvider::SaveField(FormField* formField) {
 	result r = E_SUCCESS;
 
-	r = __pFormFields->SetValue(id, formField);
-	if (r != E_SUCCESS)
-		AppLogException(
-				"Error setting field with id [%d] in field map: [%s]", id, GetErrorMessage(r));
+	return r;
+}
+
+result SampleFieldProvider::SaveFields(void) {
+	result r=E_SUCCESS;
+
 	return r;
 }
 
 result SampleFieldProvider::Construct(void) {
 	result r = E_SUCCESS;
 
-	__pFormFields = new HashMapT<int, FormField*>();
-	r = __pFormFields->Construct(2, 1.5);
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructing field map: [%s]", GetErrorMessage(r));
-		return r;
-	}
+	__pFormFields = new LinkedListT<FormField*>();
 
 	FormField* pTitleField = new FormField;
 	pTitleField->fieldName = new String(L"Title");
 	pTitleField->fieldData = new String(L"");
-	r = __pFormFields->Add(FORM_FIELD_ID_TITLE, pTitleField);
+	pTitleField->id=1;
+	r = __pFormFields->Add(pTitleField);
 	if (r != E_SUCCESS) {
-		AppLogException( "Error adding to field map: [%s]", GetErrorMessage(r));
+		AppLogException(
+				"Error adding to field collection: [%s]", GetErrorMessage(r));
 		return r;
 	}
 
 	FormField* pDescField = new FormField;
 	pDescField->fieldName = new String(L"Description");
 	pDescField->fieldData = new String(L"");
-	__pFormFields->Add(FORM_FIELD_ID_DESCRIPTION, pDescField);
+	pDescField->id=2;
+	__pFormFields->Add(pDescField);
 	if (r != E_SUCCESS) {
 		AppLogException( "Error adding to field map: [%s]", GetErrorMessage(r));
 		return r;
@@ -215,15 +159,37 @@ int SampleFieldProvider::GetFieldCount(void) {
 	return __pFormFields->GetCount();
 }
 
-bool PopupEventListener::OnKeyReleased(Tizen::Ui::Control& source,
+bool EditFormPopup::OnKeyPressed(Tizen::Ui::Control& source,
+		const Tizen::Ui::KeyEventInfo& keyEventInfo) {
+	return false;
+}
+
+bool EditFormPopup::OnKeyReleased(Tizen::Ui::Control& source,
 		const Tizen::Ui::KeyEventInfo& keyEventInfo) {
 	KeyCode key = keyEventInfo.GetKeyCode();
 	if (key == KEY_BACK || key == KEY_ESC) {
-		EditFormPopup* pPopup = static_cast<EditFormPopup*>(&source);
-		pPopup->SetShowState(false);
-		pPopup->Invalidate(true);
-	}
 
+		//EditFormPopup* pPopup = static_cast<EditFormPopup*>(&source);
+		//pPopup->SetShowState(false);
+		//pPopup->Invalidate(true);
+
+		this->SetShowState(false);
+		this->Invalidate(true);
+	}
+}
+
+bool EditFormPopup::OnPreviewKeyPressed(Tizen::Ui::Control& source,
+		const Tizen::Ui::KeyEventInfo& keyEventInfo) {
+	return false;
+}
+
+bool EditFormPopup::OnPreviewKeyReleased(Tizen::Ui::Control& source,
+		const Tizen::Ui::KeyEventInfo& keyEventInfo) {
+	return false;
+}
+
+bool EditFormPopup::TranslateKeyEventInfo(Tizen::Ui::Control& source,
+		Tizen::Ui::KeyEventInfo& keyEventInfo) {
 	return false;
 }
 

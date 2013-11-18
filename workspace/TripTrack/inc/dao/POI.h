@@ -13,8 +13,11 @@
 #include "dao/TTLocation.h"
 #include "dao/TTMedia.h"
 #include "dao/ICRUD.h"
+#include "ui/CommonComponents.h"
 
-class POI: public I_CRUDable, public Tizen::Base::Object {
+class POI: public I_CRUDable,
+		public Tizen::Base::Object,
+		public IFormFieldProvider {
 public:
 	POI();
 	virtual ~POI();
@@ -39,15 +42,30 @@ public:
 	void AddMedia(TTMedia* media);
 	void DeleteMedia(TTMedia* media);
 	long long int GetId() const;
+
+	//ICRUDable
 	virtual Tizen::Io::DbStatement* Read(void);
 	virtual Tizen::Io::DbStatement* Write(void);
 	virtual Tizen::Io::DbStatement* Delete(void);
 	virtual Tizen::Io::DbStatement* Update(void);
+
+	//IFormFieldProvider
+	virtual FormField* GetField(int id);
+	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void);
+	virtual result SaveField(FormField* formField);
+	virtual result SaveFields(void);
+	virtual int GetFieldCount(void);
+
 	Tizen::Base::DateTime* GetTimestamp() const;
 	void SetTimestamp(Tizen::Base::DateTime* timestamp);
 
 	static const float TILE_IMAGE_WIDTH = 100.0f;
 	static const float TILE_IMAGE_HEIGHT = 176.0f;
+
+	static const int ID_FIELD_TITLE = 0;
+	static const int ID_FIELD_DESC = 1;
+
+	static const int CONST_FIELD_COUNT=2;
 
 private:
 	Tizen::Base::String* __pDescription;

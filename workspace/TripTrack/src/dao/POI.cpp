@@ -12,6 +12,8 @@
 #include "util/BootstrapManager.h"
 #include "util/GraphicsUtils.h"
 #include "dao/StorageManager.h"
+#include "AppResourceId.h"
+#include "ui/CommonComponents.h"
 
 using namespace Tizen::Locations;
 using namespace Tizen::Base::Collection;
@@ -249,7 +251,7 @@ Tizen::Io::DbStatement* POI::Read(void) {
 	SetTimestamp(new DateTime(timeStamp));
 	SetLocation(pCoor);
 	SetDefImageId(defId);
-	__pAssociatedMedia=new LinkedListT<TTMedia*>();
+	__pAssociatedMedia = new LinkedListT<TTMedia*>();
 
 	delete pEnum;
 	delete pStmt;
@@ -375,6 +377,80 @@ Tizen::Io::DbStatement* POI::Update(void) {
 
 Tizen::Base::DateTime* POI::GetTimestamp() const {
 	return __pTimestamp;
+}
+
+IFormFieldProvider::FormField* POI::GetField(int id) {
+	FormField* retVal = new FormField;
+
+	switch (id) {
+	case ID_FIELD_TITLE:
+		retVal->fieldName = new String(
+				I18N::GetLocalizedString(ID_STRING_FIELD_LABEL_POI_TITLE));
+		retVal->fieldData = new String(*__pTitle);
+		retVal->id = ID_FIELD_TITLE;
+		break;
+	case ID_FIELD_DESC:
+		retVal->fieldName = new String(
+				I18N::GetLocalizedString(
+						ID_STRING_FIELD_LABEL_POI_DESCRIPTION));
+		retVal->fieldData = new String(*__pDescription);
+		retVal->id = ID_FIELD_DESC;
+		break;
+	default:
+		AppLogException("Unrecognized field id: [%d]", id);
+		delete retVal;
+		return null;
+	}
+
+	return retVal;
+}
+
+Tizen::Base::Collection::LinkedListT<IFormFieldProvider::FormField*>* POI::GetFields(void) {
+	LinkedListT<FormField*>* retVal = new LinkedListT<FormField*>();
+
+	FormField* pTitleField = new FormField;
+	pTitleField->fieldName = new String(
+			I18N::GetLocalizedString(ID_STRING_FIELD_LABEL_POI_TITLE));
+	pTitleField->fieldData = new String(*__pTitle);
+	pTitleField->id = ID_FIELD_TITLE;
+	retVal->Add(pTitleField);
+
+	FormField* pDescField = new FormField;
+	pDescField->fieldName = new String(
+			I18N::GetLocalizedString(ID_STRING_FIELD_LABEL_POI_DESCRIPTION));
+	pDescField->fieldData = new String(*__pDescription);
+	pDescField->id = ID_FIELD_DESC;
+	retVal->Add(pDescField);
+
+	return retVal;
+}
+
+result POI::SaveField(FormField* formField) {
+	result retVal = E_SUCCESS;
+
+	switch (formField->id) {
+	case ID_FIELD_DESC:
+		SetDescription(formField->fieldData);
+		break;
+	case ID_FIELD_TITLE:
+		SetTitle(formField->fieldData);
+		break;
+	default:
+		AppLogException("Unrecognized field id: [%d]", formField->id);
+		return E_FAILURE;
+	}
+
+	return retVal;
+}
+
+result POI::SaveFields(void) {
+	result retVal = E_SUCCESS;
+
+	return retVal;
+}
+
+int POI::GetFieldCount(void) {
+	return CONST_FIELD_COUNT;
 }
 
 void POI::SetTimestamp(Tizen::Base::DateTime* timestamp) {
