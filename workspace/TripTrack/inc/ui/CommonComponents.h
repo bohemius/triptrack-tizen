@@ -16,6 +16,8 @@ public:
 	struct FormField {
 		Tizen::Base::String* fieldName;
 		Tizen::Base::String* fieldData;
+		Tizen::Graphics::Dimension* fieldDim;
+		int limit;
 		int id;
 	};
 
@@ -68,7 +70,7 @@ public:
 private:
 	Tizen::Base::Collection::LinkedListT<IFormFieldProvider::FormField*>* __pFieldList;
 	Tizen::Base::Collection::LinkedListT<
-			Tizen::Ui::Controls::ExpandableEditArea*>* __pExTxtAreasList;
+			Tizen::Ui::Controls::EditArea*>* __pExTxtAreasList;
 	Tizen::Ui::Controls::Button __pSaveButton, __pCancelButton;
 	IFormFieldProvider* __pFieldProvider;
 };

@@ -5,6 +5,7 @@
  *      Author: bohemius
  */
 #include "ui/CommonComponents.h"
+#include <math.h>
 #include <FGraphics.h>
 
 using namespace Tizen::Ui::Controls;
@@ -43,7 +44,7 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 	IEnumeratorT<IFormFieldProvider::FormField*>* pEnum =
 			__pFieldList->GetEnumeratorN();
 
-	__pExTxtAreasList = new LinkedListT<ExpandableEditArea*>();
+	__pExTxtAreasList = new LinkedListT<EditArea*>();
 
 	y = yMargin;
 	while (pEnum->MoveNext() == E_SUCCESS) {
@@ -57,12 +58,17 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 			return r;
 		}
 
-		ExpandableEditArea* pEditArea = new ExpandableEditArea();
+		int deltaWidth = abs(fieldWidth - pFormField->fieldDim->width);
+		if (deltaWidth > 10)
+			pFormField->fieldDim->width = fieldWidth;
 
-		pEditArea->Construct(Rectangle(xMargin, y, fieldWidth, fieldHeight),
-				EXPANDABLE_EDIT_AREA_STYLE_NORMAL,
-				EXPANDABLE_EDIT_AREA_TITLE_STYLE_TOP, 5);
-		pEditArea->SetTitleText(*(pFormField->fieldName));
+		EditArea* pEditArea = new EditArea();
+
+		pEditArea->Construct(
+				Rectangle(xMargin, y, pFormField->fieldDim->width,
+						pFormField->fieldDim->height), INPUT_STYLE_OVERLAY,
+				pFormField->limit);
+		//pEditArea->SetTitleText(*(pFormField->fieldName));
 		pEditArea->SetText(*(pFormField->fieldData));
 		AddControl(pEditArea);
 		r = __pExTxtAreasList->Add(pEditArea);
@@ -123,7 +129,7 @@ result SampleFieldProvider::SaveField(FormField* formField) {
 }
 
 result SampleFieldProvider::SaveFields(void) {
-	result r=E_SUCCESS;
+	result r = E_SUCCESS;
 
 	return r;
 }
@@ -136,7 +142,9 @@ result SampleFieldProvider::Construct(void) {
 	FormField* pTitleField = new FormField;
 	pTitleField->fieldName = new String(L"Title");
 	pTitleField->fieldData = new String(L"");
-	pTitleField->id=1;
+	pTitleField->id = 1;
+	pTitleField->limit = 300;
+	pTitleField->fieldDim = new Dimension(300, 80);
 	r = __pFormFields->Add(pTitleField);
 	if (r != E_SUCCESS) {
 		AppLogException(
@@ -147,7 +155,9 @@ result SampleFieldProvider::Construct(void) {
 	FormField* pDescField = new FormField;
 	pDescField->fieldName = new String(L"Description");
 	pDescField->fieldData = new String(L"");
-	pDescField->id=2;
+	pDescField->id = 2;
+	pDescField->limit = 1000;
+	pDescField->fieldDim = new Dimension(300, 400);
 	__pFormFields->Add(pDescField);
 	if (r != E_SUCCESS) {
 		AppLogException( "Error adding to field map: [%s]", GetErrorMessage(r));
