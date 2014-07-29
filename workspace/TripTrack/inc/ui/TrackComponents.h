@@ -23,8 +23,8 @@ public:
 
 private:
 	Tracker* __pTracker;
-	static const int TEXT_MARGIN_X = 10.0f;
-	static const int TEXT_MARGIN_Y = 10.0f;
+	static const float TEXT_MARGIN_X = 10.0f;
+	static const float TEXT_MARGIN_Y = 10.0f;
 };
 
 class TrackListPanel: public Tizen::Ui::Controls::Panel,
@@ -59,10 +59,15 @@ public:
 private:
 	result LoadResources(void);
 	Tizen::Ui::Controls::ListView* __pTrackListView;
-	Tizen::Graphics::Bitmap* __pTrackListBackgroundBitmap;
+	Tizen::Graphics::Bitmap* __pTrackListBackgroundBitmap; //TODO: looks like it is not getting used
+	Tizen::Ui::Controls::ListContextItem* __pTrackListContextItem;
+	Tizen::Graphics::Bitmap *__pMapBitmap, *__pEditBitmap, *__pDeleteBitmap;
 	int _trackingIndex;
 
 	static const int ID_FORMAT_CUSTOM = 503;
+	static const int ID_CONTEXT_ITEM_MAP = 504;
+	static const int ID_CONTEXT_ITEM_EDIT = 505;
+	static const int ID_CONTEXT_ITEM_DELETE = 506;
 };
 
 #endif /* TRACKCOMPONENTS_H_ */

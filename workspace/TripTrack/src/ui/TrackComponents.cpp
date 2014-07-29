@@ -12,9 +12,7 @@ using namespace Tizen::Ui::Controls;
 using namespace Tizen::App;
 using namespace Tizen::Base;
 
-TrackListElement::TrackListElement() /*:
- __pTracker(tracker) */{
-
+TrackListElement::TrackListElement() {
 }
 
 TrackListElement::~TrackListElement(void) {
@@ -28,11 +26,6 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 	//canvas.SetLineWidth(LINE_WITH);
 	canvas.SetForegroundColor(Color::GetColor(COLOR_ID_WHITE));
 
-	/*
-	 * if (canvas.DrawRectangle(rect) != E_SUCCESS) {
-	 return false;
-	 }*/
-
 	//draw track title
 	if (canvas.DrawText(
 			Tizen::Graphics::FloatPoint(rect.x, rect.y + TEXT_MARGIN_Y),
@@ -45,7 +38,8 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 	canvas.SetFont(mileageFont);
 	if (canvas.DrawText(
 			Tizen::Graphics::FloatPoint(rect.x,
-					rect.y + rect.height - mileageFont.GetMaxHeightF()),
+					rect.y + rect.height - mileageFont.GetMaxHeightF()
+							- TEXT_MARGIN_Y),
 			L"Total mileage: 1245.7 miles") != E_SUCCESS) {
 		return false;
 	}
@@ -62,11 +56,22 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 			L"Duration 123.3 Hours") != E_SUCCESS) {
 		return false;
 	}
+
+	//calculate indicator rectangle using element height
+	float diameterDisk = mileageFont.GetMaxHeightF();
+	FloatRectangle diskRect(rect.x + rect.width - diameterDisk,
+			rect.y + rect.height - diameterDisk - TEXT_MARGIN_Y, diameterDisk,
+			diameterDisk);
+	//draw track title
+	if (canvas.FillEllipse(Color::GetColor(COLOR_ID_RED), diskRect) != E_SUCCESS) {
+		return false;
+	}
+
 	return true;
 }
 
 TrackListPanel::TrackListPanel(Rectangle &rect) :
-		Panel(), __pTrackListView(null), __pTrackListBackgroundBitmap(null) {
+		Panel(), __pTrackListView(null) {
 	Panel::Construct(Rectangle(0, 0, rect.width, rect.height));
 }
 
@@ -77,13 +82,34 @@ result TrackListPanel::Construct(void) {
 	result r = E_SUCCESS;
 	_trackingIndex = -1;
 
+	//load resources
 	r = LoadResources();
+
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error loading resources for track list view: [%s]", GetErrorMessage(r));
 		return r;
 	}
+
+	//construct list context items
+	__pTrackListContextItem = new (std::nothrow) ListContextItem();
+
+	r = __pTrackListContextItem->Construct();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing track list context item: [%s]", GetErrorMessage(r));
+	}
+
+	__pTrackListContextItem->AddElement(ID_CONTEXT_ITEM_MAP, *__pMapBitmap,
+			*__pMapBitmap, null, true);
+	__pTrackListContextItem->AddElement(ID_CONTEXT_ITEM_EDIT, *__pEditBitmap,
+			*__pEditBitmap, null, true);
+	__pTrackListContextItem->AddElement(ID_CONTEXT_ITEM_DELETE,
+			*__pDeleteBitmap, *__pDeleteBitmap, null, true);
+	__pTrackListContextItem->SetBackgroundColor(Color(46, 151, 199));
+
 	__pTrackListView = new ListView();
+
 	r = __pTrackListView->Construct(
 			Rectangle(0, 0, GetBounds().width, GetBounds().height), true, true);
 	if (r != E_SUCCESS) {
@@ -165,15 +191,16 @@ Tizen::Ui::Controls::ListItemBase* TrackListPanel::CreateItem(int index,
 		float itemWidth) {
 
 	CustomItem* pItem = new (std::nothrow) CustomItem();
-	TrackListElement* pTrackItem = new TrackListElement();
-	FloatRectangle customElementRect(30.0f, 10.0f, 500.0f, 90.0f);
+	TrackListElement* pTrackElement = new TrackListElement();
 
-	//TODO if the item is not currently tracking it should be of different type than LIST_ANNEX_STYLE_ONOFF_SLIDING
-	pItem->Construct(Dimension(itemWidth, 112), LIST_ANNEX_STYLE_ONOFF_SLIDING);
-	pItem->AddElement(customElementRect, ID_FORMAT_CUSTOM, *pTrackItem);
-	if (_trackingIndex != -1 && _trackingIndex != index)
-		pItem->SetBackgroundColor(LIST_ITEM_DRAWING_STATUS_NORMAL,
-				Color::GetColor(COLOR_ID_GREY));
+	//TODO this might need to recalculate based on real device coors to make it relative, needs to be tested
+	FloatRectangle trackElementRect(30.0f, 10.0f, GetBoundsF().width * 0.90f,
+			90.0f);
+
+	pItem->Construct(Dimension(itemWidth, 112), LIST_ANNEX_STYLE_NORMAL);
+	pItem->AddElement(trackElementRect, 1, *pTrackElement);
+
+	pItem->SetContextItem(__pTrackListContextItem);
 
 	return pItem;
 }
@@ -189,10 +216,20 @@ int TrackListPanel::GetItemCount(void) {
 	return 10;
 }
 
+/*result TrackListPanel::OnInitializing(void) {
+ result r=E_SUCCESS;
+
+
+ }*/
+
 result TrackListPanel::LoadResources(void) {
 	result r = E_SUCCESS;
 
 	AppResource* pAppRes = Application::GetInstance()->GetAppResource();
+
+	__pMapBitmap = pAppRes->GetBitmapN(L"location.png");
+	__pEditBitmap = pAppRes->GetBitmapN(L"edit.png");
+	__pDeleteBitmap = pAppRes->GetBitmapN(L"delete.png");
 
 	return r;
 }
