@@ -11,8 +11,13 @@ using namespace Tizen::Graphics;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::App;
 using namespace Tizen::Base;
+using namespace Tizen::Base::Collection;
 
 TrackListElement::TrackListElement() {
+}
+
+TrackListElement::TrackListElement(Tracker* pTracker) {
+	__pTracker = pTracker;
 }
 
 TrackListElement::~TrackListElement(void) {
@@ -27,9 +32,9 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 	canvas.SetForegroundColor(Color::GetColor(COLOR_ID_WHITE));
 
 	//check if the item is checked and set the tracker state
-	AppLog("Item drawing status: [%d]", itemStatus);
-	if (itemStatus==LIST_ITEM_DRAWING_STATUS_PRESSED)
-		TrackListElement::STATE == ON ? TrackListElement::STATE == OFF: TrackListElement::STATE == ON;
+	//AppLog("Item drawing status: [%d]", itemStatus);
+	//if (itemStatus==LIST_ITEM_DRAWING_STATUS_PRESSED)
+	//	TrackListElement::STATE == ON ? TrackListElement::STATE == OFF: TrackListElement::STATE == ON;
 
 	//draw track title
 	if (canvas.DrawText(
@@ -68,7 +73,10 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 			rect.y + rect.height - diameterDisk - TEXT_MARGIN_Y, diameterDisk,
 			diameterDisk);
 	//draw track title
-	if (canvas.FillEllipse(STATE==ON ? Color::GetColor(COLOR_ID_GREEN) : Color::GetColor(COLOR_ID_RED), diskRect) != E_SUCCESS) {
+	if (canvas.FillEllipse(
+			__pTracker->GetStatus() == __pTracker->ACTIVE ?
+					Color::GetColor(COLOR_ID_GREEN) :
+					Color::GetColor(COLOR_ID_RED), diskRect) != E_SUCCESS) {
 		return false;
 	}
 
@@ -90,28 +98,14 @@ result TrackListPanel::Construct(void) {
 	//load resources
 	r = LoadResources();
 
+	//Initialise tracker manager
+	__pTrackerMgr = TrackerManager::getInstance();
+
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error loading resources for track list view: [%s]", GetErrorMessage(r));
 		return r;
 	}
-
-	//construct list context items
-	__pTrackListContextItem = new (std::nothrow) ListContextItem();
-
-	r = __pTrackListContextItem->Construct();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructing track list context item: [%s]", GetErrorMessage(r));
-	}
-
-	__pTrackListContextItem->AddElement(ID_CONTEXT_ITEM_MAP, L"Map",
-			*__pMapBitmap, *__pMapBitmap, null, true);
-	__pTrackListContextItem->AddElement(ID_CONTEXT_ITEM_EDIT, L"Map",
-			*__pEditBitmap, *__pEditBitmap, null, true);
-	__pTrackListContextItem->AddElement(ID_CONTEXT_ITEM_DELETE, L"Map",
-			*__pDeleteBitmap, *__pDeleteBitmap, null, true);
-	__pTrackListContextItem->SetBackgroundColor(Color(46, 151, 199));
 
 	//construct context menu
 	__pTrackListContextMenu = new (std::nothrow) ContextMenu();
@@ -130,7 +124,7 @@ result TrackListPanel::Construct(void) {
 	__pTrackListContextMenu->AddItem(L"Delete", ID_CONTEXT_ITEM_DELETE,
 			*__pDeleteBitmap, __pDeleteBitmap, __pDeleteBitmap);
 	__pTrackListContextMenu->SetColor(Color(46, 151, 199));
-	//__pTrackListContextMenu->AddActionEventListener(*this);
+	__pTrackListContextMenu->AddActionEventListener(*this);
 
 	__pTrackListView = new ListView();
 
@@ -169,44 +163,25 @@ void TrackListPanel::OnListViewItemStateChanged(
 		Tizen::Ui::Controls::ListView& listView, int index, int elementId,
 		Tizen::Ui::Controls::ListItemStatus status) {
 
-	AppLog("int index: [%d], int elementId: [%d], status: [%d]", index, elementId, __pTrackListView->IsItemChecked(index));
+	result r=E_SUCCESS;
 
+	AppLog(
+			"int index: [%d], int elementId: [%d], status: [%d]", index, elementId, __pTrackListView->IsItemChecked(index));
 
+	Tracker* pTracker;
+	r = __pTrackerMgr->GetTracks()->GetAt(index, pTracker);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting tracker from tracker manager: [%s]", GetErrorMessage(r));
+		return;
+	}
 
-	//__pTrackListView->IsItemChecked(index) ? __pTrackListView->SetItemChecked(index, false) : __pTrackListView->SetItemChecked(index, true);
+	int oldStatus=pTracker->GetStatus();
+	pTracker->GetStatus() == Tracker::PAUSED ? pTracker->SetStatus(Tracker::ACTIVE) : pTracker->SetStatus(Tracker::PAUSED);
 
-	//__pTrackListView->RefreshList(index, ID_TRACK_LIST_ITEM);
-
-
-	/*if (status == LIST_ITEM_STATUS_CHECKED) {
-	 for (int i = 0; i < listView.GetItemCount(); i++)
-	 if (i != index) {
-	 result r = __pTrackListView->SetItemEnabled(i, false);
-	 if (r != E_SUCCESS) {
-	 AppLogException(
-	 "Error setting item:[%d],[%s]", i, GetErrorMessage(r));
-	 return;
-	 }
-	 }
-	 } else if (status == LIST_ITEM_STATUS_UNCHECKED) {
-	 for (int i = 0; i < listView.GetItemCount(); i++)
-	 if (i != index) {
-	 result r = __pTrackListView->SetItemEnabled(i, true);
-	 if (r != E_SUCCESS) {
-	 AppLogException(
-	 "Error setting item:[%d],[%s]", i, GetErrorMessage(r));
-	 return;
-	 }
-	 }
-	 if (_trackingIndex != -1)
-	 listView.SetItemChecked(index, false);
-	 else
-	 _trackingIndex = index;
-	 } else if (status == LIST_ITEM_STATUS_UNCHECKED) {
-	 if (_trackingIndex != -1)
-	 _trackingIndex = -1;
-	 }
-	 __pTrackListView->UpdateList();*/
+	int newStatus=pTracker->GetStatus();
+	AppLog(
+			"Changed tracker no [%d] from status [%d} to status [%d]", index, oldStatus, newStatus);
 }
 
 void TrackListPanel::OnListViewItemSwept(
@@ -225,9 +200,20 @@ void TrackListPanel::OnListViewItemLongPressed(
 
 Tizen::Ui::Controls::ListItemBase* TrackListPanel::CreateItem(int index,
 		float itemWidth) {
+	result r = E_SUCCESS;
 
+	Tracker* pTracker;
+
+	//get tracker from the tracker manager and read the track from the database
+	r = __pTrackerMgr->GetTracks()->GetAt(index, pTracker);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting tracker from tracker manager: [%s]", GetErrorMessage(r));
+		return null;
+	}
 	CustomItem* pItem = new (std::nothrow) CustomItem();
-	TrackListElement* pTrackElement = new TrackListElement();
+
+	TrackListElement* pTrackElement = new TrackListElement(pTracker);
 
 	//TODO this might need to recalculate based on real device coors to make it relative, needs to be tested
 	FloatRectangle trackElementRect(30.0f, 10.0f, GetBoundsF().width * 0.90f,
@@ -236,20 +222,20 @@ Tizen::Ui::Controls::ListItemBase* TrackListPanel::CreateItem(int index,
 	pItem->Construct(Dimension(itemWidth, 112), LIST_ANNEX_STYLE_NORMAL);
 	pItem->AddElement(trackElementRect, ID_TRACK_LIST_ITEM, *pTrackElement);
 
-	pItem->SetContextItem(__pTrackListContextItem);
-
 	return pItem;
 }
 
 bool TrackListPanel::DeleteItem(int index,
 		Tizen::Ui::Controls::ListItemBase* pItem, float itemWidth) {
+	//TODO implement track deletion on the UI
 	delete pItem;
 	pItem = null;
 	return true;
 }
 
 int TrackListPanel::GetItemCount(void) {
-	return 10;
+	return __pTrackerMgr->GetTracks()->GetCount();
+
 }
 
 void TrackListPanel::OnTouchPressed(const Tizen::Ui::Control& source,
@@ -262,20 +248,24 @@ void TrackListPanel::OnTouchPressed(const Tizen::Ui::Control& source,
 	}
 }
 
-	/*result TrackListPanel::OnInitializing(void) {
-	 result r=E_SUCCESS;
+void TrackListPanel::OnActionPerformed(const Tizen::Ui::Control& source,
+		int actionId) {
+}
+
+/*result TrackListPanel::OnInitializing(void) {
+ result r=E_SUCCESS;
 
 
-	 }*/
+ }*/
 
-	result TrackListPanel::LoadResources(void) {
-		result r = E_SUCCESS;
+result TrackListPanel::LoadResources(void) {
+	result r = E_SUCCESS;
 
-		AppResource* pAppRes = Application::GetInstance()->GetAppResource();
+	AppResource* pAppRes = Application::GetInstance()->GetAppResource();
 
-		__pMapBitmap = pAppRes->GetBitmapN(L"location.png");
-		__pEditBitmap = pAppRes->GetBitmapN(L"edit.png");
-		__pDeleteBitmap = pAppRes->GetBitmapN(L"delete.png");
+	__pMapBitmap = pAppRes->GetBitmapN(L"location.png");
+	__pEditBitmap = pAppRes->GetBitmapN(L"edit.png");
+	__pDeleteBitmap = pAppRes->GetBitmapN(L"delete.png");
 
-		return r;
-	}
+	return r;
+}

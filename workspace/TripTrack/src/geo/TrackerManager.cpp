@@ -92,6 +92,7 @@ result TrackerManager::RemoveTracker(Tracker* pTracker) {
 //Creates a collection of existing trackers from the database
 result TrackerManager::Construct(void) {
 	result r=E_SUCCESS;
+	__pTracks=StorageManager::getInstance()->GetTracks();
 	return r;
 }
 

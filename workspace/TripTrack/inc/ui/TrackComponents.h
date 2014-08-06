@@ -11,20 +11,21 @@
 #include <FApp.h>
 #include <FUi.h>
 #include <FGraphics.h>
+#include <FBase.h>
 #include "geo/Tracker.h"
+#include "geo/TrackerManager.h"
 
 class TrackListElement: public Tizen::Ui::Controls::ICustomElementF {
 public:
+	TrackListElement(Tracker* pTracker);
 	TrackListElement(void);
 	~TrackListElement(void);
 	bool OnDraw(Tizen::Graphics::Canvas& canvas,
 			const Tizen::Graphics::FloatRectangle& rect,
 			Tizen::Ui::Controls::ListItemDrawingStatus itemStatus);
-	enum STATE {ON, OFF};
 
 private:
 	Tracker* __pTracker;
-	STATE __trackerStatus;
 	static const float TEXT_MARGIN_X = 10.0f;
 	static const float TEXT_MARGIN_Y = 10.0f;
 };
@@ -32,12 +33,16 @@ private:
 class TrackListPanel: public Tizen::Ui::Controls::Panel,
 		public Tizen::Ui::Controls::IListViewItemEventListener,
 		public Tizen::Ui::Controls::IListViewItemProviderF,
-		public Tizen::Ui::ITouchEventListener {
+		public Tizen::Ui::ITouchEventListener,
+		public Tizen::Ui::IActionEventListener {
 
 public:
 	TrackListPanel(Tizen::Graphics::Rectangle &rect);
 	~TrackListPanel(void);
 	result Construct(void);
+
+	// IActionEventListener
+	virtual void  OnActionPerformed(const Tizen::Ui::Control &source, int actionId);
 
 	// ITouchEventListener
 	virtual void OnTouchPressed(const Tizen::Ui::Control &source,
@@ -80,11 +85,11 @@ private:
 	result LoadResources(void);
 	Tizen::Ui::Controls::ListView* __pTrackListView;
 	Tizen::Graphics::Bitmap* __pTrackListBackgroundBitmap; //TODO: looks like it is not getting used
-	Tizen::Ui::Controls::ListContextItem* __pTrackListContextItem;
 	Tizen::Ui::Controls::ContextMenu* __pTrackListContextMenu;
 	Tizen::Graphics::Bitmap *__pMapBitmap, *__pEditBitmap, *__pDeleteBitmap;
 	int _trackingIndex;
 	Tizen::Graphics::Point lastClickedPosition;
+	TrackerManager* __pTrackerMgr;
 
 	static const int ID_TRACK_LIST_ITEM = 502;
 	static const int ID_FORMAT_CUSTOM = 503;
