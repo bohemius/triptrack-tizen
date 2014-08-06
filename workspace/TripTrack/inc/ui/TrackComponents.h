@@ -40,6 +40,7 @@ public:
 	TrackListPanel(Tizen::Graphics::Rectangle &rect);
 	~TrackListPanel(void);
 	result Construct(void);
+	result Update(void);
 
 	// IActionEventListener
 	virtual void  OnActionPerformed(const Tizen::Ui::Control &source, int actionId);

@@ -97,13 +97,18 @@ result TrackListPanel::Construct(void) {
 
 	//load resources
 	r = LoadResources();
-
-	//Initialise tracker manager
-	__pTrackerMgr = TrackerManager::getInstance();
-
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error loading resources for track list view: [%s]", GetErrorMessage(r));
+		return r;
+	}
+
+	//Initialise tracker manager
+	__pTrackerMgr = TrackerManager::getInstance();
+	r=__pTrackerMgr->Construct();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error error constructing a tracker manager: [%s]", GetErrorMessage(r));
 		return r;
 	}
 
@@ -163,7 +168,7 @@ void TrackListPanel::OnListViewItemStateChanged(
 		Tizen::Ui::Controls::ListView& listView, int index, int elementId,
 		Tizen::Ui::Controls::ListItemStatus status) {
 
-	result r=E_SUCCESS;
+	result r = E_SUCCESS;
 
 	AppLog(
 			"int index: [%d], int elementId: [%d], status: [%d]", index, elementId, __pTrackListView->IsItemChecked(index));
@@ -176,10 +181,12 @@ void TrackListPanel::OnListViewItemStateChanged(
 		return;
 	}
 
-	int oldStatus=pTracker->GetStatus();
-	pTracker->GetStatus() == Tracker::PAUSED ? pTracker->SetStatus(Tracker::ACTIVE) : pTracker->SetStatus(Tracker::PAUSED);
+	int oldStatus = pTracker->GetStatus();
+	pTracker->GetStatus() == Tracker::PAUSED ?
+			pTracker->SetStatus(Tracker::ACTIVE) :
+			pTracker->SetStatus(Tracker::PAUSED);
 
-	int newStatus=pTracker->GetStatus();
+	int newStatus = pTracker->GetStatus();
 	AppLog(
 			"Changed tracker no [%d] from status [%d} to status [%d]", index, oldStatus, newStatus);
 }
@@ -250,6 +257,15 @@ void TrackListPanel::OnTouchPressed(const Tizen::Ui::Control& source,
 
 void TrackListPanel::OnActionPerformed(const Tizen::Ui::Control& source,
 		int actionId) {
+}
+
+result TrackListPanel::Update(void) {
+	result r=E_SUCCESS;
+
+	r=__pTrackListView->UpdateList();
+	if (r != E_SUCCESS)
+		AppLogException("Error updating track panel: [%s]", GetErrorMessage(r));
+	return r;
 }
 
 /*result TrackListPanel::OnInitializing(void) {
