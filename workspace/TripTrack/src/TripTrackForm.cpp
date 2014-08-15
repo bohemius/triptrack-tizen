@@ -239,13 +239,13 @@ void TripTrackForm::OnSceneActivatedN(
 		const Tizen::Ui::Scenes::SceneId& previousSceneId,
 		const Tizen::Ui::Scenes::SceneId& currentSceneId,
 		Tizen::Base::Collection::IList* pArgs) {
-	AppLog("OnSceneActivatedN");
+	AppLog("Activated MAIN_FORM scene");
 }
 
 void TripTrackForm::OnSceneDeactivated(
 		const Tizen::Ui::Scenes::SceneId& currentSceneId,
 		const Tizen::Ui::Scenes::SceneId& nextSceneId) {
-	AppLog("OnSceneDeactivated");
+	AppLog("Deactivated MAIN_FORM scene");
 }
 
 void TripTrackForm::OnLocationUpdated(
@@ -445,4 +445,5 @@ bool TripTrackForm::CheckLocationSetting(void) {
 
 	return true;
 }
+
 

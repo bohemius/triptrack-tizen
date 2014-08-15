@@ -82,7 +82,7 @@ result Tracker::Construct(long long int id) {
 	__trackerId = id;
 
 	AppLog(
-			"Reading media data from database for media id: [%lld]", __trackerId);
+			"Reading tracker data from database for tracker id: [%lld]", __trackerId);
 	Read();
 
 	AppLog(
@@ -134,6 +134,8 @@ String* Tracker::GetDescription() const {
 }
 
 void Tracker::SetDescription(String* description) {
+	if (__pDescription != null)
+		delete __pDescription;
 	__pDescription = description;
 }
 
@@ -142,6 +144,8 @@ String* Tracker::GetTitle() const {
 }
 
 void Tracker::SetTitle(String* title) {
+	if (__pTitle != null)
+		delete __pTitle;
 	__pTitle = title;
 }
 
@@ -200,8 +204,8 @@ Tizen::Io::DbStatement* Tracker::Read(void) {
 	AppLog(
 			"Read values desc=[%S], title=[%S], distance=[%f], status=[%d]", desc.GetPointer(), title.GetPointer(), distance, status);
 
-	SetDescription(&desc);
-	SetTitle(&title);
+	SetDescription(new String(desc));
+	SetTitle(new String(title));
 	SetStatus(status);
 	SetDistance(distance);
 

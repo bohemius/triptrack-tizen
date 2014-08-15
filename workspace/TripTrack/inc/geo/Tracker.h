@@ -15,9 +15,7 @@
 #include "dao/TTLocation.h"
 #include "dao/ICRUD.h"
 
-class Tracker: public /*public Tizen::Locations::ILocationProviderListener,
- public Tizen::Ui::IActionEventListener,*/
-I_CRUDable {
+class Tracker: public I_CRUDable, public Tizen::Base::Object {
 public:
 	static const int ACTIVE = 0;
 	static const int PAUSED = 1;

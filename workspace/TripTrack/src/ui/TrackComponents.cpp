@@ -6,9 +6,11 @@
  */
 
 #include "ui/TrackComponents.h"
+#include "SceneRegister.h"
 
 using namespace Tizen::Graphics;
 using namespace Tizen::Ui::Controls;
+using namespace Tizen::Ui::Scenes;
 using namespace Tizen::App;
 using namespace Tizen::Base;
 using namespace Tizen::Base::Collection;
@@ -105,7 +107,7 @@ result TrackListPanel::Construct(void) {
 
 	//Initialise tracker manager
 	__pTrackerMgr = TrackerManager::getInstance();
-	r=__pTrackerMgr->Construct();
+	r = __pTrackerMgr->Construct();
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error error constructing a tracker manager: [%s]", GetErrorMessage(r));
@@ -249,20 +251,36 @@ void TrackListPanel::OnTouchPressed(const Tizen::Ui::Control& source,
 		const Tizen::Graphics::Point& currentPosition,
 		const Tizen::Ui::TouchEventInfo& touchInfo) {
 	if (&source == __pTrackListView) {
-		AppLog(
-				"Clicked on track list view, position: [%d] [%d]", currentPosition.x, currentPosition.y);
 		lastClickedPosition = source.ConvertToScreenPosition(currentPosition);
+		AppLog(
+				"Clicked on track list view, position: [%d] [%d], on list view item with id: [%d]", currentPosition.x, currentPosition.y, __pTrackListView->GetItemIndexFromPosition(source.ConvertToControlPosition(lastClickedPosition)));
 	}
 }
 
 void TrackListPanel::OnActionPerformed(const Tizen::Ui::Control& source,
 		int actionId) {
+	switch (actionId) {
+	case ID_CONTEXT_ITEM_MAP: {
+		AppLog("Setting ID_CONTEXT_ITEM_MAP view");
+
+		//get the selected tracker
+		Tracker* pTracker;
+		TrackerManager::getInstance()->GetTracks()->GetAt(
+				__pTrackListView->GetItemIndexFromPosition(
+						source.ConvertToControlPosition(lastClickedPosition)), pTracker);
+
+		DisplayMap(pTracker);
+	}
+		break;
+
+	}
+
 }
 
 result TrackListPanel::Update(void) {
-	result r=E_SUCCESS;
+	result r = E_SUCCESS;
 
-	r=__pTrackListView->UpdateList();
+	r = __pTrackListView->UpdateList();
 	if (r != E_SUCCESS)
 		AppLogException("Error updating track panel: [%s]", GetErrorMessage(r));
 	return r;
@@ -285,3 +303,14 @@ result TrackListPanel::LoadResources(void) {
 
 	return r;
 }
+
+void TrackListPanel::DisplayMap(Tracker* tracker) {
+
+	LinkedList* parameterList = new LinkedList();
+
+	parameterList->Add(tracker);
+	SceneManager* pSceneMngr = SceneManager::GetInstance();
+	pSceneMngr->GoForward(ForwardSceneTransition(SCENE_MAP_FORM),
+			parameterList);
+}
+

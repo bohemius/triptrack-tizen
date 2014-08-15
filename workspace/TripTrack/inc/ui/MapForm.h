@@ -14,11 +14,17 @@
 #include <HMaps.h>
 
 class MapForm: public Tizen::Ui::Controls::Form,
+		public HMaps::IMapEventListener,
 		public Tizen::Ui::Controls::IFormBackEventListener,
 		public Tizen::Ui::Scenes::ISceneEventListener {
 public:
 	MapForm();
 	virtual ~MapForm();
+
+	// IMapEventListener
+	virtual void OnMapLongPressed (HMaps::Map &map, const Tizen::Locations::Coordinates &coordinate);
+	virtual void OnMapRegionChanged (HMaps::Map &map);
+	virtual void OnMapTapped (HMaps::Map &map, const Tizen::Locations::Coordinates &coordinate);
 
 	// override from Form
 	bool Initialize(void);
