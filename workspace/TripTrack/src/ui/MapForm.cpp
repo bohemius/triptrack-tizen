@@ -14,7 +14,8 @@ using namespace Tizen::Base;
 using namespace Tizen::Locales;
 using namespace HMaps;
 
-MapForm::MapForm() {
+MapForm::MapForm() :
+		__pMap(null) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -37,17 +38,21 @@ result MapForm::OnInitializing(void) {
 	String appCode = L"14LI-CnPtBQEtVEKofyY9w";
 
 	//TODO should take it from local manager which holds the currently selected language
-	MapApplicationContext::GetInstance().Initialize(appCode, appId,LANGUAGE_ENG);
+	if (!MapApplicationContext::GetInstance().IsInitialized())
+		MapApplicationContext::GetInstance().Initialize(appCode, appId,
+				LANGUAGE_ENG);
 
-	Map*__pMap = new (std::nothrow) Map();
-	r = __pMap->Construct(GetClientAreaBounds().width,
-			GetClientAreaBounds().height);
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructing map control: [%s]", GetErrorMessage(r));
-		return r;
+	if (__pMap == null) {
+		__pMap = new (std::nothrow) Map();
+		r = __pMap->Construct(GetClientAreaBounds().width,
+				GetClientAreaBounds().height);
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error constructing map control: [%s]", GetErrorMessage(r));
+			return r;
+		}
+		AddControl(__pMap);
 	}
-	AddControl(__pMap);
 
 	Tizen::Locations::Coordinates coord;
 
@@ -82,8 +87,6 @@ void MapForm::OnMapLongPressed(Map& map,
 
 void MapForm::OnMapRegionChanged(Map& map) {
 }
-
-
 
 void MapForm::OnMapTapped(Map& map,
 		const Tizen::Locations::Coordinates& coordinate) {
