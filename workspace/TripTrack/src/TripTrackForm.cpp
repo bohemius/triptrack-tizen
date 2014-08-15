@@ -218,11 +218,12 @@ void TripTrackForm::OnActionPerformed(const Tizen::Ui::Control& source,
 	}
 		break;
 	case ID_FOOTER_BUTTTON_ADD_TRACK: {
-		String title=String(L"Sample title");
-		String desc=String(L"Sample description");
+		String title = String(L"Sample title");
+		String desc = String(L"Sample description");
 		TrackerManager::getInstance()->AddTracker(title, desc);
 		__pTrackListPanel->Update();
 	}
+		break;
 	default:
 		break;
 	}

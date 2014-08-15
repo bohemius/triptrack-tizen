@@ -76,9 +76,6 @@ private:
 	static const int ID_FOOTER_BUTTON_ADD_POI = 203;
 	static const int ID_FOOTER_BUTTON_CAMERA_POI = 204;
 	static const int ID_FOOTER_BUTTTON_ADD_TRACK = 205;
-	static const int ID_FOOTER_BUTTON_DELETE_TRACK = 206;
-	static const int ID_FOOTER_BUTTON_EDIT_TRACK = 207;
-	static const int ID_FOOTER_BUTTON_SHOW_TRACK = 208;
 
 	Tizen::Graphics::Bitmap* __pDeleteBitmap;
 	Tizen::Graphics::Bitmap* __pEditBitmap;
