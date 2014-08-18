@@ -34,14 +34,6 @@ bool MapForm::Initialize(void) {
 result MapForm::OnInitializing(void) {
 	result r = E_SUCCESS;
 
-	String appId = L"SkH6ws8o9MTThvyKJLJN";
-	String appCode = L"14LI-CnPtBQEtVEKofyY9w";
-
-	//TODO should take it from local manager which holds the currently selected language
-	if (!MapApplicationContext::GetInstance().IsInitialized())
-		MapApplicationContext::GetInstance().Initialize(appCode, appId,
-				LANGUAGE_ENG);
-
 	if (__pMap == null) {
 		__pMap = new (std::nothrow) Map();
 		r = __pMap->Construct(GetClientAreaBounds().width,

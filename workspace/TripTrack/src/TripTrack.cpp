@@ -8,6 +8,8 @@
 #include "SceneRegister.h"
 #include "util/BootstrapManager.h"
 #include "geo/Tracker.h"
+#include <HMaps.h>
+#include <FLocales.h>
 
 using namespace Tizen::App;
 using namespace Tizen::Base;
@@ -16,6 +18,8 @@ using namespace Tizen::System;
 using namespace Tizen::Ui;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Ui::Scenes;
+using namespace Tizen::Locales;
+using namespace HMaps;
 
 TripTrackApp::TripTrackApp(void) {
 }
@@ -40,22 +44,30 @@ bool TripTrackApp::OnAppInitializing(AppRegistry& appRegistry) {
 		return false;
 	}
 
+	String appId = L"SkH6ws8o9MTThvyKJLJN";
+	String appCode = L"14LI-CnPtBQEtVEKofyY9w";
+
+	//TODO should take it from local manager which holds the currently selected language
+	if (!MapApplicationContext::GetInstance().IsInitialized())
+		MapApplicationContext::GetInstance().Initialize(appCode, appId,
+				LANGUAGE_ENG);
+
 	/*
-	Tracker* track = new Tracker();
+	 Tracker* track = new Tracker();
 
-	AppLog("Constructing testing tracker");
-	String desc(L"Testing tracker used for testing");
-	String title(L"Test track");
-	r = track->Construct(desc, title);
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructin tracker [%ls]: [%s]", track->GetTitle()->GetPointer(), GetErrorMessage(r));
-		return false;
-	}
-	AppLog(
-			"Successfully constructed tracker [%ls] ", track->GetTitle()->GetPointer());
+	 AppLog("Constructing testing tracker");
+	 String desc(L"Testing tracker used for testing");
+	 String title(L"Test track");
+	 r = track->Construct(desc, title);
+	 if (r != E_SUCCESS) {
+	 AppLogException(
+	 "Error constructin tracker [%ls]: [%s]", track->GetTitle()->GetPointer(), GetErrorMessage(r));
+	 return false;
+	 }
+	 AppLog(
+	 "Successfully constructed tracker [%ls] ", track->GetTitle()->GetPointer());
 
-	*/
+	 */
 	Frame* pAppFrame = new Frame();
 	pAppFrame->Construct();
 	AddFrame(*pAppFrame);

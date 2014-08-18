@@ -10,12 +10,14 @@
 #include <FSysSettingInfo.h>
 #include <FSysSystemTime.h>
 #include <FLocations.h>
+#include <HMaps.h>
 #include "dao/TTMedia.h"
 #include "util/GraphicsUtils.h"
 #include "ui/CommonComponents.h"
 #include "TripTrackForm.h"
 #include "LocationManagerThread.h"
 #include "AppResourceId.h"
+#include "geo/GeoHelper.h"
 
 using namespace std;
 using namespace Tizen::App;
@@ -29,6 +31,7 @@ using namespace Tizen::Ui;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Ui::Scenes;
 using namespace Tizen::Locations;
+using namespace HMaps;
 
 TripTrackForm::TripTrackForm(void) :
 		__viewType(VIEW_TYPE_NONE), __pTrackListPanel(null), __pPoiListPanel(
@@ -67,6 +70,11 @@ result TripTrackForm::OnInitializing(void) {
 		AppLogException("Error loading resources: [%s]", GetErrorMessage(r));
 	}
 	Rectangle clientBounds = GetClientAreaBounds();
+
+	// Creates an instance of ProgressPopup
+	__pProgressPopup = new (std::nothrow) ProgressPopup();
+	__pProgressPopup->Construct(false, true);
+	__pProgressPopup->SetText(L"Getting current location and address.");
 
 	Header *pHeader = GetHeader();
 	pHeader->SetStyle(HEADER_STYLE_TAB);
@@ -179,6 +187,56 @@ void TripTrackForm::ProcessCameraResult(String* imagePath) {
 	delete criteria;
 }
 
+void TripTrackForm::OnGeocodeQueryCompleted(
+		const HMaps::BaseGeocodeQuery& query,
+		const HMaps::GeocodeReply& reply) {
+	result r = E_SUCCESS;
+
+	String city, street, country;
+
+	IEnumerator* pEnum = reply.GetResultListN()->GetEnumeratorN();
+	if (pEnum->MoveNext() == E_SUCCESS) {
+		GeocodeResult* pResult =
+				static_cast<GeocodeResult*>(pEnum->GetCurrent());
+
+		city = pResult->GetLocation().GetAddress().GetCity();
+		street = pResult->GetLocation().GetAddress().GetStreet();
+		country = pResult->GetLocation().GetAddress().GetCountry();
+	}
+
+	//TODO localize this
+	String desc = L"Traveling from " + street + L", " + city + L", " + country;
+	String title = L"Tracking from " + city;
+
+	TrackerManager::getInstance()->AddTracker(title, desc);
+	__pTrackListPanel->Update();
+
+	__pProgressPopup->SetShowState(false);
+	__pProgressPopup->Invalidate(true);
+
+	ShowEditPopUp (TrackerManager::getInstance()->GetCurrentTracker());
+}
+
+void TripTrackForm::OnQueryFailure(const BaseQuery& query, result r,
+		const Tizen::Base::String& errorMsg) {
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error processing geocode query: [%s]", GetErrorMessage(r));
+		__pProgressPopup->SetShowState(false);
+		__pProgressPopup->Invalidate(true);
+		return;
+	}
+
+	//TODO localize this
+	String desc = String(L"Description");
+	String title = String(L"Title");
+
+	TrackerManager::getInstance()->AddTracker(title, desc);
+	__pTrackListPanel->Update();
+
+	ShowEditPopUp (TrackerManager::getInstance()->GetCurrentTracker());
+}
+
 result TripTrackForm::LoadResources(void) {
 	result r = E_SUCCESS;
 
@@ -214,14 +272,13 @@ void TripTrackForm::OnActionPerformed(const Tizen::Ui::Control& source,
 		break;
 	case ID_FOOTER_BUTTON_ADD_POI: {
 		AppLog("Opening create POI form popup");
-		ShowPopUp();
 	}
 		break;
 	case ID_FOOTER_BUTTTON_ADD_TRACK: {
-		String title = String(L"Sample title");
-		String desc = String(L"Sample description");
-		TrackerManager::getInstance()->AddTracker(title, desc);
-		__pTrackListPanel->Update();
+		//Create a new POI with predefined
+		__pProgressPopup->SetShowState(true);
+		__pProgressPopup->Show();
+		GeoHelper::GetPresentAddress(this);
 	}
 		break;
 	default:
@@ -370,16 +427,10 @@ void TripTrackForm::SetTrackView(void) {
 	pFooter->AddActionEventListener(*this);
 }
 
-void TripTrackForm::ShowPopUp(void) {
+void TripTrackForm::ShowEditPopUp(IFormFieldProvider* pProvider) {
 	result r = E_SUCCESS;
 
 	EditFormPopup* pEditPopup = new EditFormPopup();
-	SampleFieldProvider* pProvider = new SampleFieldProvider();
-
-	r = pProvider->Construct();
-	if (r != E_SUCCESS)
-		AppLogException(
-				"Error constructing form field provider: [%s]", GetErrorMessage(r));
 
 	Rectangle bounds = GetClientAreaBounds();
 	r = pEditPopup->Construct(pProvider,
@@ -445,5 +496,4 @@ bool TripTrackForm::CheckLocationSetting(void) {
 
 	return true;
 }
-
 

@@ -26,6 +26,7 @@ EditFormPopup::~EditFormPopup(void) {
 result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 		Dimension dimension, String title) {
 	result r = E_SUCCESS;
+	__pFieldProvider=fieldProvider;
 
 	r = Popup::Construct(true, dimension);
 	if (r != E_SUCCESS) {
@@ -84,89 +85,6 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 	SetPropagatedKeyEventListener(this);
 	SetTitleText(title);
 	return r;
-}
-
-result EditFormPopup::Save(void) {
-	result r = E_SUCCESS;
-	//TODO
-	return r;
-}
-
-SampleFieldProvider::SampleFieldProvider(void) :
-		__pFormFields(null) {
-}
-
-SampleFieldProvider::~SampleFieldProvider(void) {
-	if (__pFormFields != null) {
-		__pFormFields->RemoveAll();
-		delete __pFormFields;
-		__pFormFields = null;
-	}
-}
-
-IFormFieldProvider::FormField* SampleFieldProvider::GetField(int id) {
-	result r = E_SUCCESS;
-
-	FormField* retVal = null;
-	r = __pFormFields->GetAt(id, retVal);
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error getting field with id [%d] from field collection: [%s]", id, GetErrorMessage(r));
-		return null;
-	}
-	return retVal;
-}
-
-LinkedListT<IFormFieldProvider::FormField*>* SampleFieldProvider::GetFields(
-		void) {
-	return __pFormFields;
-}
-
-result SampleFieldProvider::SaveField(FormField* formField) {
-	result r = E_SUCCESS;
-
-	return r;
-}
-
-result SampleFieldProvider::SaveFields(void) {
-	result r = E_SUCCESS;
-
-	return r;
-}
-
-result SampleFieldProvider::Construct(void) {
-	result r = E_SUCCESS;
-
-	__pFormFields = new LinkedListT<FormField*>();
-
-	FormField* pTitleField = new FormField;
-	pTitleField->fieldName = new String(L"Title");
-	pTitleField->fieldData = new String(L"");
-	pTitleField->id = 1;
-	pTitleField->limit = 300;
-	pTitleField->fieldDim = new Dimension(300, 80);
-	r = __pFormFields->Add(pTitleField);
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error adding to field collection: [%s]", GetErrorMessage(r));
-		return r;
-	}
-
-	FormField* pDescField = new FormField;
-	pDescField->fieldName = new String(L"Description");
-	pDescField->fieldData = new String(L"");
-	pDescField->id = 2;
-	pDescField->limit = 1000;
-	pDescField->fieldDim = new Dimension(300, 400);
-	__pFormFields->Add(pDescField);
-	if (r != E_SUCCESS) {
-		AppLogException( "Error adding to field map: [%s]", GetErrorMessage(r));
-		return r;
-	}
-}
-
-int SampleFieldProvider::GetFieldCount(void) {
-	return __pFormFields->GetCount();
 }
 
 bool EditFormPopup::OnKeyPressed(Tizen::Ui::Control& source,

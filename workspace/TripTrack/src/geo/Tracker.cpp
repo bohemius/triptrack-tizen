@@ -11,6 +11,7 @@
 #include "util/BootstrapManager.h"
 
 using namespace Tizen::Locations;
+using namespace Tizen::Graphics;
 using namespace Tizen::Base::Collection;
 using namespace Tizen::Base;
 using namespace Tizen::Io;
@@ -107,8 +108,8 @@ result Tracker::Construct(Tizen::Base::String &Description,
 
 	AppLog(
 			"Creating a new tracker with title [%ls] and description [%ls].", Title.GetPointer(), Description.GetPointer());
-	__pDescription = &Description;
-	__pTitle = &Title;
+	__pDescription = new String(Description);
+	__pTitle = new String(Title);
 	__status = PAUSED;
 	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
 	if (r != E_SUCCESS) {
@@ -322,6 +323,39 @@ double Tracker::GetDistance() const {
 
 int Tracker::GetStatus() const {
 	return __status;
+}
+
+LinkedListT<IFormFieldProvider::FormField*>* Tracker::GetFields(void) {
+	LinkedListT<IFormFieldProvider::FormField*>* result= new LinkedListT<IFormFieldProvider::FormField*>();
+
+	//TODO localize this
+	IFormFieldProvider::FormField* pDescField=new IFormFieldProvider::FormField();
+	pDescField->fieldName = new String(L"Description");
+	pDescField->fieldData = GetDescription();
+	pDescField->id = 2;
+	pDescField->limit = 255;
+	pDescField->fieldDim = new Dimension(300,400);
+
+	result->Add(pDescField);
+
+	IFormFieldProvider::FormField* pTitleField=new IFormFieldProvider::FormField();
+	pTitleField->fieldName = new String(L"Title");
+	pTitleField->fieldData = GetTitle();
+	pTitleField->id = 1;
+	pTitleField->limit = 1000;
+	pTitleField->fieldDim = new Dimension(300,80);
+
+	result->Add(pTitleField);
+
+	return result;
+}
+
+result Tracker::SaveFields(void) {
+	StorageManager::getInstance()->CRUDoperation(this, I_CRUDable::UPDATE);
+}
+
+int Tracker::GetFieldCount(void) {
+	return 2;
 }
 
 void Tracker::SetDistance(double distance) {

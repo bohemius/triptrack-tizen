@@ -18,8 +18,7 @@ using namespace Tizen::Base::Collection;
 TrackListElement::TrackListElement() {
 }
 
-TrackListElement::TrackListElement(Tracker* pTracker) {
-	__pTracker = pTracker;
+TrackListElement::TrackListElement(Tracker* pTracker) : __pTracker(pTracker) {
 }
 
 TrackListElement::~TrackListElement(void) {
@@ -41,7 +40,7 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 	//draw track title
 	if (canvas.DrawText(
 			Tizen::Graphics::FloatPoint(rect.x, rect.y + TEXT_MARGIN_Y),
-			L"Track title") != E_SUCCESS) {
+			*(__pTracker->GetTitle())) != E_SUCCESS) {
 		return false;
 	}
 
@@ -264,15 +263,16 @@ void TrackListPanel::OnActionPerformed(const Tizen::Ui::Control& source,
 		AppLog("Setting ID_CONTEXT_ITEM_MAP view");
 
 		//get the selected tracker
-		Tracker* pTracker;
-		TrackerManager::getInstance()->GetTracks()->GetAt(
-				__pTrackListView->GetItemIndexFromPosition(
-						source.ConvertToControlPosition(lastClickedPosition)), pTracker);
-
+		Tracker* pTracker = GetTrackerFromClick(source);
 		DisplayMap(pTracker);
 	}
 		break;
-
+	case ID_CONTEXT_ITEM_DELETE: {
+		Tracker* pTracker = GetTrackerFromClick(source);
+		DeleteTracker(pTracker);
+		Update();
+	}
+		break;
 	}
 
 }
@@ -312,5 +312,29 @@ void TrackListPanel::DisplayMap(Tracker* tracker) {
 	SceneManager* pSceneMngr = SceneManager::GetInstance();
 	pSceneMngr->GoForward(ForwardSceneTransition(SCENE_MAP_FORM),
 			parameterList);
+}
+
+void TrackListPanel::DeleteTracker(Tracker* tracker) {
+	result r=E_SUCCESS;
+
+	r = __pTrackerMgr->RemoveTracker(tracker);
+	if (r != E_SUCCESS)
+		AppLogException("Error removing tracker [%ls] with id [%d]: [%s]",tracker->GetTitle()->GetPointer(),tracker->GetTrackerId(), GetErrorMessage(r));
+}
+
+Tracker* TrackListPanel::GetTrackerFromClick(const Tizen::Ui::Control& source) {
+	Tracker* pTracker;
+
+	result r = E_SUCCESS;
+	r = TrackerManager::getInstance()->GetTracks()->GetAt(
+			__pTrackListView->GetItemIndexFromPosition(
+					source.ConvertToControlPosition(lastClickedPosition)),
+			pTracker);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting tracker from position: [%s]", GetErrorMessage(r));
+		return null;
+	}
+	return pTracker;
 }
 

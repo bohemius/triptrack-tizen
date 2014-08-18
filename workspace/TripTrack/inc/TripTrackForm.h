@@ -12,6 +12,7 @@
 #include <FBase.h>
 #include <FLocations.h>
 #include <FUi.h>
+#include <HMaps.h>
 #include "ui/TrackComponents.h"
 #include "ui/PoiComponents.h"
 
@@ -24,6 +25,7 @@ class TripTrackForm
  	, public Tizen::Ui::Scenes::ISceneEventListener
  	, public Tizen::Locations::ILocationProviderListener
  	, public Tizen::App::IAppControlResponseListener
+ 	, public HMaps::IGeocodeQueryExecuteResponseListener
 {
 public:
 	TripTrackForm(void);
@@ -49,10 +51,13 @@ public:
 
 	virtual void OnAppControlCompleteResponseReceived(const Tizen::App::AppId &appId, const Tizen::Base::String &operationId, Tizen::App::AppCtrlResult appControlResult, const Tizen::Base::Collection::IMap *pExtraData);
 
+	virtual void OnGeocodeQueryCompleted (const HMaps::BaseGeocodeQuery &query, const HMaps::GeocodeReply &reply);
+	virtual void OnQueryFailure(const HMaps::BaseQuery& query, result r, const Tizen::Base::String& errorMsg);
+
 	virtual result OnDraw();
 	void SetPoiView();
 	void SetTrackView();
-	void ShowPopUp();
+	void ShowEditPopUp(IFormFieldProvider* pProvider);
 	void ShowMessageBox(const Tizen::Base::String& title, const Tizen::Base::String& message);
 
 private:
@@ -85,6 +90,7 @@ private:
 
 	TrackListPanel* __pTrackListPanel;
 	PoiIconListPanel* __pPoiListPanel;
+	Tizen::Ui::Controls::ProgressPopup* __pProgressPopup;
 };
 
 #endif /* TRIPTRACKFORM_H_ */

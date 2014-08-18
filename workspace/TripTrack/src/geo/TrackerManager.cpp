@@ -60,6 +60,7 @@ result TrackerManager::AddTracker(String &Title, String &Description) {
 	}
 	AppLog(
 			"Successfully added tracker [%ls] to collection and database.", Title.GetPointer());
+	__pCurrentTracker=pTracker;
 	return r;
 }
 

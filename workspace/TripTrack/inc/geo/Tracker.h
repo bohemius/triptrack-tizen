@@ -12,10 +12,14 @@
 #include <FUiIActionEventListener.h>
 #include <FBase.h>
 #include <FLocations.h>
+#include <FGraphics.h>
+#include "ui/CommonComponents.h"
 #include "dao/TTLocation.h"
 #include "dao/ICRUD.h"
 
-class Tracker: public I_CRUDable, public Tizen::Base::Object {
+class Tracker: public I_CRUDable,
+		public IFormFieldProvider,
+		public Tizen::Base::Object {
 public:
 	static const int ACTIVE = 0;
 	static const int PAUSED = 1;
@@ -37,10 +41,18 @@ public:
 	void SetTitle(Tizen::Base::String* title);
 	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetTrackPoints() const;
 	long long int GetTrackerId() const;
+
+	// I_CRUDable
 	virtual Tizen::Io::DbStatement* Read(void);
 	virtual Tizen::Io::DbStatement* Write(void);
 	virtual Tizen::Io::DbStatement* Delete(void);
 	virtual Tizen::Io::DbStatement* Update(void);
+
+	// IFormFieldProvider
+	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void);
+	virtual result SaveFields(void);
+	virtual int GetFieldCount(void);
+
 	double GetDistance() const;
 	int GetStatus() const;
 	void SetStatus(int status);

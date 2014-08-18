@@ -21,27 +21,9 @@ public:
 		int id;
 	};
 
-	virtual FormField* GetField(int id)=0;
 	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void)=0;
-	virtual result SaveField(FormField* formField)=0;
 	virtual result SaveFields(void)=0;
 	virtual int GetFieldCount(void)=0;
-};
-
-class SampleFieldProvider: public IFormFieldProvider {
-public:
-	SampleFieldProvider(void);
-	virtual ~SampleFieldProvider(void);
-	result Construct(void);
-	virtual FormField* GetField(int id);
-	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void);
-	virtual result SaveField(FormField* formField);
-	virtual result SaveFields(void);
-	virtual int GetFieldCount(void);
-
-private:
-	Tizen::Base::Collection::LinkedListT<FormField*>* __pFormFields;
-
 };
 
 class EditFormPopup: public Tizen::Ui::Controls::Popup,
@@ -51,7 +33,6 @@ public:
 	~EditFormPopup(void);
 	result Construct(IFormFieldProvider* fieldProvider,
 			Tizen::Graphics::Dimension dimension, Tizen::Base::String title);
-	result Save(void);
 
 	virtual bool OnKeyPressed(Tizen::Ui::Control& source,
 			const Tizen::Ui::KeyEventInfo& keyEventInfo);
