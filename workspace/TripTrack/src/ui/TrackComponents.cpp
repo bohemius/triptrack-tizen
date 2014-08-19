@@ -263,12 +263,12 @@ void TrackListPanel::OnActionPerformed(const Tizen::Ui::Control& source,
 		AppLog("Setting ID_CONTEXT_ITEM_MAP view");
 
 		//get the selected tracker
-		Tracker* pTracker = GetTrackerFromClick(source);
+		Tracker* pTracker = GetTrackerFromClick();
 		DisplayMap(pTracker);
 	}
 		break;
 	case ID_CONTEXT_ITEM_DELETE: {
-		Tracker* pTracker = GetTrackerFromClick(source);
+		Tracker* pTracker = GetTrackerFromClick();
 		DeleteTracker(pTracker);
 		Update();
 	}
@@ -322,13 +322,18 @@ void TrackListPanel::DeleteTracker(Tracker* tracker) {
 		AppLogException("Error removing tracker [%ls] with id [%d]: [%s]",tracker->GetTitle()->GetPointer(),tracker->GetTrackerId(), GetErrorMessage(r));
 }
 
-Tracker* TrackListPanel::GetTrackerFromClick(const Tizen::Ui::Control& source) {
+Tracker* TrackListPanel::GetTrackerFromClick() {
 	Tracker* pTracker;
 
 	result r = E_SUCCESS;
+
+	int i = __pTrackListView->GetItemIndexFromPosition(
+			__pTrackListView->ConvertToControlPosition(lastClickedPosition));
+	AppLog("Id of selected list item: [%d]", i);
+
 	r = TrackerManager::getInstance()->GetTracks()->GetAt(
 			__pTrackListView->GetItemIndexFromPosition(
-					source.ConvertToControlPosition(lastClickedPosition)),
+					__pTrackListView->ConvertToControlPosition(lastClickedPosition)),
 			pTracker);
 	if (r != E_SUCCESS) {
 		AppLogException(

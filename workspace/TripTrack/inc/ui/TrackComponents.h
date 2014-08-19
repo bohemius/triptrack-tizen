@@ -86,7 +86,7 @@ private:
 	result LoadResources(void);
 	void DisplayMap(Tracker* tracker);
 	void DeleteTracker(Tracker* tracker);
-	Tracker* GetTrackerFromClick(const Tizen::Ui::Control& source);
+	Tracker* GetTrackerFromClick();
 
 	Tizen::Ui::Controls::ListView* __pTrackListView;
 	Tizen::Graphics::Bitmap* __pTrackListBackgroundBitmap; //TODO: looks like it is not getting used

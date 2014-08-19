@@ -24,13 +24,15 @@ Coordinates GeoHelper::GetPresentLocation(void) {
 	LocationCriteria criteria;
 
 	criteria.SetAccuracy(LOC_ACCURACY_HUNDRED_METERS);
-	//Coordinates c=LocationProvider::GetLocation(criteria).GetCoordinates();
-	Coordinates c;
+	Coordinates c=LocationProvider::GetLocation(criteria).GetCoordinates();
 
-	c.SetLatitude(50.6581693);
-	c.SetLongitude(14.0402449);
+	//Coordinates c;
+
+	//c.SetLatitude(50.6581693);
+	//c.SetLongitude(14.0402449);
 
 	return c;
+	//return LocationProvider::GetLastKnownLocation().GetCoordinates();
 }
 
 result GeoHelper::GetPresentAddress(
