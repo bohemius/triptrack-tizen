@@ -195,13 +195,21 @@ void TripTrackForm::OnGeocodeQueryCompleted(
 	String city, street, country;
 
 	IEnumerator* pEnum = reply.GetResultListN()->GetEnumeratorN();
-	if (pEnum->MoveNext() == E_SUCCESS) {
+	AppLog("Got [%d] items from query", reply.GetResultListN()->GetCount());
+	while (pEnum->MoveNext() == E_SUCCESS) {
 		GeocodeResult* pResult =
 				static_cast<GeocodeResult*>(pEnum->GetCurrent());
-
-		city = pResult->GetLocation().GetAddress().GetCity();
-		street = pResult->GetLocation().GetAddress().GetStreet();
-		country = pResult->GetLocation().GetAddress().GetCountry();
+		if (pResult->GetMatchLevel() == GeocodeResult::MATCH_LEVEL_STREET) {
+			city = pResult->GetLocation().GetAddress().GetCity();
+			street = pResult->GetLocation().GetAddress().GetStreet();
+			country = pResult->GetLocation().GetAddress().GetCountry();
+			break;
+		} else if (pResult->GetMatchLevel() == GeocodeResult::MATCH_LEVEL_DISTRICT) {
+			city = pResult->GetLocation().GetAddress().GetCity();
+			street = pResult->GetLocation().GetAddress().GetDistrict();
+			country = pResult->GetLocation().GetAddress().GetCountry();
+			break;
+		}
 	}
 
 	//TODO localize this
@@ -214,7 +222,7 @@ void TripTrackForm::OnGeocodeQueryCompleted(
 	__pProgressPopup->SetShowState(false);
 	__pProgressPopup->Invalidate(true);
 
-	ShowEditPopUp (TrackerManager::getInstance()->GetCurrentTracker());
+	ShowEditPopUp(TrackerManager::getInstance()->GetCurrentTracker());
 }
 
 void TripTrackForm::OnQueryFailure(const BaseQuery& query, result r,
@@ -234,7 +242,7 @@ void TripTrackForm::OnQueryFailure(const BaseQuery& query, result r,
 	TrackerManager::getInstance()->AddTracker(title, desc);
 	__pTrackListPanel->Update();
 
-	ShowEditPopUp (TrackerManager::getInstance()->GetCurrentTracker());
+	ShowEditPopUp(TrackerManager::getInstance()->GetCurrentTracker());
 }
 
 result TripTrackForm::LoadResources(void) {

@@ -26,20 +26,17 @@ EditFormPopup::~EditFormPopup(void) {
 result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 		Dimension dimension, String title) {
 	result r = E_SUCCESS;
-	__pFieldProvider=fieldProvider;
+	__pFieldProvider = fieldProvider;
 
-	r = Popup::Construct(true, dimension);
+	VerticalBoxLayout layout;
+	layout.Construct(VERTICAL_DIRECTION_DOWNWARD);
+
+	r = Popup::Construct(layout, true, dimension);
 	if (r != E_SUCCESS) {
 		AppLogException("Error constructing popup: [%s]", GetErrorMessage(r));
 		return r;
 	}
-
-	const int xMargin = 20;
-	const int yMargin = (int) dimension.height / 6 * 0.20;
-	const int fieldHeight = 120;
-	const int fieldWidth = (int) dimension.width - 2 * xMargin;
-	const int buttonWidth = (int) dimension.width / 2 - 2 * xMargin;
-	int y = 0;
+	SetColor(Color(46, 151, 199));
 
 	__pFieldList = fieldProvider->GetFields();
 	IEnumeratorT<IFormFieldProvider::FormField*>* pEnum =
@@ -47,7 +44,6 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 
 	__pExTxtAreasList = new LinkedListT<EditArea*>();
 
-	y = yMargin;
 	while (pEnum->MoveNext() == E_SUCCESS) {
 
 		IFormFieldProvider::FormField* pFormField;
@@ -59,27 +55,43 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 			return r;
 		}
 
-		int deltaWidth = abs(fieldWidth - pFormField->fieldDim->width);
-		if (deltaWidth > 10)
-			pFormField->fieldDim->width = fieldWidth;
+		//int deltaWidth = abs(fieldWidth - pFormField->fieldDim->width);
+		//if (deltaWidth > 10)
+		//	pFormField->fieldDim->width = fieldWidth;
+		TextBox* pTxtLabel = new TextBox();
+
+		pTxtLabel->Construct(Rectangle(0,0, pFormField->fieldDim->width,80), TEXT_BOX_BORDER_NONE);
+		pTxtLabel->SetText(*(pFormField->fieldName));
+		pTxtLabel->SetColor(TEXT_BOX_STATUS_NORMAL, Color(46, 151, 199));
+		pTxtLabel->SetColor(TEXT_BOX_STATUS_HIGHLIGHTED, Color(46, 151, 199));
+		pTxtLabel->SetTextColor(TEXT_BOX_TEXT_COLOR_NORMAL, Color::GetColor(COLOR_ID_WHITE));
+		pTxtLabel->SetTextColor(TEXT_BOX_TEXT_COLOR_HIGHLIGHTED, Color::GetColor(COLOR_ID_WHITE));
+		pTxtLabel->SetTextStyle(TEXT_BOX_TEXT_STYLE_BOLD);
+		AddControl(pTxtLabel);
+		layout.SetHorizontalMargin(*pTxtLabel, 20, 20);
+		layout.SetSpacing(*pTxtLabel, 5);
 
 		EditArea* pEditArea = new EditArea();
 
 		pEditArea->Construct(
-				Rectangle(xMargin, y, pFormField->fieldDim->width,
+				Rectangle(0, 0, pFormField->fieldDim->width,
 						pFormField->fieldDim->height), INPUT_STYLE_OVERLAY,
 				pFormField->limit);
-		//pEditArea->SetTitleText(*(pFormField->fieldName));
 		pEditArea->SetText(*(pFormField->fieldData));
+		pEditArea->SetColor(EDIT_STATUS_NORMAL, Color(46, 141, 180));
+		pEditArea->SetColor(EDIT_STATUS_HIGHLIGHTED, Color(46, 151, 180));
+		pEditArea->SetColor(EDIT_STATUS_PRESSED, Color(46, 141, 180));
+		pEditArea->SetTextColor(EDIT_TEXT_COLOR_NORMAL, Color::GetColor(COLOR_ID_WHITE));
+		pEditArea->SetTextColor(EDIT_TEXT_COLOR_HIGHLIGHTED, Color::GetColor(COLOR_ID_WHITE));
 		AddControl(pEditArea);
+		layout.SetHorizontalMargin(*pEditArea, 20, 20);
+		layout.SetSpacing(*pEditArea, 5);
 		r = __pExTxtAreasList->Add(pEditArea);
 		if (r != E_SUCCESS) {
 			AppLogException(
 					"Error adding edit area to map:[%s]", GetErrorMessage(r));
 			return r;
 		}
-
-		y += fieldHeight + yMargin;
 	}
 
 	SetPropagatedKeyEventListener(this);

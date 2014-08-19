@@ -23,7 +23,7 @@ GeoHelper::~GeoHelper() {
 Coordinates GeoHelper::GetPresentLocation(void) {
 	LocationCriteria criteria;
 
-	criteria.SetAccuracy(LOC_ACCURACY_HUNDRED_METERS);
+	criteria.SetAccuracy(LOC_ACCURACY_FINEST);
 	Coordinates c=LocationProvider::GetLocation(criteria).GetCoordinates();
 
 	//Coordinates c;

@@ -20,7 +20,8 @@ const int Tracker::ACTIVE;
 const int Tracker::PAUSED;
 const int Tracker::LOCKED;
 
-Tracker::Tracker() : __pDescription(null), __pTitle(null) {
+Tracker::Tracker() :
+		__pDescription(null), __pTitle(null) {
 }
 
 Tracker::~Tracker() {
@@ -87,12 +88,7 @@ result Tracker::Construct(long long int id) {
 	Read();
 
 	AppLog(
-			"Constructed track with values desc=[%S], title=[%S], distance=[%f], status=[%d], id=[%lld]",
-			__pDescription->GetPointer(),
-			__pTitle->GetPointer(),
-			__distance,
-			__status,
-			__trackerId);
+			"Constructed track with values desc=[%S], title=[%S], distance=[%f], status=[%d], id=[%lld]", __pDescription->GetPointer(), __pTitle->GetPointer(), __distance, __status, __trackerId);
 
 	return E_SUCCESS;
 }
@@ -326,26 +322,29 @@ int Tracker::GetStatus() const {
 }
 
 LinkedListT<IFormFieldProvider::FormField*>* Tracker::GetFields(void) {
-	LinkedListT<IFormFieldProvider::FormField*>* result= new LinkedListT<IFormFieldProvider::FormField*>();
+	LinkedListT<IFormFieldProvider::FormField*>* result = new LinkedListT<
+			IFormFieldProvider::FormField*>();
 
 	//TODO localize this
-	IFormFieldProvider::FormField* pDescField=new IFormFieldProvider::FormField();
-	pDescField->fieldName = new String(L"Description");
-	pDescField->fieldData = GetDescription();
-	pDescField->id = 2;
-	pDescField->limit = 255;
-	pDescField->fieldDim = new Dimension(300,400);
-
-	result->Add(pDescField);
-
-	IFormFieldProvider::FormField* pTitleField=new IFormFieldProvider::FormField();
+	IFormFieldProvider::FormField* pTitleField =
+			new IFormFieldProvider::FormField();
 	pTitleField->fieldName = new String(L"Title");
 	pTitleField->fieldData = GetTitle();
 	pTitleField->id = 1;
 	pTitleField->limit = 1000;
-	pTitleField->fieldDim = new Dimension(300,80);
+	pTitleField->fieldDim = new Dimension(600, 80);
 
 	result->Add(pTitleField);
+
+	IFormFieldProvider::FormField* pDescField =
+			new IFormFieldProvider::FormField();
+	pDescField->fieldName = new String(L"Description");
+	pDescField->fieldData = GetDescription();
+	pDescField->id = 2;
+	pDescField->limit = 255;
+	pDescField->fieldDim = new Dimension(600, 400);
+
+	result->Add(pDescField);
 
 	return result;
 }
