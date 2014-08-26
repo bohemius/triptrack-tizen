@@ -331,7 +331,7 @@ LinkedListT<IFormFieldProvider::FormField*>* Tracker::GetFields(void) {
 	pTitleField->fieldName = new String(L"Title");
 	pTitleField->fieldData = GetTitle();
 	pTitleField->id = 1;
-	pTitleField->limit = 1000;
+	pTitleField->limit = 255;
 	pTitleField->fieldDim = new Dimension(600, 80);
 
 	result->Add(pTitleField);
@@ -341,7 +341,7 @@ LinkedListT<IFormFieldProvider::FormField*>* Tracker::GetFields(void) {
 	pDescField->fieldName = new String(L"Description");
 	pDescField->fieldData = GetDescription();
 	pDescField->id = 2;
-	pDescField->limit = 255;
+	pDescField->limit = 1000;
 	pDescField->fieldDim = new Dimension(600, 400);
 
 	result->Add(pDescField);

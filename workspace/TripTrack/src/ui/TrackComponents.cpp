@@ -14,11 +14,13 @@ using namespace Tizen::Ui::Scenes;
 using namespace Tizen::App;
 using namespace Tizen::Base;
 using namespace Tizen::Base::Collection;
+using namespace Tizen::Locations;
 
 TrackListElement::TrackListElement() {
 }
 
-TrackListElement::TrackListElement(Tracker* pTracker) : __pTracker(pTracker) {
+TrackListElement::TrackListElement(Tracker* pTracker) :
+		__pTracker(pTracker) {
 }
 
 TrackListElement::~TrackListElement(void) {
@@ -104,6 +106,18 @@ result TrackListPanel::Construct(void) {
 		return r;
 	}
 
+	//Construct location provider
+	LocationCriteria criteria;
+
+	criteria.SetAccuracy(LOC_ACCURACY_FINEST);
+	__pLocProvider = new (std::nothrow) LocationProvider();
+	r = __pLocProvider->Construct(criteria, *this);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing location provider: [%s]", GetErrorMessage(r));
+		return r;
+	}
+
 	//Initialise tracker manager
 	__pTrackerMgr = TrackerManager::getInstance();
 	r = __pTrackerMgr->Construct();
@@ -182,14 +196,51 @@ void TrackListPanel::OnListViewItemStateChanged(
 		return;
 	}
 
-	int oldStatus = pTracker->GetStatus();
-	pTracker->GetStatus() == Tracker::PAUSED ?
-			pTracker->SetStatus(Tracker::ACTIVE) :
+	if (__pLocProvider->GetLocationUpdateStatus() == LOC_SVC_STATUS_IDLE) {
+		pTracker->SetStatus(Tracker::ACTIVE);
+		__pLocProvider->StartLocationUpdatesByInterval(10);
+		TrackerManager::getInstance()->SetCurrentTracker(pTracker);
+	} else if (__pLocProvider->GetLocationUpdateStatus()
+			== LOC_SVC_STATUS_RUNNING) {
+		if (pTracker == TrackerManager::getInstance()->GetCurrentTracker()) {
 			pTracker->SetStatus(Tracker::PAUSED);
+			__pLocProvider->StopLocationUpdates();
+			TrackerManager::getInstance()->SetCurrentTracker(null);
+		} else {
+			//TOD localize this
+			String text(
+					L"Track "
+							+ *(TrackerManager::getInstance()->GetCurrentTracker()->GetTitle())
+							+ " is currently active.  Would you like to stop it now and continue with track "
+							+ *(pTracker->GetTitle()) + "?");
+			MessageBox msgBox;
+			msgBox.Construct("Warning", text, MSGBOX_STYLE_YESNO);
+			msgBox.SetColor(Color(46, 151, 199));
+			msgBox.SetTextColor(Color::GetColor(COLOR_ID_WHITE));
 
-	int newStatus = pTracker->GetStatus();
-	AppLog(
-			"Changed tracker no [%d] from status [%d} to status [%d]", index, oldStatus, newStatus);
+			int result = 0;
+			msgBox.ShowAndWait(result);
+
+			if (result == MSGBOX_RESULT_YES) {
+				TrackerManager::getInstance()->GetCurrentTracker()->SetStatus(
+						Tracker::PAUSED);
+				pTracker->SetStatus(Tracker::ACTIVE);
+				TrackerManager::getInstance()->SetCurrentTracker(pTracker);
+			}
+		}
+	}
+
+	Update();
+
+	/*
+	 int oldStatus = pTracker->GetStatus();
+	 pTracker->GetStatus() == Tracker::PAUSED ?
+	 pTracker->SetStatus(Tracker::ACTIVE) :
+	 pTracker->SetStatus(Tracker::PAUSED);
+
+	 int newStatus = pTracker->GetStatus();
+	 AppLog(
+	 "Changed tracker no [%d] from status [%d} to status [%d]", index, oldStatus, newStatus);*/
 }
 
 void TrackListPanel::OnListViewItemSwept(
@@ -315,11 +366,34 @@ void TrackListPanel::DisplayMap(Tracker* tracker) {
 }
 
 void TrackListPanel::DeleteTracker(Tracker* tracker) {
-	result r=E_SUCCESS;
+	result r = E_SUCCESS;
 
 	r = __pTrackerMgr->RemoveTracker(tracker);
 	if (r != E_SUCCESS)
-		AppLogException("Error removing tracker [%ls] with id [%d]: [%s]",tracker->GetTitle()->GetPointer(),tracker->GetTrackerId(), GetErrorMessage(r));
+		AppLogException(
+				"Error removing tracker [%ls] with id [%d]: [%s]", tracker->GetTitle()->GetPointer(), tracker->GetTrackerId(), GetErrorMessage(r));
+}
+
+void TrackListPanel::OnLocationUpdated(
+		const Tizen::Locations::Location& location) {
+}
+
+void TrackListPanel::OnLocationUpdateStatusChanged(
+		Tizen::Locations::LocationServiceStatus status) {
+}
+
+void TrackListPanel::OnRegionEntered(Tizen::Locations::RegionId regionId) {
+}
+
+void TrackListPanel::OnRegionLeft(Tizen::Locations::RegionId regionId) {
+}
+
+void TrackListPanel::OnRegionMonitoringStatusChanged(
+		Tizen::Locations::LocationServiceStatus status) {
+}
+
+void TrackListPanel::OnAccuracyChanged(
+		Tizen::Locations::LocationAccuracy accuracy) {
 }
 
 Tracker* TrackListPanel::GetTrackerFromClick() {
@@ -333,8 +407,8 @@ Tracker* TrackListPanel::GetTrackerFromClick() {
 
 	r = TrackerManager::getInstance()->GetTracks()->GetAt(
 			__pTrackListView->GetItemIndexFromPosition(
-					__pTrackListView->ConvertToControlPosition(lastClickedPosition)),
-			pTracker);
+					__pTrackListView->ConvertToControlPosition(
+							lastClickedPosition)), pTracker);
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error getting tracker from position: [%s]", GetErrorMessage(r));

@@ -23,7 +23,6 @@ class TripTrackForm
 	, public Tizen::Ui::IActionEventListener
 	, public Tizen::Ui::Controls::IFormBackEventListener
  	, public Tizen::Ui::Scenes::ISceneEventListener
- 	, public Tizen::Locations::ILocationProviderListener
  	, public Tizen::App::IAppControlResponseListener
  	, public HMaps::IGeocodeQueryExecuteResponseListener
 {
@@ -40,14 +39,6 @@ public:
 								   const Tizen::Ui::Scenes::SceneId& currentSceneId, Tizen::Base::Collection::IList* pArgs);
 	virtual void OnSceneDeactivated(const Tizen::Ui::Scenes::SceneId& currentSceneId,
 									const Tizen::Ui::Scenes::SceneId& nextSceneId);
-
-	virtual void OnLocationUpdated(const Tizen::Locations::Location& location);
-	virtual void OnLocationUpdateStatusChanged(Tizen::Locations::LocationServiceStatus status);
-	virtual void OnRegionEntered(Tizen::Locations::RegionId regionId);
-	virtual void OnRegionLeft(Tizen::Locations::RegionId regionId);
-	virtual void OnRegionMonitoringStatusChanged(Tizen::Locations::LocationServiceStatus status);
-	virtual void OnAccuracyChanged(Tizen::Locations::LocationAccuracy accuracy);
-	virtual void OnUserEventReceivedN(RequestId requestId, Tizen::Base::Collection::IList* pArgs);
 
 	virtual void OnAppControlCompleteResponseReceived(const Tizen::App::AppId &appId, const Tizen::Base::String &operationId, Tizen::App::AppCtrlResult appControlResult, const Tizen::Base::Collection::IMap *pExtraData);
 

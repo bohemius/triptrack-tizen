@@ -12,6 +12,7 @@
 #include <FUi.h>
 #include <FGraphics.h>
 #include <FBase.h>
+#include <FLocations.h>
 #include "geo/Tracker.h"
 #include "geo/TrackerManager.h"
 
@@ -34,16 +35,18 @@ class TrackListPanel: public Tizen::Ui::Controls::Panel,
 		public Tizen::Ui::Controls::IListViewItemEventListener,
 		public Tizen::Ui::Controls::IListViewItemProviderF,
 		public Tizen::Ui::ITouchEventListener,
-		public Tizen::Ui::IActionEventListener {
+		public Tizen::Ui::IActionEventListener,
+		public IPopupResultListener,
+		public Tizen::Locations::ILocationProviderListener {
 
 public:
 	TrackListPanel(Tizen::Graphics::Rectangle &rect);
 	~TrackListPanel(void);
 	result Construct(void);
-	result Update(void);
 
 	// IActionEventListener
-	virtual void  OnActionPerformed(const Tizen::Ui::Control &source, int actionId);
+	virtual void OnActionPerformed(const Tizen::Ui::Control &source,
+			int actionId);
 
 	// ITouchEventListener
 	virtual void OnTouchPressed(const Tizen::Ui::Control &source,
@@ -51,16 +54,24 @@ public:
 			const Tizen::Ui::TouchEventInfo &touchInfo);
 	virtual void OnTouchFocusIn(const Tizen::Ui::Control &source,
 			const Tizen::Graphics::Point &currentPosition,
-			const Tizen::Ui::TouchEventInfo &touchInfo) {};
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
 	virtual void OnTouchFocusOut(const Tizen::Ui::Control &source,
 			const Tizen::Graphics::Point &currentPosition,
-			const Tizen::Ui::TouchEventInfo &touchInfo) {};
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
 	virtual void OnTouchMoved(const Tizen::Ui::Control &source,
 			const Tizen::Graphics::Point &currentPosition,
-			const Tizen::Ui::TouchEventInfo &touchInfo) {};
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
 	virtual void OnTouchReleased(const Tizen::Ui::Control &source,
 			const Tizen::Graphics::Point &currentPosition,
-			const Tizen::Ui::TouchEventInfo &touchInfo) {};
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
 
 	// IListViewItemEventListener
 	virtual void OnListViewContextItemStateChanged(
@@ -82,6 +93,19 @@ public:
 			float itemWidth);
 	virtual int GetItemCount(void);
 
+	//IPopupResultListener
+	virtual result Update(void);
+
+	//ILocationProviderListener
+	virtual void OnLocationUpdated(const Tizen::Locations::Location& location);
+	virtual void OnLocationUpdateStatusChanged(
+			Tizen::Locations::LocationServiceStatus status);
+	virtual void OnRegionEntered(Tizen::Locations::RegionId regionId);
+	virtual void OnRegionLeft(Tizen::Locations::RegionId regionId);
+	virtual void OnRegionMonitoringStatusChanged(
+			Tizen::Locations::LocationServiceStatus status);
+	virtual void OnAccuracyChanged(Tizen::Locations::LocationAccuracy accuracy);
+
 private:
 	result LoadResources(void);
 	void DisplayMap(Tracker* tracker);
@@ -92,6 +116,7 @@ private:
 	Tizen::Graphics::Bitmap* __pTrackListBackgroundBitmap; //TODO: looks like it is not getting used
 	Tizen::Ui::Controls::ContextMenu* __pTrackListContextMenu;
 	Tizen::Graphics::Bitmap *__pMapBitmap, *__pEditBitmap, *__pDeleteBitmap;
+	Tizen::Locations::LocationProvider *__pLocProvider;
 	int _trackingIndex;
 	Tizen::Graphics::Point lastClickedPosition;
 	TrackerManager* __pTrackerMgr;

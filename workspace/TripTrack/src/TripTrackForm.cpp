@@ -204,7 +204,8 @@ void TripTrackForm::OnGeocodeQueryCompleted(
 			street = pResult->GetLocation().GetAddress().GetStreet();
 			country = pResult->GetLocation().GetAddress().GetCountry();
 			break;
-		} else if (pResult->GetMatchLevel() == GeocodeResult::MATCH_LEVEL_DISTRICT) {
+		} else if (pResult->GetMatchLevel()
+				== GeocodeResult::MATCH_LEVEL_DISTRICT) {
 			city = pResult->GetLocation().GetAddress().GetCity();
 			street = pResult->GetLocation().GetAddress().GetDistrict();
 			country = pResult->GetLocation().GetAddress().GetCountry();
@@ -216,15 +217,17 @@ void TripTrackForm::OnGeocodeQueryCompleted(
 	String desc = L"Traveling from " + street + L", " + city + L", " + country;
 	String title = L"Tracking from " + city;
 
-	TrackerManager::getInstance()->AddTracker(title, desc);
-	__pTrackListPanel->Update();
+	HMapsFieldProvider* fieldProvider = new HMapsFieldProvider(title, desc);
+
+	//__pTrackListPanel->Update();
 
 	__pProgressPopup->SetShowState(false);
 	__pProgressPopup->Invalidate(true);
 
-	ShowEditPopUp(TrackerManager::getInstance()->GetCurrentTracker());
+	ShowEditPopUp(fieldProvider);
 }
 
+//TODO update this code to set the box to predefine text (place holder text)
 void TripTrackForm::OnQueryFailure(const BaseQuery& query, result r,
 		const Tizen::Base::String& errorMsg) {
 	if (r != E_SUCCESS) {
@@ -283,10 +286,37 @@ void TripTrackForm::OnActionPerformed(const Tizen::Ui::Control& source,
 	}
 		break;
 	case ID_FOOTER_BUTTTON_ADD_TRACK: {
-		//Create a new POI with predefined
-		__pProgressPopup->SetShowState(true);
-		__pProgressPopup->Show();
-		GeoHelper::GetPresentAddress(this);
+		//Create a new POI with predefined or user entered fields
+		int result = 0;
+
+		Tracker* currentTracker =
+				TrackerManager::getInstance()->GetCurrentTracker();
+
+		if (!(currentTracker == 0 || currentTracker == null)) {
+			MessageBox msgBox;
+			String text(
+					L"Track " + *(currentTracker->GetTitle())
+							+ " is currently active.  Would you like to stop it now and start a new track?");
+
+			msgBox.Construct("Warning", text, MSGBOX_STYLE_YESNO);
+			msgBox.SetColor(Color(46, 151, 199));
+			msgBox.SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+			msgBox.ShowAndWait(result);
+		} else {
+			__pProgressPopup->SetShowState(true);
+			__pProgressPopup->Show();
+			GeoHelper::GetPresentAddress(this);
+
+			return;
+		}
+
+		if (result == MSGBOX_RESULT_YES) {
+			currentTracker->SetStatus(Tracker::PAUSED);
+			__pProgressPopup->SetShowState(true);
+			__pProgressPopup->Show();
+			GeoHelper::GetPresentAddress(this);
+		}
+
 	}
 		break;
 	default:
@@ -311,33 +341,6 @@ void TripTrackForm::OnSceneDeactivated(
 		const Tizen::Ui::Scenes::SceneId& currentSceneId,
 		const Tizen::Ui::Scenes::SceneId& nextSceneId) {
 	AppLog("Deactivated MAIN_FORM scene");
-}
-
-void TripTrackForm::OnLocationUpdated(
-		const Tizen::Locations::Location& location) {
-	//TODO get new data from the tracker manager which runs the thread
-}
-
-void TripTrackForm::OnLocationUpdateStatusChanged(
-		LocationServiceStatus status) {
-	//nothing to do
-}
-
-void TripTrackForm::OnRegionEntered(RegionId regionId) {
-	//nothing to do
-}
-
-void TripTrackForm::OnRegionLeft(RegionId regionId) {
-	//nothing to do
-}
-
-void TripTrackForm::OnRegionMonitoringStatusChanged(
-		LocationServiceStatus status) {
-	//nothing to do
-}
-
-void TripTrackForm::OnAccuracyChanged(LocationAccuracy accuracy) {
-	//nothing to do
 }
 
 void TripTrackForm::SetPoiView(void) {
@@ -441,7 +444,7 @@ void TripTrackForm::ShowEditPopUp(IFormFieldProvider* pProvider) {
 	EditFormPopup* pEditPopup = new EditFormPopup();
 
 	Rectangle bounds = GetClientAreaBounds();
-	r = pEditPopup->Construct(pProvider,
+	r = pEditPopup->Construct(pProvider, __pTrackListPanel,
 			Dimension((int) bounds.width * 0.90, (int) bounds.height * 0.90),
 			I18N::GetLocalizedString(ID_STRING_CREATE_POI_POPUP_TITLE));
 	if (r != E_SUCCESS)
@@ -453,11 +456,6 @@ void TripTrackForm::ShowEditPopUp(IFormFieldProvider* pProvider) {
 
 void TripTrackForm::ShowMessageBox(const String& title, const String& message) {
 	//TODO for confirmations if needed
-}
-
-void TripTrackForm::OnUserEventReceivedN(RequestId requestId,
-		Tizen::Base::Collection::IList* pArgs) {
-	//should redraw and recieve a message from the TrackManager
 }
 
 void TripTrackForm::LaunchLocationSettings(void) {

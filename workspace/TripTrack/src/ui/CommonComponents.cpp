@@ -7,6 +7,7 @@
 #include "ui/CommonComponents.h"
 #include <math.h>
 #include <FGraphics.h>
+#include <geo/TrackerManager.h>
 
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Base::Collection;
@@ -21,12 +22,17 @@ EditFormPopup::EditFormPopup(void) :
 EditFormPopup::~EditFormPopup(void) {
 	__pExTxtAreasList->RemoveAll();
 	delete (__pExTxtAreasList);
+	__pButtonPanel->RemoveAllControls();
+	delete (__pButtonPanel);
 }
 
 result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
-		Dimension dimension, String title) {
+		IPopupResultListener* resultListener, Dimension dimension,
+		String title) {
 	result r = E_SUCCESS;
+
 	__pFieldProvider = fieldProvider;
+	__pPopupResultListener = resultListener;
 
 	VerticalBoxLayout layout;
 	layout.Construct(VERTICAL_DIRECTION_DOWNWARD);
@@ -55,17 +61,17 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 			return r;
 		}
 
-		//int deltaWidth = abs(fieldWidth - pFormField->fieldDim->width);
-		//if (deltaWidth > 10)
-		//	pFormField->fieldDim->width = fieldWidth;
 		TextBox* pTxtLabel = new TextBox();
 
-		pTxtLabel->Construct(Rectangle(0,0, pFormField->fieldDim->width,80), TEXT_BOX_BORDER_NONE);
+		pTxtLabel->Construct(Rectangle(0, 0, pFormField->fieldDim->width, 80),
+				TEXT_BOX_BORDER_NONE);
 		pTxtLabel->SetText(*(pFormField->fieldName));
 		pTxtLabel->SetColor(TEXT_BOX_STATUS_NORMAL, Color(46, 151, 199));
 		pTxtLabel->SetColor(TEXT_BOX_STATUS_HIGHLIGHTED, Color(46, 151, 199));
-		pTxtLabel->SetTextColor(TEXT_BOX_TEXT_COLOR_NORMAL, Color::GetColor(COLOR_ID_WHITE));
-		pTxtLabel->SetTextColor(TEXT_BOX_TEXT_COLOR_HIGHLIGHTED, Color::GetColor(COLOR_ID_WHITE));
+		pTxtLabel->SetTextColor(TEXT_BOX_TEXT_COLOR_NORMAL,
+				Color::GetColor(COLOR_ID_WHITE));
+		pTxtLabel->SetTextColor(TEXT_BOX_TEXT_COLOR_HIGHLIGHTED,
+				Color::GetColor(COLOR_ID_WHITE));
 		pTxtLabel->SetTextStyle(TEXT_BOX_TEXT_STYLE_BOLD);
 		AddControl(pTxtLabel);
 		layout.SetHorizontalMargin(*pTxtLabel, 20, 20);
@@ -81,8 +87,10 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 		pEditArea->SetColor(EDIT_STATUS_NORMAL, Color(46, 141, 180));
 		pEditArea->SetColor(EDIT_STATUS_HIGHLIGHTED, Color(46, 151, 180));
 		pEditArea->SetColor(EDIT_STATUS_PRESSED, Color(46, 141, 180));
-		pEditArea->SetTextColor(EDIT_TEXT_COLOR_NORMAL, Color::GetColor(COLOR_ID_WHITE));
-		pEditArea->SetTextColor(EDIT_TEXT_COLOR_HIGHLIGHTED, Color::GetColor(COLOR_ID_WHITE));
+		pEditArea->SetTextColor(EDIT_TEXT_COLOR_NORMAL,
+				Color::GetColor(COLOR_ID_WHITE));
+		pEditArea->SetTextColor(EDIT_TEXT_COLOR_HIGHLIGHTED,
+				Color::GetColor(COLOR_ID_WHITE));
 		AddControl(pEditArea);
 		layout.SetHorizontalMargin(*pEditArea, 20, 20);
 		layout.SetSpacing(*pEditArea, 5);
@@ -94,8 +102,40 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 		}
 	}
 
+	//add buttons
+	HorizontalBoxLayout buttonLayout;
+	buttonLayout.Construct(HORIZONTAL_DIRECTION_RIGHTWARD);
+
+	__pButtonPanel = new Panel();
+	__pButtonPanel->Construct(buttonLayout, Rectangle(0, 0, 400, 80),
+			GROUP_STYLE_NONE);
+
+	__pSaveButton = new Button();
+	__pSaveButton->Construct(Rectangle(0, 0, 160, 60), L"Save");
+	__pSaveButton->SetActionId(ID_BUTTON_POPUP_SAVE);
+	__pSaveButton->SetColor(BUTTON_STATUS_NORMAL, Color(46, 141, 180));
+	__pSaveButton->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+	__pSaveButton->AddActionEventListener(*this);
+	__pButtonPanel->AddControl(__pSaveButton);
+	buttonLayout.SetVerticalMargin(*__pSaveButton, 20, 20);
+	buttonLayout.SetSpacing(*__pSaveButton, 10);
+
+	__pCancelButton = new Button();
+	__pCancelButton->Construct(Rectangle(0, 0, 160, 60), L"Cancel");
+	__pCancelButton->SetActionId(ID_BUTTON_POPUP_CANCEL);
+	__pCancelButton->SetColor(BUTTON_STATUS_NORMAL, Color(46, 141, 180));
+	__pCancelButton->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+	__pCancelButton->AddActionEventListener(*this);
+	__pButtonPanel->AddControl(__pCancelButton);
+	buttonLayout.SetVerticalMargin(*__pCancelButton, 20, 20);
+	buttonLayout.SetSpacing(*__pCancelButton, 10);
+
+	AddControl(__pButtonPanel);
+	layout.SetHorizontalAlignment(*__pButtonPanel,
+			LAYOUT_HORIZONTAL_ALIGN_CENTER);
+
 	SetPropagatedKeyEventListener(this);
-	SetTitleText(title);
+	SetTitleText(L"title");
 	return r;
 }
 
@@ -131,5 +171,75 @@ bool EditFormPopup::OnPreviewKeyReleased(Tizen::Ui::Control& source,
 bool EditFormPopup::TranslateKeyEventInfo(Tizen::Ui::Control& source,
 		Tizen::Ui::KeyEventInfo& keyEventInfo) {
 	return false;
+}
+
+void EditFormPopup::OnActionPerformed(const Tizen::Ui::Control& source,
+		int actionId) {
+	switch (actionId) {
+	case ID_BUTTON_POPUP_SAVE: {
+		EditArea *pTitleArea, *pDescArea;
+
+		__pExTxtAreasList->GetAt(0, pTitleArea);
+		__pExTxtAreasList->GetAt(1, pDescArea);
+		String title(pTitleArea->GetText());
+		String desc(pDescArea->GetText());
+
+		this->SetShowState(false);
+		this->Invalidate(true);
+
+		TrackerManager::getInstance()->AddTracker(title, desc);
+		__pPopupResultListener->Update();
+	}
+		break;
+	case ID_BUTTON_POPUP_CANCEL: {
+		this->SetShowState(false);
+		this->Invalidate(true);
+	}
+		break;
+	}
+}
+
+HMapsFieldProvider::HMapsFieldProvider(String & fromCity, String & fromDetail) {
+	__pFieldList = new LinkedListT<IFormFieldProvider::FormField*>();
+
+	//TODO localize this
+	IFormFieldProvider::FormField* pTitleField =
+			new IFormFieldProvider::FormField();
+	pTitleField->fieldName = new String(L"Title");
+	pTitleField->fieldData = new String(fromCity);
+	pTitleField->id = 1;
+	pTitleField->limit = 255;
+	pTitleField->fieldDim = new Dimension(600, 80);
+
+	__pFieldList->Add(pTitleField);
+
+	IFormFieldProvider::FormField* pDescField =
+			new IFormFieldProvider::FormField();
+	pDescField->fieldName = new String(L"Description");
+	pDescField->fieldData = new String(fromDetail);
+	pDescField->id = 2;
+	pDescField->limit = 1000;
+	pDescField->fieldDim = new Dimension(600, 400);
+
+	__pFieldList->Add(pDescField);
+
+}
+
+HMapsFieldProvider::~HMapsFieldProvider(void) {
+	__pFieldList->RemoveAll();
+	delete __pFieldList;
+}
+
+LinkedListT<IFormFieldProvider::FormField*>* HMapsFieldProvider::GetFields(
+		void) {
+	return __pFieldList;
+}
+
+result HMapsFieldProvider::SaveFields(void) {
+	return E_INVALID_OPERATION;
+}
+
+int HMapsFieldProvider::GetFieldCount(void) {
+	return 2;
 }
 
