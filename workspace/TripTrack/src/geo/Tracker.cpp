@@ -22,7 +22,8 @@ const int Tracker::PAUSED;
 const int Tracker::LOCKED;
 
 Tracker::Tracker() :
-		__pDescription(null), __pTitle(null), __trackerId(-1) {
+		__pDescription(null), __pTitle(null), __trackerId(-1), __pTrackPoints(
+				null) {
 }
 
 Tracker::~Tracker() {
@@ -43,6 +44,8 @@ result Tracker::AddLocation(Location location) {
 	}
 	AppLog(
 			"Successfully added location with timestamp [%ls] and id [%d]", position->getTimestamp()->ToString().GetPointer(), position->GetLocationId());
+	if (__pTrackPoints == null)
+		__pTrackPoints = new LinkedListT<TTLocation*>();
 	__pTrackPoints->Add(position);
 	return r;
 }
@@ -232,6 +235,9 @@ Tizen::Io::DbStatement* Tracker::Read(void) {
 	SetTitle(new String(title));
 	SetStatus(status);
 	SetDistance(distance);
+
+	//Now create the track point list from the database
+	__pTrackPoints = StorageManager::getInstance()->GetLocations(__trackerId);
 
 	delete pEnum;
 	delete pStmt;

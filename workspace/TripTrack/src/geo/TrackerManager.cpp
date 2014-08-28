@@ -11,6 +11,7 @@
 
 using namespace Tizen::Base::Collection;
 using namespace Tizen::Base;
+using namespace Tizen::Locations;
 
 TrackerManager* TrackerManager::__pSelf = 0;
 
@@ -20,12 +21,87 @@ Tizen::Locations::LocationProvider* TrackerManager::GetLocationProvider(void) {
 
 void TrackerManager::SetLocationProvider(
 		Tizen::Locations::LocationProvider* provider) {
-	__pLocProvider=provider;
+	__pLocProvider = provider;
+}
+
+void TrackerManager::OnLocationUpdated(
+		const Tizen::Locations::Location& location) {
+	result r = E_SUCCESS;
+
+	//Add track to database
+	if (location.IsValid()) {
+		r = GetCurrentTracker()->AddLocation(location);
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error adding new location for track: [%ld]", GetCurrentTracker()->GetTrackerId(), GetErrorMessage(r));
+	} else
+		AppLogException("Location is not valid");
+
+	//Notify all listeners of the update
+	IEnumeratorT<IOnTrackChangeListener*>* pEnum =
+			__pListeners->GetEnumeratorN();
+
+	while (pEnum->MoveNext() == E_SUCCESS) {
+		IOnTrackChangeListener* pListener;
+		r = pEnum->GetCurrent(pListener);
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error getting track change listener from collection", GetErrorMessage(r));
+		else {
+			r = pListener->Update();
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error executing track change listener", GetErrorMessage(r));
+		}
+	}
+}
+
+void TrackerManager::OnLocationUpdateStatusChanged(
+		Tizen::Locations::LocationServiceStatus status) {
+}
+
+void TrackerManager::OnRegionEntered(Tizen::Locations::RegionId regionId) {
+}
+
+void TrackerManager::OnRegionLeft(Tizen::Locations::RegionId regionId) {
+}
+
+void TrackerManager::OnRegionMonitoringStatusChanged(
+		Tizen::Locations::LocationServiceStatus status) {
+}
+
+void TrackerManager::OnAccuracyChanged(
+		Tizen::Locations::LocationAccuracy accuracy) {
+}
+
+result TrackerManager::AddOnTrackChangeListener(
+		IOnTrackChangeListener* listener) {
+	result r = E_SUCCESS;
+
+	r = __pListeners->Add(listener);
+
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error adding track change listener to collection", GetErrorMessage(r));
+
+	return r;
+}
+
+result TrackerManager::RemoveOnTrackChangeListener(
+		IOnTrackChangeListener* listener) {
+	result r = E_SUCCESS;
+
+	r = __pListeners->Remove(listener);
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error removing listener from collection.", GetErrorMessage(r));
+
+	return r;
 }
 
 TrackerManager::TrackerManager() :
-		__pLocProvider(null), __pCurrentTracker(null) {
-	__pTracks = new LinkedListT<Tracker*>;
+		__pLocProvider(null), __pCurrentTracker(null), __pTracks(null), __pListeners(
+				null) {
 }
 
 TrackerManager::~TrackerManager() {
@@ -105,8 +181,44 @@ result TrackerManager::RemoveTracker(Tracker* pTracker) {
 //Creates a collection of existing trackers from the database
 result TrackerManager::Construct(void) {
 	result r = E_SUCCESS;
-	__pTracks = StorageManager::getInstance()->GetTracks();
-	return r;
+
+	if (__pTracks == null && __pLocProvider == null && __pListeners == null) {
+		//Create the IOnTrackChangeListener collection
+		__pListeners = new LinkedListT<IOnTrackChangeListener*>();
+
+		//Fetch the track into collection from the database
+		__pTracks = new LinkedListT<Tracker*>();
+		__pTracks = StorageManager::getInstance()->GetTracks();
+
+		//Construct location provider
+		LocationCriteria criteria;
+
+		criteria.SetAccuracy(LOC_ACCURACY_FINEST);
+		__pLocProvider = new (std::nothrow) LocationProvider();
+		r = __pLocProvider->Construct(criteria, *this);
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error constructing location provider: [%s]", GetErrorMessage(r));
+			return r;
+		}
+
+		//Check for active tracker and resume tracking if neccessary
+		IEnumeratorT<Tracker*>* pEnum = __pTracks->GetEnumeratorN();
+
+		while (pEnum->MoveNext() == E_SUCCESS) {
+			Tracker* pTracker;
+			r = pEnum->GetCurrent(pTracker);
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error accessing tracker from collection", GetErrorMessage(r));
+			if (pTracker->GetStatus() == Tracker::ACTIVE) {
+				SetCurrentTracker(pTracker);
+				return E_SUCCESS;
+			}
+		}
+		return r;
+	} else
+		return E_ALREADY_SET;
 }
 
 Tizen::Base::Collection::LinkedListT<Tracker*>* TrackerManager::GetTracks() const {

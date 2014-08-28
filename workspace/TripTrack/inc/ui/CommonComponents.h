@@ -11,7 +11,7 @@
 #include <FBase.h>
 #include <FUi.h>
 
-class IPopupResultListener {
+class IOnTrackChangeListener {
 public:
 	virtual result Update(void)=0;
 };
@@ -51,7 +51,7 @@ class EditFormPopup: public Tizen::Ui::Controls::Popup,
 public:
 	EditFormPopup(void);
 	~EditFormPopup(void);
-	result Construct(IFormFieldProvider* fieldProvider, IPopupResultListener* resultListener,
+	result Construct(IFormFieldProvider* fieldProvider, IOnTrackChangeListener* resultListener,
 			Tizen::Graphics::Dimension dimension, Tizen::Base::String title);
 
 	//IPropagatedKeyEventListener
@@ -80,7 +80,7 @@ private:
 	Tizen::Ui::Controls::Button* __pCancelButton;
 	Tizen::Ui::Controls::Panel* __pButtonPanel;
 	IFormFieldProvider* __pFieldProvider;
-	IPopupResultListener* __pPopupResultListener;
+	IOnTrackChangeListener* __pOnTrackChangeListener;
 };
 
 #endif /* COMMONCOMPONENTS_H_ */

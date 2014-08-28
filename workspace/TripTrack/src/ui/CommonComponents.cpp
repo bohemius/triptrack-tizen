@@ -27,12 +27,12 @@ EditFormPopup::~EditFormPopup(void) {
 }
 
 result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
-		IPopupResultListener* resultListener, Dimension dimension,
+		IOnTrackChangeListener* resultListener, Dimension dimension,
 		String title) {
 	result r = E_SUCCESS;
 
 	__pFieldProvider = fieldProvider;
-	__pPopupResultListener = resultListener;
+	__pOnTrackChangeListener = resultListener;
 
 	VerticalBoxLayout layout;
 	layout.Construct(VERTICAL_DIRECTION_DOWNWARD);
@@ -191,7 +191,7 @@ void EditFormPopup::OnActionPerformed(const Tizen::Ui::Control& source,
 		}
 
 		__pFieldProvider->SaveFields(__pFieldList);
-		__pPopupResultListener->Update();
+		__pOnTrackChangeListener->Update();
 
 		this->SetShowState(false);
 		this->Invalidate(true);

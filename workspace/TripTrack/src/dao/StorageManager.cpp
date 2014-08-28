@@ -329,7 +329,7 @@ LinkedListT<TTLocation*>* StorageManager::GetLocations(
 
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 
-	sql.Append(L"SELECT ID FROM location WHERE tracker_ID = ?");
+	sql.Append(L"SELECT ID FROM location WHERE track_ID = ?");
 	AppLog(
 			"Getting all location IDs for tracker_ID [%d] from the database.", trackerId);
 	AppLog(

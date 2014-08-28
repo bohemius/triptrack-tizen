@@ -36,8 +36,7 @@ class TrackListPanel: public Tizen::Ui::Controls::Panel,
 		public Tizen::Ui::Controls::IListViewItemProviderF,
 		public Tizen::Ui::ITouchEventListener,
 		public Tizen::Ui::IActionEventListener,
-		public IPopupResultListener,
-		public Tizen::Locations::ILocationProviderListener {
+		public IOnTrackChangeListener {
 
 public:
 	TrackListPanel(Tizen::Graphics::Rectangle &rect);
@@ -93,18 +92,8 @@ public:
 			float itemWidth);
 	virtual int GetItemCount(void);
 
-	//IPopupResultListener
+	//IOnTrackChangeListener
 	virtual result Update(void);
-
-	//ILocationProviderListener
-	virtual void OnLocationUpdated(const Tizen::Locations::Location& location);
-	virtual void OnLocationUpdateStatusChanged(
-			Tizen::Locations::LocationServiceStatus status);
-	virtual void OnRegionEntered(Tizen::Locations::RegionId regionId);
-	virtual void OnRegionLeft(Tizen::Locations::RegionId regionId);
-	virtual void OnRegionMonitoringStatusChanged(
-			Tizen::Locations::LocationServiceStatus status);
-	virtual void OnAccuracyChanged(Tizen::Locations::LocationAccuracy accuracy);
 
 private:
 	result LoadResources(void);

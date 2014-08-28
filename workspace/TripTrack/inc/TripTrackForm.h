@@ -82,6 +82,7 @@ private:
 	TrackListPanel* __pTrackListPanel;
 	PoiIconListPanel* __pPoiListPanel;
 	Tizen::Ui::Controls::ProgressPopup* __pProgressPopup;
+	TrackerManager* __pTrackerManager;
 };
 
 #endif /* TRIPTRACKFORM_H_ */

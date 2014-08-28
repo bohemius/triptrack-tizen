@@ -107,27 +107,8 @@ result TrackListPanel::Construct(void) {
 		return r;
 	}
 
-	//Construct location provider
-	LocationCriteria criteria;
-
-	criteria.SetAccuracy(LOC_ACCURACY_FINEST);
-	__pLocProvider = new (std::nothrow) LocationProvider();
-	r = __pLocProvider->Construct(criteria, *this);
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructing location provider: [%s]", GetErrorMessage(r));
-		return r;
-	}
-	TrackerManager::getInstance()->SetLocationProvider(__pLocProvider);
-
-	//Initialise tracker manager
+	//get tracker manager
 	__pTrackerMgr = TrackerManager::getInstance();
-	r = __pTrackerMgr->Construct();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error error constructing a tracker manager: [%s]", GetErrorMessage(r));
-		return r;
-	}
 
 	//construct context menu
 	__pTrackListContextMenu = new (std::nothrow) ContextMenu();
@@ -386,28 +367,6 @@ void TrackListPanel::DeleteTracker(Tracker* tracker) {
 	if (r != E_SUCCESS)
 		AppLogException(
 				"Error removing tracker [%ls] with id [%d]: [%s]", tracker->GetTitle()->GetPointer(), tracker->GetTrackerId(), GetErrorMessage(r));
-}
-
-void TrackListPanel::OnLocationUpdated(
-		const Tizen::Locations::Location& location) {
-}
-
-void TrackListPanel::OnLocationUpdateStatusChanged(
-		Tizen::Locations::LocationServiceStatus status) {
-}
-
-void TrackListPanel::OnRegionEntered(Tizen::Locations::RegionId regionId) {
-}
-
-void TrackListPanel::OnRegionLeft(Tizen::Locations::RegionId regionId) {
-}
-
-void TrackListPanel::OnRegionMonitoringStatusChanged(
-		Tizen::Locations::LocationServiceStatus status) {
-}
-
-void TrackListPanel::OnAccuracyChanged(
-		Tizen::Locations::LocationAccuracy accuracy) {
 }
 
 Tracker* TrackListPanel::GetTrackerFromClick() {

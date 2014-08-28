@@ -52,15 +52,13 @@ result TTLocation::Construct(Location location) {
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 	result r = E_SUCCESS;
 
-	__pTimeStamp->SetValue(location.GetTimestamp());
+	__pTimeStamp= new DateTime(location.GetTimestamp());
 	AppLog(
 			"Creating a new location with timestamp [%ls].", __pTimeStamp->ToString().GetPointer());
 
 	__speed = location.GetSpeed();
 	__course = location.GetCourse();
-	__pCoordinates->Set(location.GetCoordinates().GetLatitude(),
-			location.GetCoordinates().GetLongitude(),
-			location.GetCoordinates().GetAltitude());
+	__pCoordinates= new Coordinates(location.GetCoordinates());
 
 	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
 	if (r != E_SUCCESS) {
@@ -182,7 +180,7 @@ Tizen::Io::DbStatement* TTLocation::Read(void) {
 	setCoordinates(pCoor);
 	setSpeed(speed);
 	setCourse(course);
-	setTimestamp(&timeStamp);
+	setTimestamp(new DateTime(timeStamp));
 
 	delete pEnum;
 	delete pStmt;

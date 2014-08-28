@@ -35,7 +35,7 @@ using namespace HMaps;
 
 TripTrackForm::TripTrackForm(void) :
 		__viewType(VIEW_TYPE_NONE), __pTrackListPanel(null), __pPoiListPanel(
-				null) {
+				null), __pTrackerManager(null) {
 }
 
 TripTrackForm::~TripTrackForm(void) {
@@ -70,6 +70,15 @@ result TripTrackForm::OnInitializing(void) {
 		AppLogException("Error loading resources: [%s]", GetErrorMessage(r));
 	}
 	Rectangle clientBounds = GetClientAreaBounds();
+
+	// Create and Initialize tracker manager
+	__pTrackerManager = TrackerManager::getInstance();
+	r = __pTrackerManager->Construct();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error error constructing a tracker manager: [%s]", GetErrorMessage(r));
+		return r;
+	}
 
 	// Creates an instance of ProgressPopup
 	__pProgressPopup = new (std::nothrow) ProgressPopup();
@@ -220,7 +229,7 @@ void TripTrackForm::OnGeocodeQueryCompleted(
 	//HMapsFieldProvider* fieldProvider = new HMapsFieldProvider(title, desc);
 	//__pTrackListPanel->Update();
 
-	Tracker* pTracker=new Tracker();
+	Tracker* pTracker = new Tracker();
 	pTracker->SetTitle(new String(desc));
 	pTracker->SetDescription(new String(desc));
 
@@ -412,6 +421,7 @@ void TripTrackForm::SetTrackView(void) {
 					"Error constructing track view panel: [%s]", GetErrorMessage(r));
 			return;
 		}
+		__pTrackerManager->AddOnTrackChangeListener(__pTrackListPanel);
 		AddControl(*__pTrackListPanel);
 	} else
 		__pTrackListPanel->SetShowState(true);
