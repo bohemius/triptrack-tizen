@@ -6,6 +6,7 @@
  */
 
 #include "ui/TrackComponents.h"
+#include "AppResourceId.h"
 #include "SceneRegister.h"
 
 using namespace Tizen::Graphics;
@@ -117,6 +118,7 @@ result TrackListPanel::Construct(void) {
 				"Error constructing location provider: [%s]", GetErrorMessage(r));
 		return r;
 	}
+	TrackerManager::getInstance()->SetLocationProvider(__pLocProvider);
 
 	//Initialise tracker manager
 	__pTrackerMgr = TrackerManager::getInstance();
@@ -196,18 +198,23 @@ void TrackListPanel::OnListViewItemStateChanged(
 		return;
 	}
 
-	if (__pLocProvider->GetLocationUpdateStatus() == LOC_SVC_STATUS_IDLE) {
+	Tracker* currentTracker =
+			TrackerManager::getInstance()->GetCurrentTracker();
+
+	LocationProvider* pLocProvider =
+			TrackerManager::getInstance()->GetLocationProvider();
+
+	if (currentTracker == 0 || currentTracker == null) {
 		pTracker->SetStatus(Tracker::ACTIVE);
-		__pLocProvider->StartLocationUpdatesByInterval(10);
+		pLocProvider->StartLocationUpdatesByInterval(10);
 		TrackerManager::getInstance()->SetCurrentTracker(pTracker);
-	} else if (__pLocProvider->GetLocationUpdateStatus()
-			== LOC_SVC_STATUS_RUNNING) {
-		if (pTracker == TrackerManager::getInstance()->GetCurrentTracker()) {
+	} else {
+		if (pTracker == currentTracker) {
 			pTracker->SetStatus(Tracker::PAUSED);
-			__pLocProvider->StopLocationUpdates();
+			pLocProvider->StopLocationUpdates();
 			TrackerManager::getInstance()->SetCurrentTracker(null);
 		} else {
-			//TOD localize this
+			//TODO localize this
 			String text(
 					L"Track "
 							+ *(TrackerManager::getInstance()->GetCurrentTracker()->GetTitle())
@@ -222,25 +229,14 @@ void TrackListPanel::OnListViewItemStateChanged(
 			msgBox.ShowAndWait(result);
 
 			if (result == MSGBOX_RESULT_YES) {
-				TrackerManager::getInstance()->GetCurrentTracker()->SetStatus(
-						Tracker::PAUSED);
+				currentTracker->SetStatus(Tracker::PAUSED);
 				pTracker->SetStatus(Tracker::ACTIVE);
 				TrackerManager::getInstance()->SetCurrentTracker(pTracker);
 			}
 		}
+
+		Update();
 	}
-
-	Update();
-
-	/*
-	 int oldStatus = pTracker->GetStatus();
-	 pTracker->GetStatus() == Tracker::PAUSED ?
-	 pTracker->SetStatus(Tracker::ACTIVE) :
-	 pTracker->SetStatus(Tracker::PAUSED);
-
-	 int newStatus = pTracker->GetStatus();
-	 AppLog(
-	 "Changed tracker no [%d] from status [%d} to status [%d]", index, oldStatus, newStatus);*/
 }
 
 void TrackListPanel::OnListViewItemSwept(
@@ -319,13 +315,30 @@ void TrackListPanel::OnActionPerformed(const Tizen::Ui::Control& source,
 	}
 		break;
 	case ID_CONTEXT_ITEM_DELETE: {
+		//TODO check and display warning and stop tracking before deleting
 		Tracker* pTracker = GetTrackerFromClick();
 		DeleteTracker(pTracker);
 		Update();
 	}
 		break;
-	}
+	case ID_CONTEXT_ITEM_EDIT: {
+		result r = E_SUCCESS;
 
+		Tracker* pTracker = GetTrackerFromClick();
+		EditFormPopup* pEditPopup = new EditFormPopup();
+
+		Rectangle bounds = GetBounds();
+		r = pEditPopup->Construct(pTracker, this,
+					Dimension((int) bounds.width * 0.90, (int) bounds.height * 0.90),
+					I18N::GetLocalizedString(ID_STRING_EDIT_TRACK_POPUP_TITLE));
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error constructing edit form popup: [%s]", GetErrorMessage(r));
+
+		pEditPopup->Show();
+	}
+		break;
+	}
 }
 
 result TrackListPanel::Update(void) {
@@ -333,7 +346,8 @@ result TrackListPanel::Update(void) {
 
 	r = __pTrackListView->UpdateList();
 	if (r != E_SUCCESS)
-		AppLogException("Error updating track panel: [%s]", GetErrorMessage(r));
+		AppLogException(
+				"Error updating track panel: [%s]", GetErrorMessage(r));
 	return r;
 }
 

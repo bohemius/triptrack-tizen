@@ -14,7 +14,17 @@ using namespace Tizen::Base;
 
 TrackerManager* TrackerManager::__pSelf = 0;
 
-TrackerManager::TrackerManager() {
+Tizen::Locations::LocationProvider* TrackerManager::GetLocationProvider(void) {
+	return __pLocProvider;
+}
+
+void TrackerManager::SetLocationProvider(
+		Tizen::Locations::LocationProvider* provider) {
+	__pLocProvider=provider;
+}
+
+TrackerManager::TrackerManager() :
+		__pLocProvider(null), __pCurrentTracker(null) {
 	__pTracks = new LinkedListT<Tracker*>;
 }
 
@@ -60,7 +70,7 @@ result TrackerManager::AddTracker(String &Title, String &Description) {
 	}
 	AppLog(
 			"Successfully added tracker [%ls] to collection and database.", Title.GetPointer());
-	__pCurrentTracker=pTracker;
+	__pCurrentTracker = pTracker;
 	__pCurrentTracker->SetStatus(Tracker::ACTIVE);
 	return r;
 }
@@ -86,15 +96,16 @@ result TrackerManager::RemoveTracker(Tracker* pTracker) {
 				"Error removing tracker [%ls] with ID [%d] from database: [%s]", pTracker->GetTitle()->GetPointer(), pTracker->GetTrackerId(), GetErrorMessage(r));
 		return r;
 	}
-	AppLog("Successfully removed tracker [%ls] with ID [%d] from collection and database.", pTracker->GetTitle()->GetPointer(), pTracker->GetTrackerId());
+	AppLog(
+			"Successfully removed tracker [%ls] with ID [%d] from collection and database.", pTracker->GetTitle()->GetPointer(), pTracker->GetTrackerId());
 	delete pTracker;
 	return r;
 }
 
 //Creates a collection of existing trackers from the database
 result TrackerManager::Construct(void) {
-	result r=E_SUCCESS;
-	__pTracks=StorageManager::getInstance()->GetTracks();
+	result r = E_SUCCESS;
+	__pTracks = StorageManager::getInstance()->GetTracks();
 	return r;
 }
 

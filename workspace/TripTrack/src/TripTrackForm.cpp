@@ -217,14 +217,17 @@ void TripTrackForm::OnGeocodeQueryCompleted(
 	String desc = L"Traveling from " + street + L", " + city + L", " + country;
 	String title = L"Tracking from " + city;
 
-	HMapsFieldProvider* fieldProvider = new HMapsFieldProvider(title, desc);
-
+	//HMapsFieldProvider* fieldProvider = new HMapsFieldProvider(title, desc);
 	//__pTrackListPanel->Update();
+
+	Tracker* pTracker=new Tracker();
+	pTracker->SetTitle(new String(desc));
+	pTracker->SetDescription(new String(desc));
 
 	__pProgressPopup->SetShowState(false);
 	__pProgressPopup->Invalidate(true);
 
-	ShowEditPopUp(fieldProvider);
+	ShowEditPopUp(pTracker);
 }
 
 //TODO update this code to set the box to predefine text (place holder text)
@@ -446,7 +449,7 @@ void TripTrackForm::ShowEditPopUp(IFormFieldProvider* pProvider) {
 	Rectangle bounds = GetClientAreaBounds();
 	r = pEditPopup->Construct(pProvider, __pTrackListPanel,
 			Dimension((int) bounds.width * 0.90, (int) bounds.height * 0.90),
-			I18N::GetLocalizedString(ID_STRING_CREATE_POI_POPUP_TITLE));
+			I18N::GetLocalizedString(ID_STRING_CREATE_TRACK_POPUP_TITLE));
 	if (r != E_SUCCESS)
 		AppLogException(
 				"Error constructing edit form popup: [%s]", GetErrorMessage(r));

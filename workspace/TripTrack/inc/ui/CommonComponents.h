@@ -19,15 +19,15 @@ public:
 class IFormFieldProvider {
 public:
 	struct FormField {
-		Tizen::Base::String* fieldName;
-		Tizen::Base::String* fieldData;
-		Tizen::Graphics::Dimension* fieldDim;
+		Tizen::Base::String fieldName;
+		Tizen::Base::String fieldData;
+		Tizen::Graphics::Dimension fieldDim;
 		int limit;
 		int id;
 	};
 
 	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void)=0;
-	virtual result SaveFields(void)=0;
+	virtual result SaveFields(Tizen::Base::Collection::LinkedListT<FormField*>* fieldList)=0;
 	virtual int GetFieldCount(void)=0;
 };
 

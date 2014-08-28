@@ -31,6 +31,7 @@ public:
 			const Tizen::Base::DateTime timeWindow);
 	TTLocation* StartPosition(void);
 	TTLocation* EndPosition(void);
+	result Construct(void);
 	result Construct(long long int id);
 	result Construct(Tizen::Base::String& Description,
 			Tizen::Base::String& Title);
@@ -50,7 +51,7 @@ public:
 
 	// IFormFieldProvider
 	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void);
-	virtual result SaveFields(void);
+	virtual result SaveFields(Tizen::Base::Collection::LinkedListT<FormField*>* fieldList);
 	virtual int GetFieldCount(void);
 
 	double GetDistance() const;

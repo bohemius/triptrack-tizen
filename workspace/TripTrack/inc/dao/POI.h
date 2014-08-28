@@ -50,10 +50,8 @@ public:
 	virtual Tizen::Io::DbStatement* Update(void);
 
 	//IFormFieldProvider
-	virtual FormField* GetField(int id);
 	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void);
-	virtual result SaveField(FormField* formField);
-	virtual result SaveFields(void);
+	virtual result SaveFields(Tizen::Base::Collection::LinkedListT<FormField*>*);
 	virtual int GetFieldCount(void);
 
 	Tizen::Base::DateTime* GetTimestamp() const;

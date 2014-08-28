@@ -63,9 +63,9 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 
 		TextBox* pTxtLabel = new TextBox();
 
-		pTxtLabel->Construct(Rectangle(0, 0, pFormField->fieldDim->width, 80),
+		pTxtLabel->Construct(Rectangle(0, 0, pFormField->fieldDim.width, 80),
 				TEXT_BOX_BORDER_NONE);
-		pTxtLabel->SetText(*(pFormField->fieldName));
+		pTxtLabel->SetText(pFormField->fieldName);
 		pTxtLabel->SetColor(TEXT_BOX_STATUS_NORMAL, Color(46, 151, 199));
 		pTxtLabel->SetColor(TEXT_BOX_STATUS_HIGHLIGHTED, Color(46, 151, 199));
 		pTxtLabel->SetTextColor(TEXT_BOX_TEXT_COLOR_NORMAL,
@@ -80,10 +80,10 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 		EditArea* pEditArea = new EditArea();
 
 		pEditArea->Construct(
-				Rectangle(0, 0, pFormField->fieldDim->width,
-						pFormField->fieldDim->height), INPUT_STYLE_OVERLAY,
+				Rectangle(0, 0, pFormField->fieldDim.width,
+						pFormField->fieldDim.height), INPUT_STYLE_OVERLAY,
 				pFormField->limit);
-		pEditArea->SetText(*(pFormField->fieldData));
+		pEditArea->SetText(pFormField->fieldData);
 		pEditArea->SetColor(EDIT_STATUS_NORMAL, Color(46, 141, 180));
 		pEditArea->SetColor(EDIT_STATUS_HIGHLIGHTED, Color(46, 151, 180));
 		pEditArea->SetColor(EDIT_STATUS_PRESSED, Color(46, 141, 180));
@@ -94,10 +94,11 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 		AddControl(pEditArea);
 		layout.SetHorizontalMargin(*pEditArea, 20, 20);
 		layout.SetSpacing(*pEditArea, 5);
+
 		r = __pExTxtAreasList->Add(pEditArea);
 		if (r != E_SUCCESS) {
 			AppLogException(
-					"Error adding edit area to map:[%s]", GetErrorMessage(r));
+					"Error adding edit area to list:[%s]", GetErrorMessage(r));
 			return r;
 		}
 	}
@@ -135,7 +136,7 @@ result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
 			LAYOUT_HORIZONTAL_ALIGN_CENTER);
 
 	SetPropagatedKeyEventListener(this);
-	SetTitleText(L"title");
+	SetTitleText(title);
 	return r;
 }
 
@@ -177,18 +178,26 @@ void EditFormPopup::OnActionPerformed(const Tizen::Ui::Control& source,
 		int actionId) {
 	switch (actionId) {
 	case ID_BUTTON_POPUP_SAVE: {
-		EditArea *pTitleArea, *pDescArea;
+		IEnumeratorT<EditArea*>* pEnum = __pExTxtAreasList->GetEnumeratorN();
+		int i = 0;
 
-		__pExTxtAreasList->GetAt(0, pTitleArea);
-		__pExTxtAreasList->GetAt(1, pDescArea);
-		String title(pTitleArea->GetText());
-		String desc(pDescArea->GetText());
+		while (pEnum->MoveNext() == E_SUCCESS) {
+			EditArea* pEdit;
+			pEnum->GetCurrent(pEdit);
+			IFormFieldProvider::FormField* pField;
+			__pFieldList->GetAt(i, pField);
+			pField->fieldData = String(pEdit->GetText());
+			i++;
+		}
+
+		__pFieldProvider->SaveFields(__pFieldList);
+		__pPopupResultListener->Update();
 
 		this->SetShowState(false);
 		this->Invalidate(true);
 
-		TrackerManager::getInstance()->AddTracker(title, desc);
-		__pPopupResultListener->Update();
+		//TrackerManager::getInstance()->AddTracker(title, desc);
+
 	}
 		break;
 	case ID_BUTTON_POPUP_CANCEL: {
@@ -205,21 +214,21 @@ HMapsFieldProvider::HMapsFieldProvider(String & fromCity, String & fromDetail) {
 	//TODO localize this
 	IFormFieldProvider::FormField* pTitleField =
 			new IFormFieldProvider::FormField();
-	pTitleField->fieldName = new String(L"Title");
-	pTitleField->fieldData = new String(fromCity);
+	pTitleField->fieldName = String(L"Title");
+	pTitleField->fieldData = String(fromCity);
 	pTitleField->id = 1;
 	pTitleField->limit = 255;
-	pTitleField->fieldDim = new Dimension(600, 80);
+	pTitleField->fieldDim = Dimension(600, 80);
 
 	__pFieldList->Add(pTitleField);
 
 	IFormFieldProvider::FormField* pDescField =
 			new IFormFieldProvider::FormField();
-	pDescField->fieldName = new String(L"Description");
-	pDescField->fieldData = new String(fromDetail);
+	pDescField->fieldName = String(L"Description");
+	pDescField->fieldData = String(fromDetail);
 	pDescField->id = 2;
 	pDescField->limit = 1000;
-	pDescField->fieldDim = new Dimension(600, 400);
+	pDescField->fieldDim = Dimension(600, 400);
 
 	__pFieldList->Add(pDescField);
 

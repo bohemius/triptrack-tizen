@@ -9,6 +9,7 @@
 #include "dao/TTLocation.h"
 #include "dao/StorageManager.h"
 #include "util/BootstrapManager.h"
+#include "geo/TrackerManager.h"
 
 using namespace Tizen::Locations;
 using namespace Tizen::Graphics;
@@ -21,7 +22,7 @@ const int Tracker::PAUSED;
 const int Tracker::LOCKED;
 
 Tracker::Tracker() :
-		__pDescription(null), __pTitle(null) {
+		__pDescription(null), __pTitle(null), __trackerId(-1) {
 }
 
 Tracker::~Tracker() {
@@ -117,6 +118,32 @@ result Tracker::Construct(Tizen::Base::String &Description,
 	__trackerId = db->GetLastInsertRowId();
 	AppLog(
 			"Successfully stored the new tracker [%ls] in the database with ID: [%d]", __pTitle->GetPointer(), __trackerId);
+	delete pEnum;
+	__pTrackPoints = new LinkedListT<TTLocation*>();
+	return r;
+}
+
+//Constructs a new tracker using current field values, sets the status to paused and saves it to the database
+result Tracker::Construct(void) {
+	StorageManager* store = StorageManager::getInstance();
+	DbEnumerator* pEnum = 0;
+	Database* db = BootstrapManager::getInstance()->getDatabase();
+	result r = E_SUCCESS;
+
+	AppLog("Creating a new tracker from object.");
+
+	__status = PAUSED;
+
+	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error storing the new tracker from object in the database: [%s]", GetErrorMessage(r));
+		return r;
+	}
+	//get the inserted ID using last_insert_rowid()
+	__trackerId = db->GetLastInsertRowId();
+	AppLog(
+			"Successfully stored the new tracker from object in the database with ID: [%d]", __trackerId);
 	delete pEnum;
 	__pTrackPoints = new LinkedListT<TTLocation*>();
 	return r;
@@ -328,29 +355,72 @@ LinkedListT<IFormFieldProvider::FormField*>* Tracker::GetFields(void) {
 	//TODO localize this
 	IFormFieldProvider::FormField* pTitleField =
 			new IFormFieldProvider::FormField();
-	pTitleField->fieldName = new String(L"Title");
-	pTitleField->fieldData = GetTitle();
+	pTitleField->fieldName = String(L"Title");
+	pTitleField->fieldData = String(GetTitle()->GetPointer());
 	pTitleField->id = 1;
 	pTitleField->limit = 255;
-	pTitleField->fieldDim = new Dimension(600, 80);
+	pTitleField->fieldDim = Dimension(600, 80);
 
 	result->Add(pTitleField);
 
 	IFormFieldProvider::FormField* pDescField =
 			new IFormFieldProvider::FormField();
-	pDescField->fieldName = new String(L"Description");
-	pDescField->fieldData = GetDescription();
+	pDescField->fieldName = String(L"Description");
+	pDescField->fieldData = String(GetDescription()->GetPointer());
 	pDescField->id = 2;
 	pDescField->limit = 1000;
-	pDescField->fieldDim = new Dimension(600, 400);
+	pDescField->fieldDim = Dimension(600, 400);
 
 	result->Add(pDescField);
 
 	return result;
 }
 
-result Tracker::SaveFields(void) {
-	StorageManager::getInstance()->CRUDoperation(this, I_CRUDable::UPDATE);
+result Tracker::SaveFields(LinkedListT<FormField*>* fieldList) {
+	result r = E_SUCCESS;
+
+	if (fieldList->GetCount() > 2)
+		return E_INVALID_DATA;
+
+	FormField *titleField, *descField;
+
+	r = fieldList->GetAt(0, titleField);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting title field from dialog: [%s]", GetErrorMessage(r));
+		return r;
+	}
+
+	r = fieldList->GetAt(1, descField);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting description field from dialog: [%s]", GetErrorMessage(r));
+		return r;
+	}
+
+	if (__pTitle)
+		delete __pTitle;
+	__pTitle = new String(titleField->fieldData);
+
+	if (__pDescription)
+		delete __pDescription;
+	__pDescription = new String(descField->fieldData);
+
+	if (__trackerId < 0) {
+		r = Construct();
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error saving tracker from object: [%s]", GetErrorMessage(r));
+		else {
+			TrackerManager::getInstance()->GetTracks()->Add(this);
+			AppLog("Successfully saved new tracker from object.");
+		}
+		SetStatus(ACTIVE);
+		TrackerManager::getInstance()->SetCurrentTracker(this);
+		return r;
+	} else {
+		StorageManager::getInstance()->CRUDoperation(this, I_CRUDable::UPDATE);
+	}
 }
 
 int Tracker::GetFieldCount(void) {
