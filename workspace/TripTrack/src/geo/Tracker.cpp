@@ -57,28 +57,30 @@ TTLocation* Tracker::FindLocationAtTime(Tizen::Base::DateTime timeStamp,
 
 TTLocation* Tracker::StartPosition(void) {
 	result r = E_SUCCESS;
-	AppLog("Getting starting position for tracker id: [%d]", __trackerId);
 
 	TTLocation* retVal = 0;
-	r = __pTrackPoints->GetAt(0, retVal);
-	if (r != E_SUCCESS || retVal == 0) {
-		AppLogException(
-				"Error getting starting position for tracker [%d]: [%s]", __trackerId, GetErrorMessage(r));
-		return 0;
+	if (__pTrackPoints != null && __pTrackPoints->GetCount() > 0) {
+		r = __pTrackPoints->GetAt(0, retVal);
+		if (r != E_SUCCESS || retVal == 0) {
+			AppLogException(
+					"Error getting starting position for tracker [%d]: [%s]", __trackerId, GetErrorMessage(r));
+			return 0;
+		}
 	}
 	return retVal;
 }
 
 TTLocation* Tracker::EndPosition(void) {
 	result r = E_SUCCESS;
-	AppLog("Getting ending position for tracker id: [%d]", __trackerId);
 
 	TTLocation* retVal = 0;
-	r = __pTrackPoints->GetAt(__pTrackPoints->GetCount() - 1, retVal);
-	if (r != E_SUCCESS || retVal == 0) {
-		AppLogException(
-				"Error getting ending position for tracker [%d]: [%s]", __trackerId, GetErrorMessage(r));
-		return 0;
+	if (__pTrackPoints != null && __pTrackPoints->GetCount() > 0) {
+		r = __pTrackPoints->GetAt(__pTrackPoints->GetCount() - 1, retVal);
+		if (r != E_SUCCESS || retVal == 0) {
+			AppLogException(
+					"Error getting ending position for tracker [%d]: [%s]", __trackerId, GetErrorMessage(r));
+			return 0;
+		}
 	}
 	return retVal;
 }
@@ -119,6 +121,7 @@ result Tracker::Construct(Tizen::Base::String &Description,
 	}
 	//get the inserted ID using last_insert_rowid()
 	__trackerId = db->GetLastInsertRowId();
+	__distance = 0.0;
 	AppLog(
 			"Successfully stored the new tracker [%ls] in the database with ID: [%d]", __pTitle->GetPointer(), __trackerId);
 	delete pEnum;
@@ -136,6 +139,7 @@ result Tracker::Construct(void) {
 	AppLog("Creating a new tracker from object.");
 
 	__status = PAUSED;
+	__distance = 0.0;
 
 	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
 	if (r != E_SUCCESS) {
@@ -156,7 +160,7 @@ LinkedListT<TTLocation*>* Tracker::GetTrack(void) {
 	return __pTrackPoints;
 }
 
-String* Tracker::GetDescription() const {
+String* Tracker::GetDescription(void) const {
 	return __pDescription;
 }
 
@@ -166,7 +170,7 @@ void Tracker::SetDescription(String* description) {
 	__pDescription = description;
 }
 
-String* Tracker::GetTitle() const {
+String* Tracker::GetTitle(void) const {
 	return __pTitle;
 }
 
@@ -180,7 +184,7 @@ Tizen::Base::Collection::LinkedListT<TTLocation*>* Tracker::GetTrackPoints() con
 	return __pTrackPoints;
 }
 
-long long int Tracker::GetTrackerId() const {
+long long int Tracker::GetTrackerId(void) const {
 	return __trackerId;
 }
 
@@ -431,6 +435,53 @@ result Tracker::SaveFields(LinkedListT<FormField*>* fieldList) {
 
 int Tracker::GetFieldCount(void) {
 	return 2;
+}
+
+result Tracker::RemoveTrackPoints(void) {
+	String sqlStatement;
+	DbStatement* pStmt = null;
+	Database* db;
+	result r = E_SUCCESS;
+
+	sqlStatement.Append(L"DELETE FROM location WHERE track_ID = ?");
+
+	db = BootstrapManager::getInstance()->getDatabase();
+	pStmt = db->CreateStatementN(sqlStatement);
+	r = GetLastResult();
+	AppLog(
+			"Creating DELETE statement for locations with track_ID: [%ld]", __trackerId);
+	if (pStmt == 0 || r != E_SUCCESS) {
+		AppLogException(
+				"Error creating sql statement for DELETE for locations with track_ID [%ld]: [%s]", __trackerId, GetErrorMessage(r));
+		return 0;
+	}
+	AppLog(
+			"Sql DELETE statement created for locations with track_ID [%ld]", __trackerId);
+	pStmt->BindInt64(0, __trackerId);
+
+	StorageManager::getInstance()->PerformTransaction(pStmt);
+	r = GetLastResult();
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error performing transaction to remove all track point for track with id [%ld]: ", __trackerId, GetErrorMessage(r));
+	else if (__pTrackPoints != null)
+		__pTrackPoints->RemoveAll();
+
+	return r;
+}
+
+Tizen::Base::TimeSpan Tracker::GetDuration(void) {
+	if (StartPosition() != null && EndPosition() != null) {
+		TimeSpan startSpan = StartPosition()->getTimestamp()->GetTime();
+		TimeSpan endSpan = EndPosition()->getTimestamp()->GetTime();
+
+		TimeSpan retVal(endSpan - startSpan);
+
+		//AppLog("Start time %ls, End time %ls, Difference %ld : %ld", StartPosition()->getTimestamp()->ToString().GetPointer(), EndPosition()->getTimestamp()->ToString().GetPointer(), retVal.GetHours(), retVal.GetMinutes());
+
+		return retVal;
+	} else
+		return (TimeSpan(0));
 }
 
 void Tracker::SetDistance(double distance) {

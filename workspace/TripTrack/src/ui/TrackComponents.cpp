@@ -6,6 +6,7 @@
  */
 
 #include "ui/TrackComponents.h"
+#include "dao/StorageManager.h"
 #include "AppResourceId.h"
 #include "SceneRegister.h"
 
@@ -27,6 +28,43 @@ TrackListElement::TrackListElement(Tracker* pTracker) :
 TrackListElement::~TrackListElement(void) {
 }
 
+String TrackListElement::FormatTitle(void) {
+	String retVal;
+
+	if (__pTracker->GetTitle()->GetLength() > 30) {
+		__pTracker->GetTitle()->SubString(0, 27, retVal);
+		retVal.Append(L"...");
+	} else
+		retVal=String(__pTracker->GetTitle()->GetPointer());
+	return retVal;
+}
+
+String TrackListElement::FormatDistance(void) {
+	//TODO localize this
+	String retVal = String(L"Distance traveled: ");
+
+	double distance = __pTracker->GetDistance();
+
+	if (distance < 1000.0) {
+		retVal.Append(Double::ToString(distance));
+		retVal.Append(L" m");
+	} else if (distance >= 1000.0) {
+		retVal.Append(Double::ToString(distance / 1000.0));
+		retVal.Append(L" km");
+	}
+
+	return retVal;
+}
+
+String TrackListElement::FormatDuration(void) {
+	String retVal=L"";
+	TimeSpan duration=__pTracker->GetDuration();
+
+	retVal.Append(Double::ToString(duration.GetHours()+duration.GetMinutes()/60.0));
+
+	return retVal;
+}
+
 bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 		ListItemDrawingStatus itemStatus) {
 	Font titleFont, mileageFont, timeFont;
@@ -43,7 +81,7 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 	//draw track title
 	if (canvas.DrawText(
 			Tizen::Graphics::FloatPoint(rect.x, rect.y + TEXT_MARGIN_Y),
-			*(__pTracker->GetTitle())) != E_SUCCESS) {
+			FormatTitle()) != E_SUCCESS) {
 		return false;
 	}
 
@@ -53,8 +91,7 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 	if (canvas.DrawText(
 			Tizen::Graphics::FloatPoint(rect.x,
 					rect.y + rect.height - mileageFont.GetMaxHeightF()
-							- TEXT_MARGIN_Y),
-			L"Total mileage: 1245.7 miles") != E_SUCCESS) {
+							- TEXT_MARGIN_Y), FormatDistance()) != E_SUCCESS) {
 		return false;
 	}
 
@@ -62,12 +99,11 @@ bool TrackListElement::OnDraw(Canvas& canvas, const FloatRectangle& rect,
 	canvas.SetForegroundColor(Color::GetColor(COLOR_ID_YELLOW));
 	timeFont.Construct(FONT_STYLE_MIN, 20.0f);
 	canvas.SetFont(timeFont);
-	String durationStr(L"Duration 123.3 Hours");
-	float length = (float) durationStr.GetLength();
+	String durationStr(L"Duration: ");
+	durationStr.Append(FormatDuration());
 	if (canvas.DrawText(
 			Tizen::Graphics::FloatPoint(rect.x + rect.width - 200,
-					rect.y + TEXT_MARGIN_Y),
-			L"Duration 123.3 Hours") != E_SUCCESS) {
+					rect.y + TEXT_MARGIN_Y), durationStr) != E_SUCCESS) {
 		return false;
 	}
 
@@ -187,13 +223,15 @@ void TrackListPanel::OnListViewItemStateChanged(
 
 	if (currentTracker == 0 || currentTracker == null) {
 		pTracker->SetStatus(Tracker::ACTIVE);
-		pLocProvider->StartLocationUpdatesByInterval(10);
+		pLocProvider->StartLocationUpdatesByInterval(5);
 		TrackerManager::getInstance()->SetCurrentTracker(pTracker);
 	} else {
 		if (pTracker == currentTracker) {
 			pTracker->SetStatus(Tracker::PAUSED);
 			pLocProvider->StopLocationUpdates();
 			TrackerManager::getInstance()->SetCurrentTracker(null);
+			StorageManager::getInstance()->CRUDoperation(pTracker,
+					I_CRUDable::UPDATE);
 		} else {
 			//TODO localize this
 			String text(
@@ -310,11 +348,12 @@ void TrackListPanel::OnActionPerformed(const Tizen::Ui::Control& source,
 
 		Rectangle bounds = GetBounds();
 		r = pEditPopup->Construct(pTracker, this,
-					Dimension((int) bounds.width * 0.90, (int) bounds.height * 0.90),
-					I18N::GetLocalizedString(ID_STRING_EDIT_TRACK_POPUP_TITLE));
-			if (r != E_SUCCESS)
-				AppLogException(
-						"Error constructing edit form popup: [%s]", GetErrorMessage(r));
+				Dimension((int) bounds.width * 0.90,
+						(int) bounds.height * 0.90),
+				I18N::GetLocalizedString(ID_STRING_EDIT_TRACK_POPUP_TITLE));
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error constructing edit form popup: [%s]", GetErrorMessage(r));
 
 		pEditPopup->Show();
 	}

@@ -26,6 +26,10 @@ public:
 			Tizen::Ui::Controls::ListItemDrawingStatus itemStatus);
 
 private:
+	Tizen::Base::String FormatTitle(void);
+	Tizen::Base::String FormatDistance(void);
+	Tizen::Base::String FormatDuration(void);
+
 	Tracker* __pTracker;
 	static const float TEXT_MARGIN_X = 10.0f;
 	static const float TEXT_MARGIN_Y = 10.0f;

@@ -36,12 +36,14 @@ public:
 	result Construct(Tizen::Base::String& Description,
 			Tizen::Base::String& Title);
 	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetTrack(void);
-	Tizen::Base::String* GetDescription() const;
+	Tizen::Base::String* GetDescription(void) const;
 	void SetDescription(Tizen::Base::String* description);
-	Tizen::Base::String* GetTitle() const;
+	Tizen::Base::String* GetTitle(void) const;
 	void SetTitle(Tizen::Base::String* title);
-	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetTrackPoints() const;
-	long long int GetTrackerId() const;
+	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetTrackPoints(void) const;
+	Tizen::Base::TimeSpan GetDuration(void);
+	long long int GetTrackerId(void) const;
+	result RemoveTrackPoints(void);
 
 	// I_CRUDable
 	virtual Tizen::Io::DbStatement* Read(void);
@@ -66,6 +68,7 @@ private:
 	Tizen::Base::String *__pDescription;
 	Tizen::Base::String *__pTitle;
 	Tizen::Base::Collection::LinkedListT<TTLocation*>* __pTrackPoints;
+	Tizen::Base::TimeSpan* __pDuration;
 	double __distance;
 };
 
