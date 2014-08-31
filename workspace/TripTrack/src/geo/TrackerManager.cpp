@@ -236,6 +236,8 @@ if (__pTracks == null && __pLocProvider == null && __pListeners == null) {
 			AppLogException(
 					"Error accessing tracker from collection", GetErrorMessage(r));
 		if (pTracker->GetStatus() == Tracker::ACTIVE) {
+			if (__pLocProvider->GetLocationUpdateStatus() == LOC_SVC_STATUS_IDLE)
+				__pLocProvider->StartLocationUpdatesByInterval(5);
 			SetCurrentTracker(pTracker);
 			return E_SUCCESS;
 		}

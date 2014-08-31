@@ -35,7 +35,7 @@ String TrackListElement::FormatTitle(void) {
 		__pTracker->GetTitle()->SubString(0, 27, retVal);
 		retVal.Append(L"...");
 	} else
-		retVal=String(__pTracker->GetTitle()->GetPointer());
+		retVal = String(__pTracker->GetTitle()->GetPointer());
 	return retVal;
 }
 
@@ -57,10 +57,12 @@ String TrackListElement::FormatDistance(void) {
 }
 
 String TrackListElement::FormatDuration(void) {
-	String retVal=L"";
-	TimeSpan duration=__pTracker->GetDuration();
+	String retVal = L"";
+	TimeSpan duration = __pTracker->GetDuration();
 
-	retVal.Append(Double::ToString(duration.GetHours()+duration.GetMinutes()/60.0));
+	retVal.Append(
+			Double::ToString(
+					duration.GetHours() + duration.GetMinutes() / 60.0));
 
 	return retVal;
 }
@@ -402,10 +404,30 @@ void TrackListPanel::DisplayMap(Tracker* tracker) {
 void TrackListPanel::DeleteTracker(Tracker* tracker) {
 	result r = E_SUCCESS;
 
-	r = __pTrackerMgr->RemoveTracker(tracker);
-	if (r != E_SUCCESS)
-		AppLogException(
-				"Error removing tracker [%ls] with id [%d]: [%s]", tracker->GetTitle()->GetPointer(), tracker->GetTrackerId(), GetErrorMessage(r));
+	//TODO localize this
+	String text = String(L"The track is active, delete anyway?");
+
+	MessageBox msgBox;
+	msgBox.Construct("Warning", text, MSGBOX_STYLE_YESNO);
+	msgBox.SetColor(Color(46, 151, 199));
+	msgBox.SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+
+	int result = 0;
+	msgBox.ShowAndWait(result);
+
+	if (result == MSGBOX_RESULT_YES) {
+		__pTrackerMgr->SetCurrentTracker(null);
+		tracker->SetStatus(Tracker::PAUSED);
+		r = __pTrackerMgr->GetLocationProvider()->StopLocationUpdates();
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error removing stoping location updates", GetErrorMessage(r));
+		r = __pTrackerMgr->RemoveTracker(tracker);
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error removing tracker [%ls] with id [%d]: [%s]", tracker->GetTitle()->GetPointer(), tracker->GetTrackerId(), GetErrorMessage(r));
+	} else
+		return;
 }
 
 Tracker* TrackListPanel::GetTrackerFromClick() {

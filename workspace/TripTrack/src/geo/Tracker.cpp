@@ -426,7 +426,10 @@ result Tracker::SaveFields(LinkedListT<FormField*>* fieldList) {
 			AppLog("Successfully saved new tracker from object.");
 		}
 		SetStatus(ACTIVE);
-		TrackerManager::getInstance()->SetCurrentTracker(this);
+		if (TrackerManager::getInstance()->GetLocationProvider()->GetLocationUpdateStatus()
+				== LOC_SVC_STATUS_IDLE)
+			TrackerManager::getInstance()->GetLocationProvider()->StartLocationUpdatesByInterval(5);
+			TrackerManager::getInstance()->SetCurrentTracker(this);
 		return r;
 	} else {
 		StorageManager::getInstance()->CRUDoperation(this, I_CRUDable::UPDATE);
