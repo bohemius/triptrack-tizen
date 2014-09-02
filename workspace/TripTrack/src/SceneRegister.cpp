@@ -6,7 +6,7 @@ using namespace Tizen::Ui::Scenes;
 
 const wchar_t* SCENE_MAIN_FORM = L"Scene_MainForm";
 const wchar_t* SCENE_POI_FORM = L"Scene_PoiForm";
-const wchar_t* SCENE_MAP_FORM = L"Scene_MapFor";
+const wchar_t* SCENE_MAP_FORM = L"Scene_MapForm";
 
 SceneRegister::SceneRegister(void) {
 }

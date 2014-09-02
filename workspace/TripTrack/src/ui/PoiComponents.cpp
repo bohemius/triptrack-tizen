@@ -245,6 +245,22 @@ bool PoiIconListPanel::DeleteGroupItem(int groupIndex,
 	return false;
 }
 
+result PoiIconListPanel::Update(void) {
+	result r = E_SUCCESS;
+
+	if (__pPoiMap != null) {
+		__pPoiMap->RemoveAll();
+		delete __pPoiMap;
+		__pPoiMap = StorageManager::getInstance()->GetPoiHash();
+		r = __pPoiGroupedListView->UpdateList();
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error updating POI panel: [%s]", GetErrorMessage(r));
+		return r;
+	}
+	return r;
+}
+
 result PoiIconListPanel::LoadResources(void) {
 	result r = E_SUCCESS;
 

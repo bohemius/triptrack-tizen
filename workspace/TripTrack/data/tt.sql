@@ -26,8 +26,8 @@ CREATE TABLE IF NOT EXISTS Location (
 CREATE TABLE IF NOT EXISTS POI ( 
     Description    TEXT,
     Title          TEXT    NOT NULL,
-    Latitude       REAL    NOT NULL,
-    Longitude      REAL    NOT NULL,
+    Latitude       REAL,
+    Longitude      REAL,
     Altitude       REAL,
     TimeSig      TEXT    NOT NULL,
     ID             INTEGER,

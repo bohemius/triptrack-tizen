@@ -4,6 +4,7 @@
 #include "ui/MapForm.h"
 
 using namespace Tizen::Ui::Scenes;
+using namespace Tizen::Ui::Controls;
 
 const wchar_t* FORM_MAIN = L"Form_Main";
 const wchar_t* FORM_POI = L"Form_Poi";
@@ -38,7 +39,7 @@ FormFactory::CreateFormN(const Tizen::Base::String& formId,
 
 	else if (formId == FORM_MAP) {
 		MapForm* pForm = new MapForm();
-		pForm->Initialize();
+		pForm->Construct(FORM_STYLE_NORMAL);
 		pSceneManager->AddSceneEventListener(sceneId, *pForm);
 		pNewForm = pForm;
 	}

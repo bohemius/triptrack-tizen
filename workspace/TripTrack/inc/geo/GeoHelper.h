@@ -10,6 +10,7 @@
 
 #include <FLocations.h>
 #include <HMaps.h>
+#include "geo/Tracker.h"
 
 class GeoHelper {
 public:
@@ -18,6 +19,7 @@ public:
 
 	static Tizen::Locations::Coordinates GetPresentLocation(void);
 	static result GetPresentAddress(HMaps::IGeocodeQueryExecuteResponseListener* pListener);
+	static HMaps::GeoBoundingBox GetGeoBoundingBox(Tracker* tracker);
 };
 
 #endif /* GEOHELPER_H_ */

@@ -12,11 +12,14 @@
 #include <FBase.h>
 #include <FApp.h>
 #include <HMaps.h>
+#include "geo/Tracker.h"
+#include "geo/TrackerManager.h"
 
 class MapForm: public Tizen::Ui::Controls::Form,
 		public HMaps::IMapEventListener,
 		public Tizen::Ui::Controls::IFormBackEventListener,
-		public Tizen::Ui::Scenes::ISceneEventListener {
+		public Tizen::Ui::Scenes::ISceneEventListener,
+		public IOnTrackChangeListener {
 public:
 	MapForm();
 	virtual ~MapForm();
@@ -27,7 +30,6 @@ public:
 	virtual void OnMapTapped (HMaps::Map &map, const Tizen::Locations::Coordinates &coordinate);
 
 	// override from Form
-	bool Initialize(void);
 	virtual result OnInitializing(void);
 	virtual result OnTerminating(void);
 
@@ -43,8 +45,19 @@ public:
 			const Tizen::Ui::Scenes::SceneId &currentSceneId,
 			const Tizen::Ui::Scenes::SceneId &nextSceneId);
 
+	// IOnTrackChangeListener
+	virtual result Update(void);
+
 private:
+	result AddTrack(void);
+	result AddPois(void);
+
 	HMaps::Map* __pMap;
+	Tracker* __pTracker;
+	TrackerManager* __pTrackerMngr;
+	HMaps::Polyline* __pPolyline;
+	Tizen::Base::Collection::LinkedListT<HMaps::Marker*>* __pMarkerList;
+	Tizen::Graphics::Bitmap *__pStartMarkerBitmap, *__pEndMarkerBitmap, *__pPoiMarkerBitmap;
 };
 
 #endif /* MAPFORM_H_ */

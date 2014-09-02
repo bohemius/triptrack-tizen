@@ -28,6 +28,7 @@ public:
 	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetMedia(long long int poiId);
 	Tizen::Base::Collection::LinkedListT<Tracker*>* GetTracks(void);
 	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetLocations(long long int trackerId);
+	Tizen::Base::Collection::LinkedListT<POI*>* GetPois(Tracker* pTracker);
 
 private:
 	StorageManager();

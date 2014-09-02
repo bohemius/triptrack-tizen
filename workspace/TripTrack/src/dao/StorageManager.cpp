@@ -132,9 +132,9 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 
 Tizen::Base::Collection::HashMapT<long long int, LinkedListT<POI*>*>* StorageManager::GetPoiHash(
 		void) {
-	HashMapT<long long int, LinkedListT<POI*>*>* retVal = new HashMapT<long long int,
-			LinkedListT<POI*>*>();
-	retVal->Construct(10,10);
+	HashMapT<long long int, LinkedListT<POI*>*>* retVal = new HashMapT<
+			long long int, LinkedListT<POI*>*>();
+	retVal->Construct(10, 10);
 	LinkedListT<POI*>* pCollection = GetPois();
 
 	IEnumeratorT<POI*>* pEnum = pCollection->GetEnumeratorN();
@@ -385,6 +385,95 @@ LinkedListT<TTLocation*>* StorageManager::GetLocations(
 	delete pEnum;
 	delete pStmt;
 	return retVal;
+}
+
+Tizen::Base::Collection::LinkedListT<POI*>* StorageManager::GetPois(
+		Tracker* pTracker) {
+	result r = E_SUCCESS;
+
+	DateTime startTime = *(pTracker->StartPosition()->getTimestamp());
+	DateTime endTime = *(pTracker->EndPosition()->getTimestamp());
+	DbEnumerator* pEnum = null;
+	DbStatement* pStmt = null;
+	LinkedListT<POI*>* retVal = new LinkedListT<POI*>();
+	String sql;
+
+	Database* db = BootstrapManager::getInstance()->getDatabase();
+
+	sql.Append(L"SELECT ID FROM poi WHERE TimeSig >= ? AND TimeSig <= ?");
+	pStmt = db->CreateStatementN(sql);
+	pStmt->BindDateTime(0, startTime);
+	pStmt->BindDateTime(1, endTime);
+
+	r = GetLastResult();
+	if (pStmt == 0 || r != E_SUCCESS) {
+		AppLogException(
+				"Error creating sql statement for SELECT for POIs between %ls and %ls:", startTime.ToString().GetPointer(), endTime.ToString().GetPointer(), GetErrorMessage(r));
+		return 0;
+	}
+
+	AppLog(
+			"Sql SELECT statement created for for SELECT for POIs between %ls and %ls:", startTime.ToString().GetPointer(), endTime.ToString().GetPointer());
+	AppLog(
+			"Getting list of POIs between %ls and %ls from the database.", startTime.ToString().GetPointer(), endTime.ToString().GetPointer());
+
+	pEnum = db->ExecuteStatementN(*pStmt);
+
+	r = GetLastResult();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Getting list of POIs between %ls and %ls from the database.", startTime.ToString().GetPointer(), endTime.ToString().GetPointer(), GetErrorMessage(r));
+		return null;
+	}
+
+	if (pEnum != null) {
+
+		LongLongBuffer poiBuffer;
+		poiBuffer.Construct(1024);
+		long long int count = 0;
+		long long int id;
+
+		while (pEnum->MoveNext() == E_SUCCESS) {
+			r = pEnum->GetInt64At(0, id);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error getting poi id: [%s]", GetErrorMessage(r));
+				return 0;
+			}
+			poiBuffer.Set(id);
+			count++;
+		}
+
+		delete pEnum;
+		poiBuffer.Rewind();
+
+		AppLog("Creating collection of pois.");
+		while (poiBuffer.GetPosition() < count) {
+			POI* pPoi = new POI();
+			r = poiBuffer.Get(id);
+			r = pPoi->Construct(id);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error constructing poi with ID [%d]: [%s]", id, GetErrorMessage(r));
+				return 0;
+			}
+			r = retVal->Add(pPoi);
+			if (r != E_SUCCESS) {
+				AppLogException(
+						"Error adding poi [%ls] to collection: [%s]", pPoi->GetTitle()->GetPointer(), GetErrorMessage(r));
+				return 0;
+			}
+			AppLog(
+					"Successfully added poi [%ls] to collection.", pPoi->GetTitle()->GetPointer());
+		}
+	} else
+		AppLog("No POIs in the database, returning empty collection.");
+
+	AppLog(
+			"Successfully read and added [%d] pois to collection.", retVal->GetCount());
+
+	return retVal;
+
 }
 
 StorageManager::StorageManager() {

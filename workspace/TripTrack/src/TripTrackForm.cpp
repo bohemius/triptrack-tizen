@@ -193,6 +193,7 @@ void TripTrackForm::ProcessCameraResult(String* imagePath) {
 				"Error constructing a new poi from camera capture [%ls]: [%s]", imagePath->GetPointer(), GetErrorMessage(r));
 	}
 
+	__pPoiListPanel->Update();
 	delete criteria;
 }
 

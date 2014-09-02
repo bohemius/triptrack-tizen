@@ -38,6 +38,7 @@ public:
 	PoiIconListPanel(Tizen::Graphics::Rectangle &rect);
 	~PoiIconListPanel(void);
 	result Construct(void);
+	result Update(void);
 
 	// IGroupedListViewItemEventListener
 	virtual void OnGroupedListViewContextItemStateChanged(

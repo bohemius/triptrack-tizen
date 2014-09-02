@@ -122,7 +122,6 @@ result POI::Construct(Tizen::Base::String& Title,
 			coor.Set(0.0, 0.0, 0.0);
 			//use current system time
 			SystemTime::GetCurrentTime(poiTime);
-
 		} else {
 			coor = lastLocation.GetCoordinates();
 			poiTime = lastLocation.GetTimestamp();
@@ -379,17 +378,20 @@ Tizen::Base::DateTime* POI::GetTimestamp() const {
 	return __pTimestamp;
 }
 
-Tizen::Base::Collection::LinkedListT<IFormFieldProvider::FormField*>* POI::GetFields(void) {
+Tizen::Base::Collection::LinkedListT<IFormFieldProvider::FormField*>* POI::GetFields(
+		void) {
 	LinkedListT<FormField*>* retVal = new LinkedListT<FormField*>();
 
 	FormField* pTitleField = new FormField;
-	pTitleField->fieldName = String(I18N::GetLocalizedString(ID_STRING_FIELD_LABEL_POI_TITLE));
+	pTitleField->fieldName = String(
+			I18N::GetLocalizedString(ID_STRING_FIELD_LABEL_POI_TITLE));
 	pTitleField->fieldData = String(__pTitle->GetPointer());
 	pTitleField->id = ID_FIELD_TITLE;
 	retVal->Add(pTitleField);
 
 	FormField* pDescField = new FormField;
-	pDescField->fieldName = String(I18N::GetLocalizedString(ID_STRING_FIELD_LABEL_POI_DESCRIPTION));
+	pDescField->fieldName = String(
+			I18N::GetLocalizedString(ID_STRING_FIELD_LABEL_POI_DESCRIPTION));
 	pDescField->fieldData = String(__pDescription->GetPointer());
 	pDescField->id = ID_FIELD_DESC;
 	retVal->Add(pDescField);
