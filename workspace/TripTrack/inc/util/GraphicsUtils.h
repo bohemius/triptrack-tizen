@@ -10,6 +10,7 @@
 
 #include <FBase.h>
 #include <FGraphics.h>
+#include <dao/POI.h>
 
 class GraphicsUtils {
 public:
@@ -19,6 +20,7 @@ public:
 	static Tizen::Graphics::Bitmap* CreateBitmap(Tizen::Base::ByteBuffer* imgBuffer, float &width, float &height);
 	static Tizen::Base::ByteBuffer* CreateImageBuffer(Tizen::Graphics::Bitmap* bitmap);
 	static Tizen::Graphics::FloatRectangle* GetTTMediaDimensions(void);
+	static Tizen::Graphics::Bitmap* CreatePoiIconListTile(POI* pPoi);
 };
 
 #endif /* GRAPHICSUTILS_H_ */

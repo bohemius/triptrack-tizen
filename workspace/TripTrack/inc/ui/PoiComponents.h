@@ -28,6 +28,8 @@ public:
 
 private:
 	POI* __pPoi;
+
+	Tizen::Graphics::EnrichedText* CreateTextOverLay(Tizen::Graphics::FloatDimension overlayDim);
 };
 
 class PoiIconListPanel: public Tizen::Ui::Controls::Panel,

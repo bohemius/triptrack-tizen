@@ -33,10 +33,10 @@ PoiIconListPanel::~PoiIconListPanel(void) {
 		delete __pPoiMap;
 	}
 	/*if (__pPoiGroupedListView != null) {
-		__pPoiGroupedListView->SetShowState(false);
-		__pPoiGroupedListView->Invalidate(true);
-		delete __pPoiGroupedListView;
-	}*/
+	 __pPoiGroupedListView->SetShowState(false);
+	 __pPoiGroupedListView->Invalidate(true);
+	 delete __pPoiGroupedListView;
+	 }*/
 	delete __pPoiGroupedListView;
 }
 
@@ -316,6 +316,61 @@ bool PoiListElement::OnDraw(Tizen::Graphics::Canvas& canvas,
 		AppLogException("Error drawing bitmap:", GetErrorMessage(r));
 		return false;
 	}
+	canvas.SetLineWidth(5);
+	canvas.SetForegroundColor(Color(46, 151, 199));
+	r = canvas.DrawRoundRectangle(presentationRect, FloatDimension(2, 2));
+
+	FloatDimension overlayDim = FloatDimension(
+			presentationRect.width - 2 * BITMAP_PADDING_X,
+			presentationRect.height - 2 * BITMAP_PADDING_Y);
+	EnrichedText* pOverlayText = CreateTextOverLay(overlayDim);
+	r = canvas.DrawText(
+			Point(presentationRect.x + BITMAP_PADDING_X,
+					presentationRect.y + BITMAP_PADDING_Y), *pOverlayText);
+	pOverlayText->RemoveAll(true);
+	delete pOverlayText;
+
 	return true;
+}
+
+Tizen::Graphics::EnrichedText* PoiListElement::CreateTextOverLay(
+		Tizen::Graphics::FloatDimension overlayDim) {
+	result r = E_SUCCESS;
+	EnrichedText* retVal = new EnrichedText();
+
+	r = retVal->Construct(overlayDim);
+
+	retVal->SetHorizontalAlignment(TEXT_ALIGNMENT_LEFT);
+	retVal->SetVerticalAlignment(TEXT_ALIGNMENT_TOP);
+	retVal->SetTextWrapStyle(TEXT_WRAP_WORD_WRAP);
+	retVal->SetTextAbbreviationEnabled(true);
+
+	Font boldFont, plainFont;
+	boldFont.Construct(FONT_STYLE_BOLD, 40);
+	plainFont.Construct(FONT_STYLE_PLAIN, 40);
+
+	TextElement* pTimeElement = new TextElement();
+	r = pTimeElement->Construct(__pPoi->GetTimestamp()->ToString()+"\n");
+
+	pTimeElement->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+	pTimeElement->SetFont(boldFont);
+
+	TextElement* pTitleElement = new TextElement();
+	r = pTitleElement->Construct(*(__pPoi->GetTitle())+"\n\n");
+
+	pTitleElement->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+	pTitleElement->SetFont(boldFont);
+
+	TextElement* pDescElement = new TextElement();
+	r = pDescElement->Construct(*(__pPoi->GetDescription()));
+
+	pDescElement->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+	pDescElement->SetFont(plainFont);
+
+	retVal->Add(*pTimeElement);
+	retVal->Add(*pTitleElement);
+	retVal->Add(*pDescElement);
+
+	return retVal;
 }
 

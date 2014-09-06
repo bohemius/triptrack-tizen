@@ -196,18 +196,33 @@ void PoiForm::OnSceneActivatedN(
 					"Error constructing media with ID [%ld]: [%s]", __pPoi->GetDefImageId(), GetErrorMessage(r));
 
 		ImageBuffer imgBuf;
-		r = imgBuf.Construct(*(pMedia->GetSourceUri()), null, true);
 
-		//TODO image resize
+		r = imgBuf.Construct(*(pMedia->GetSourceUri()), null, false);
 		if (r != E_SUCCESS)
-			AppLogException(
-					"Error constructing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+					AppLogException(
+							"Error constructing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
 
-		pTitleBgBitmap = imgBuf.GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565,
+		int deltaH=int ((imgBuf.GetWidth()*__pTitleRect->height-__pTitleRect->width*imgBuf.GetHeight())/(-1.0*__pTitleRect->width));
+		ImageBuffer* croppedBuf = imgBuf.CropN(0, deltaH/2, imgBuf.GetWidth(), imgBuf.GetHeight()-deltaH/2);
+		r = GetLastResult();
+		if (r != E_SUCCESS)
+					AppLogException(
+							"Error cropping title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+
+		ImageBuffer* resizedBuf= croppedBuf->ResizeN(__pTitleRect->width,__pTitleRect->height);
+		r = GetLastResult();
+		if (r != E_SUCCESS)
+					AppLogException(
+							"Error resizing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+
+		pTitleBgBitmap = resizedBuf->GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565,
 				BUFFER_SCALING_AUTO);
+		r = GetLastResult();
 		if (r != E_SUCCESS)
 			AppLogException(
 					"Error construction bitmap image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+		delete croppedBuf;
+		delete resizedBuf;
 	} else {
 		AppResource* pAppRes = Application::GetInstance()->GetAppResource();
 		pTitleBgBitmap = pAppRes->GetBitmapN(L"BlankPoi.png");
@@ -259,8 +274,8 @@ void PoiForm::OnSceneActivatedN(
 		__pMediaIconListView = new IconListView();
 		r = __pMediaIconListView->Construct(*__pListRect,
 				FloatDimension(tile_width, tile_height),
-				ICON_LIST_VIEW_STYLE_MARK,
-				ICON_LIST_VIEW_SCROLL_DIRECTION_HORIZONTAL);
+				ICON_LIST_VIEW_STYLE_NORMAL,
+				ICON_LIST_VIEW_SCROLL_DIRECTION_VERTICAL);
 		if (r != E_SUCCESS)
 			AppLogException(
 					"Error constructing icon list view from media collection: [%s]", GetErrorMessage(r));

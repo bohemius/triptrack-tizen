@@ -119,3 +119,7 @@ Tizen::Graphics::FloatRectangle* GraphicsUtils::GetTTMediaDimensions(void) {
 	return retVal;
 }
 
+Tizen::Graphics::Bitmap* GraphicsUtils::CreatePoiIconListTile(POI* pPoi) {
+}
+
+
