@@ -363,9 +363,7 @@ Tizen::Io::DbStatement* POI::Update(void) {
 	pStmt->BindDouble(2, __pCoordinates->GetLatitude());
 	pStmt->BindDouble(3, __pCoordinates->GetLongitude());
 	pStmt->BindDouble(4, __pCoordinates->GetAltitude());
-
-	String dateString = __pTimestamp->ToString();
-	pStmt->BindString(5, dateString);
+	pStmt->BindDateTime(5, *__pTimestamp);
 	pStmt->BindInt64(6, __defImageId);
 	pStmt->BindInt64(7, __id);
 

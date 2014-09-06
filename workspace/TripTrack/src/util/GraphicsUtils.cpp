@@ -84,7 +84,7 @@ Tizen::Base::ByteBuffer* GraphicsUtils::CreateImageBuffer(
 }
 
 Tizen::Graphics::FloatRectangle* GraphicsUtils::GetTTMediaDimensions(void) {
-	FloatRectangle* retVal = null;
+	FloatRectangle* retVal = new FloatRectangle(0.0, 0.0, 640.0, 480.0);
 	result r = E_SUCCESS;
 
 	LinkedListT<POI*>* pPoiCollection =
@@ -107,6 +107,7 @@ Tizen::Graphics::FloatRectangle* GraphicsUtils::GetTTMediaDimensions(void) {
 		}
 		Bitmap* pMediaBitmap = GraphicsUtils::CreateBitmap(
 				*(pMedia->GetSourceUri()));
+		delete retVal;
 		retVal = new FloatRectangle(0.0, 0.0, pMediaBitmap->GetWidthF(),
 				pMediaBitmap->GetHeightF());
 
@@ -114,7 +115,6 @@ Tizen::Graphics::FloatRectangle* GraphicsUtils::GetTTMediaDimensions(void) {
 		delete pMedia;
 	} else {
 		AppLog("No pois in collection using default media size");
-		retVal = new FloatRectangle(0.0, 0.0, 640.0, 480.0);
 	}
 	return retVal;
 }

@@ -11,6 +11,7 @@
 #include <FUiCtrlForm.h>
 #include <FUi.h>
 #include "dao/POI.h"
+#include "ui/CommonComponents.h"
 
 class PoiForm: public Tizen::Ui::Controls::Form,
 		public Tizen::Ui::IActionEventListener,
@@ -18,7 +19,8 @@ class PoiForm: public Tizen::Ui::Controls::Form,
 		public Tizen::Ui::Scenes::ISceneEventListener,
 		public Tizen::Ui::Controls::IIconListViewItemProvider,
 		public Tizen::Ui::Controls::IIconListViewItemEventListener,
-		public Tizen::App::IAppControlResponseListener {
+		public Tizen::App::IAppControlResponseListener,
+		public IOnDataChangedListener {
 public:
 	PoiForm();
 	bool Initialize(void);
@@ -50,9 +52,12 @@ public:
 			Tizen::Ui::Controls::IconListViewItem* pItem);
 	virtual int GetItemCount(void);
 
+	virtual result Update(void);
+
 private:
 	result LoadResources(void);
 	result LoadImageList(void);
+	void ShowEditPopup(void);
 	void OpenCamera(void);
 	void ProcessCameraResult(Tizen::Base::String* imagePath);
 

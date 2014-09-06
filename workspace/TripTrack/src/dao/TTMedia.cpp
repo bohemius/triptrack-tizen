@@ -41,18 +41,21 @@ Tizen::Base::String* TTMedia::GetSourceUri() const {
 }
 
 result TTMedia::Construct(long long int id) {
+	result r = E_SUCCESS;
 	__id = id;
+
 	AppLog("Reading media data from database for media id: [%lld]", __id);
 	Read();
 
-	AppLog(
-			"Constructed media with values source=[%S], content size limit=[%d], poi Id=[%lld], media Id=[%lld]",
-			__pSourceUri->GetPointer(),
-			__pContent->GetLimit(),
-			__poiId,
-			__id);
+	if (GetContent() == null) {
+		r = E_DATA_NOT_FOUND;
+		AppLogException(
+				"Error constructing new media with id [%lld]", __id, GetErrorMessage(r));
+	} else
+		AppLog(
+				"Constructed media with values source=[%S], content size limit=[%d], poi Id=[%lld], media Id=[%lld]", __pSourceUri->GetPointer(), __pContent->GetLimit(), __poiId, __id);
 
-	return E_SUCCESS;
+	return r;
 }
 
 result TTMedia::Construct(Tizen::Base::String& SourceURI, long long int PoiId,
@@ -120,51 +123,37 @@ Tizen::Io::DbStatement* TTMedia::Read(void) {
 	ByteBuffer content;
 	r = content.Construct(MAX_TILE_BASE_SIZE);
 	if (r != E_SUCCESS) {
-		AppLogException("Error constructing image byte buffer: [%s]", GetErrorMessage(r));
+		AppLogException(
+				"Error constructing image byte buffer: [%s]", GetErrorMessage(r));
 		return null;
 	}
 
 	pEnum = db->ExecuteStatementN(*pStmt);
-	//source,thumbnail, POI_ID
-	while (pEnum->MoveNext() == E_SUCCESS) {
-		pEnum->GetStringAt(0, sourcePath);
-		pEnum->GetBlobAt(1, content);
-		pEnum->GetInt64At(2, poiId);
-	}
 
-	//content.Flip();
-	AppLog(
-			"Read values sourcePath=[%S], content size=[%d], poiId=[%lld]",
-			sourcePath.GetPointer(), content.GetLimit(), poiId);
+	if (pEnum != null) {
+		//source,thumbnail, POI_ID
+		while (pEnum->MoveNext() == E_SUCCESS) {
+			pEnum->GetStringAt(0, sourcePath);
+			pEnum->GetBlobAt(1, content);
+			pEnum->GetInt64At(2, poiId);
+		}
 
-	SetSourceUri(new String(sourcePath));
-	SetContent(&content);
-	SetPoiId(poiId);
+		//content.Flip();
+		AppLog(
+				"Read values sourcePath=[%S], content size=[%d], poiId=[%lld]", sourcePath.GetPointer(), content.GetLimit(), poiId);
+
+		SetSourceUri(new String(sourcePath));
+		SetContent(&content);
+		SetPoiId(poiId);
+
+		AppLog("Successfully loaded data for media with id:[%lld]", __id);
+	} else
+		AppLog("Error loading or no data for media with id: [%lld]", __id);
 
 	delete pEnum;
 	delete pStmt;
 
-	AppLog("Successfully loaded data for media with id:[%lld]", __id);
 	return null;
-	/*String sqlStatement;
-	 DbStatement* pStmt = null;
-	 Database* db;
-	 result r = E_SUCCESS;
-
-	 sqlStatement.Append(
-	 L"SELECT source,thumbnail, POI_ID FROM media WHERE ID = ?");
-
-	 db = BootstrapManager::getInstance()->getDatabase();
-	 pStmt = db->CreateStatementN(sqlStatement);
-	 AppLog( "Creating sql statement for SELECT for media with ID: [%d]", __id);
-	 if (pStmt == 0 || r != E_SUCCESS) {
-	 AppLogException(
-	 "Error creating sql statement for SELECT for media with ID [%d]: [%s]", __id, GetErrorMessage(r));
-	 return 0;
-	 }
-	 AppLog( "Sql SELECT statement created for media with ID: [%d]", __id);
-	 pStmt->BindInt(0, __id);
-	 return pStmt;*/
 }
 
 Tizen::Io::DbStatement* TTMedia::Write(void) {

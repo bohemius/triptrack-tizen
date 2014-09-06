@@ -28,7 +28,15 @@ PoiIconListPanel::PoiIconListPanel(Rectangle &rect) :
 }
 
 PoiIconListPanel::~PoiIconListPanel(void) {
-	delete __pPoiMap;
+	if (__pPoiMap != null) {
+		__pPoiMap->RemoveAll();
+		delete __pPoiMap;
+	}
+	/*if (__pPoiGroupedListView != null) {
+		__pPoiGroupedListView->SetShowState(false);
+		__pPoiGroupedListView->Invalidate(true);
+		delete __pPoiGroupedListView;
+	}*/
 	delete __pPoiGroupedListView;
 }
 

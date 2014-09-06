@@ -51,7 +51,7 @@ result PoiForm::OnInitializing(void) {
 	}
 
 	//define spacing
-	__pClientBounds = new Rectangle(GetClientAreaBounds());
+	__pClientBounds = new Rectangle(GetBounds());
 	__pTitleRect = new Rectangle(0, 0, __pClientBounds->width,
 			__pClientBounds->height / 6);
 	__pDescRect = new Rectangle(0, __pClientBounds->height / 6 + 1,
@@ -107,7 +107,7 @@ void PoiForm::OnActionPerformed(const Tizen::Ui::Control& source,
 		int actionId) {
 	switch (actionId) {
 	case ID_FOOTER_BUTTTON_EDIT: {
-		//todo
+		ShowEditPopup();
 	}
 		break;
 	case ID_FOOTER_BUTTON_MAP: {
@@ -196,8 +196,9 @@ void PoiForm::OnSceneActivatedN(
 					"Error constructing media with ID [%ld]: [%s]", __pPoi->GetDefImageId(), GetErrorMessage(r));
 
 		ImageBuffer imgBuf;
-		r = imgBuf.Construct(*(pMedia->GetSourceUri()), __pTitleRect->width,
-				__pTitleRect->height, IMAGE_SCALING_METHOD_BICUBIC);
+		r = imgBuf.Construct(*(pMedia->GetSourceUri()), null, true);
+
+		//TODO image resize
 		if (r != E_SUCCESS)
 			AppLogException(
 					"Error constructing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
@@ -208,10 +209,11 @@ void PoiForm::OnSceneActivatedN(
 			AppLogException(
 					"Error construction bitmap image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
 	} else {
-		AppResource* pAppRes=Application::GetInstance()->GetAppResource();
+		AppResource* pAppRes = Application::GetInstance()->GetAppResource();
 		pTitleBgBitmap = pAppRes->GetBitmapN(L"BlankPoi.png");
 		pTitleBgBitmap->SetScalingQuality(BITMAP_SCALING_QUALITY_HIGH);
-		pTitleBgBitmap->Scale(Dimension(__pTitleRect->width, __pTitleRect->height));
+		pTitleBgBitmap->Scale(
+				Dimension(__pTitleRect->width, __pTitleRect->height));
 	}
 
 	/*set the title label*/
@@ -378,6 +380,27 @@ result PoiForm::LoadImageList(void) {
 	return r;
 }
 
+void PoiForm::ShowEditPopup(void) {
+	result r = E_SUCCESS;
+
+	EditFormPopup* pEditPopup = new EditFormPopup();
+
+	Rectangle bounds = GetClientAreaBounds();
+	r = pEditPopup->Construct(__pPoi, this,
+			Dimension((int) bounds.width * 0.90, (int) bounds.height * 0.90),
+			I18N::GetLocalizedString(ID_STRING_CREATE_POI_POPUP_TITLE));
+
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing edit form popup: [%s]", GetErrorMessage(r));
+		return;
+	}
+
+	int res = 0;
+
+	pEditPopup->Show();
+}
+
 void PoiForm::OpenCamera(void) {
 	String mime = L"image/jpg";
 	HashMap extraData;
@@ -392,6 +415,13 @@ void PoiForm::OpenCamera(void) {
 		pAc->Start(null, &mime, &extraData, this);
 		delete pAc;
 	}
+}
+
+result PoiForm::Update(void) {
+	__pTitleLabel->SetText(*(__pPoi->GetTitle()));
+	__pTitleLabel->Draw();
+	__pDescriptionLabel->SetText(*(__pPoi->GetDescription()));
+	__pDescriptionLabel->Draw();
 }
 
 void PoiForm::ProcessCameraResult(Tizen::Base::String* imagePath) {
