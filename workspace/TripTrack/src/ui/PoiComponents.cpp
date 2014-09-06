@@ -4,6 +4,7 @@
  *  Created on: Aug 14, 2013
  *      Author: bohemius
  */
+#include <FApp.h>
 #include <FMedia.h>
 #include <FSystem.h>
 #include "ui/PoiComponents.h"
@@ -282,14 +283,21 @@ bool PoiListElement::OnDraw(Tizen::Graphics::Canvas& canvas,
 		Tizen::Ui::Controls::ListItemDrawingStatus itemStatus) {
 	result r = E_SUCCESS;
 
-	TTMedia* pMedia = new TTMedia();
-	r = pMedia->Construct(__pPoi->GetDefImageId());
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error constructing default media for poi [%ld]:", __pPoi->GetId(), GetErrorMessage(r));
-		return false;
+	Bitmap* pBitmap;
+
+	if (__pPoi->GetDefImageId() > 0) {
+		TTMedia* pMedia = new TTMedia();
+		r = pMedia->Construct(__pPoi->GetDefImageId());
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error constructing default media for poi [%ld]:", __pPoi->GetId(), GetErrorMessage(r));
+			return false;
+		}
+		pBitmap = GraphicsUtils::CreateBitmap(*(pMedia->GetSourceUri()));
+	} else {
+		AppResource* pAppRes = Application::GetInstance()->GetAppResource();
+		pBitmap = pAppRes->GetBitmapN(L"BlankPoi.png");
 	}
-	Bitmap* pBitmap = GraphicsUtils::CreateBitmap(*(pMedia->GetSourceUri()));
 
 	FloatRectangle presentationRect = FloatRectangle(rect.x + BITMAP_PADDING_X,
 			rect.y + BITMAP_PADDING_Y, rect.width - 2.0 * BITMAP_PADDING_X,

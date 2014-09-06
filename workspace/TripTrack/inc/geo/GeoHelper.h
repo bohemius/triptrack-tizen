@@ -17,7 +17,8 @@ public:
 	GeoHelper();
 	virtual ~GeoHelper();
 
-	static Tizen::Locations::Coordinates GetPresentLocation(void);
+	static Tizen::Locations::Coordinates GetPresentCoordinates(void);
+	static Tizen::Locations::Location GetPresentLocation(void);
 	static result GetPresentAddress(HMaps::IGeocodeQueryExecuteResponseListener* pListener);
 	static HMaps::GeoBoundingBox GetGeoBoundingBox(Tracker* tracker);
 };

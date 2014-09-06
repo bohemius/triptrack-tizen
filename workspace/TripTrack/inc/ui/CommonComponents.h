@@ -11,7 +11,7 @@
 #include <FBase.h>
 #include <FUi.h>
 
-class IOnTrackChangeListener {
+class IOnDataChangedListener {
 public:
 	virtual result Update(void)=0;
 };
@@ -27,8 +27,14 @@ public:
 	};
 
 	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void)=0;
-	virtual result SaveFields(Tizen::Base::Collection::LinkedListT<FormField*>* fieldList)=0;
+	virtual result SaveFields(
+			Tizen::Base::Collection::LinkedListT<FormField*>* fieldList)=0;
 	virtual int GetFieldCount(void)=0;
+	virtual int GetProviderID(void)=0;
+
+	const static int ID_FIELD_PROVIDER_TRACK = 2001;
+	const static int ID_FIELD_PROVIDER_POI = 2002;
+	const static int ID_FIELD_PROVIDER_HMAPS = 2003;
 };
 
 class HMapsFieldProvider: public IFormFieldProvider {
@@ -41,6 +47,8 @@ public:
 	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void);
 	virtual result SaveFields(void);
 	virtual int GetFieldCount(void);
+	virtual int GetProviderID(void);
+
 private:
 	Tizen::Base::Collection::LinkedListT<IFormFieldProvider::FormField*>* __pFieldList;
 };
@@ -51,7 +59,8 @@ class EditFormPopup: public Tizen::Ui::Controls::Popup,
 public:
 	EditFormPopup(void);
 	~EditFormPopup(void);
-	result Construct(IFormFieldProvider* fieldProvider, IOnTrackChangeListener* resultListener,
+	result Construct(IFormFieldProvider* fieldProvider,
+			IOnDataChangedListener* resultListener,
 			Tizen::Graphics::Dimension dimension, Tizen::Base::String title);
 
 	//IPropagatedKeyEventListener
@@ -80,7 +89,7 @@ private:
 	Tizen::Ui::Controls::Button* __pCancelButton;
 	Tizen::Ui::Controls::Panel* __pButtonPanel;
 	IFormFieldProvider* __pFieldProvider;
-	IOnTrackChangeListener* __pOnTrackChangeListener;
+	IOnDataChangedListener* __pOnDataChangedListener;
 };
 
 #endif /* COMMONCOMPONENTS_H_ */

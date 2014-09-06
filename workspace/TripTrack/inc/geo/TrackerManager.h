@@ -25,8 +25,8 @@ public:
 	Tizen::Base::Collection::LinkedListT<Tracker*>* GetTracks() const;
 	Tizen::Locations::LocationProvider* GetLocationProvider(void);
 	void SetLocationProvider(Tizen::Locations::LocationProvider* provider);
-	result AddOnTrackChangeListener(IOnTrackChangeListener* listener);
-	result RemoveOnTrackChangeListener(IOnTrackChangeListener* listener);
+	result AddOnTrackChangeListener(IOnDataChangedListener* listener);
+	result RemoveOnTrackChangeListener(IOnDataChangedListener* listener);
 
 	//ILocationProviderListener
 	virtual void OnLocationUpdated(const Tizen::Locations::Location& location);
@@ -44,7 +44,7 @@ private:
 	Tracker* __pCurrentTracker;
 	Tizen::Base::Collection::LinkedListT<Tracker*>* __pTracks;
 	Tizen::Locations::LocationProvider* __pLocProvider;
-	Tizen::Base::Collection::LinkedListT<IOnTrackChangeListener*>* __pListeners;
+	Tizen::Base::Collection::LinkedListT<IOnDataChangedListener*>* __pListeners;
 	static TrackerManager* __pSelf;
 };
 

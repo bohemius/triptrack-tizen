@@ -40,7 +40,7 @@ class TrackListPanel: public Tizen::Ui::Controls::Panel,
 		public Tizen::Ui::Controls::IListViewItemProviderF,
 		public Tizen::Ui::ITouchEventListener,
 		public Tizen::Ui::IActionEventListener,
-		public IOnTrackChangeListener {
+		public IOnDataChangedListener {
 
 public:
 	TrackListPanel(Tizen::Graphics::Rectangle &rect);

@@ -9,6 +9,7 @@
 #include <FSystem.h>
 #include "dao/POI.h"
 #include "geo/Tracker.h"
+#include "geo/GeoHelper.h"
 #include "util/BootstrapManager.h"
 #include "util/GraphicsUtils.h"
 #include "dao/StorageManager.h"
@@ -25,7 +26,7 @@ using namespace Tizen::App;
 
 POI::POI() :
 		__pDescription(null), __pTitle(null), __pTimestamp(null), __pCoordinates(
-				null), __defImageId(-1) {
+				null), __defImageId(-1), __id(-1) {
 }
 
 POI::~POI() {
@@ -82,6 +83,30 @@ void POI::DeleteMedia(TTMedia* media) {
 	StorageManager* pStore = StorageManager::getInstance();
 	pStore->CRUDoperation(media, I_CRUDable::DELETE);
 	__pAssociatedMedia->Remove(media);
+}
+
+result POI::Construct(void) {
+	StorageManager* store = StorageManager::getInstance();
+	DbEnumerator* pEnum = 0;
+	Database* db = BootstrapManager::getInstance()->getDatabase();
+	result r = E_SUCCESS;
+
+	AppLog("Creating a new POI from object.");
+
+	pEnum = store->CRUDoperation(this, I_CRUDable::CREATE);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error storing the new POI from object in the database: [%s]", GetErrorMessage(r));
+		return r;
+	}
+	//get the inserted ID using last_insert_rowid()
+	__id = db->GetLastInsertRowId();
+	AppLog(
+			"Successfully stored the new POI from object in the database with ID: [%ld]", __id);
+	delete pEnum;
+	__pAssociatedMedia = new LinkedListT<TTMedia*>();
+
+	return r;
 }
 
 result POI::Construct(long long int id) {
@@ -257,33 +282,6 @@ Tizen::Io::DbStatement* POI::Read(void) {
 
 	AppLog("Successfully loaded data for poi [%ls]", __pTitle->GetPointer());
 	return null;
-	/*String sqlStatement;
-	 DbStatement* pStmt = null;
-	 Database* db;
-	 result r = E_SUCCESS;
-
-	 sqlStatement.Append(
-	 L"SELECT Description, Title, Latitude, Longitude, Altitude, TimeSig, DefaultMediaID FROM poi WHERE ID = ?");
-
-	 db = BootstrapManager::getInstance()->getDatabase();
-	 pStmt = db->CreateStatementN(sqlStatement);
-	 AppLog( "Creating sql statement for SELECT for poi with ID: [%d]", __id);
-	 r = GetLastResult();
-	 if (r != E_SUCCESS) {
-	 AppLogException(
-	 "Error creating sql statement for SELECT for poi with ID [%d]: [%s]", __id, GetErrorMessage(r));
-	 return 0;
-	 }
-	 AppAssert(pStmt);
-	 AppLog( "Sql SELECT statement created for poi with ID: [%d]", __id);
-
-	 r = pStmt->BindInt64(0, __id);
-	 if (r != E_SUCCESS) {
-	 AppLogException(
-	 "Error binding __id for SELECT for poi with ID [%d]: [%s]", __id, GetErrorMessage(r));
-	 return 0;
-	 }
-	 return pStmt;*/
 }
 
 Tizen::Io::DbStatement* POI::Write(void) {
@@ -380,33 +378,95 @@ Tizen::Base::DateTime* POI::GetTimestamp() const {
 
 Tizen::Base::Collection::LinkedListT<IFormFieldProvider::FormField*>* POI::GetFields(
 		void) {
-	LinkedListT<FormField*>* retVal = new LinkedListT<FormField*>();
+	LinkedListT<IFormFieldProvider::FormField*>* result = new LinkedListT<
+			IFormFieldProvider::FormField*>();
 
-	FormField* pTitleField = new FormField;
-	pTitleField->fieldName = String(
-			I18N::GetLocalizedString(ID_STRING_FIELD_LABEL_POI_TITLE));
-	pTitleField->fieldData = String(__pTitle->GetPointer());
-	pTitleField->id = ID_FIELD_TITLE;
-	retVal->Add(pTitleField);
+	//TODO localize this
+	IFormFieldProvider::FormField* pTitleField =
+			new IFormFieldProvider::FormField();
+	pTitleField->fieldName = String(L"Title");
+	pTitleField->id = 1;
+	pTitleField->limit = 255;
+	pTitleField->fieldDim = Dimension(600, 80);
+	if (GetTitle() != null)
+		pTitleField->fieldData = String(GetTitle()->GetPointer());
+	else
+		pTitleField->fieldData = String(L"");
 
-	FormField* pDescField = new FormField;
-	pDescField->fieldName = String(
-			I18N::GetLocalizedString(ID_STRING_FIELD_LABEL_POI_DESCRIPTION));
-	pDescField->fieldData = String(__pDescription->GetPointer());
-	pDescField->id = ID_FIELD_DESC;
-	retVal->Add(pDescField);
+	result->Add(pTitleField);
 
-	return retVal;
+	IFormFieldProvider::FormField* pDescField =
+			new IFormFieldProvider::FormField();
+	pDescField->fieldName = String(L"Description");
+	pDescField->id = 2;
+	pDescField->limit = 1000;
+	pDescField->fieldDim = Dimension(600, 400);
+	if (GetDescription() != null)
+		pDescField->fieldData = String(GetDescription()->GetPointer());
+	else
+		pDescField->fieldData = String(L"");
+
+	result->Add(pDescField);
+
+	return result;
 }
 
 result POI::SaveFields(LinkedListT<FormField*>* fieldList) {
-	result retVal = E_SUCCESS;
+	result r = E_SUCCESS;
 
-	return retVal;
+	if (fieldList->GetCount() > 2)
+		return E_INVALID_DATA;
+
+	FormField *titleField, *descField;
+
+	r = fieldList->GetAt(0, titleField);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting title field from dialog: [%s]", GetErrorMessage(r));
+		return r;
+	}
+
+	r = fieldList->GetAt(1, descField);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error getting description field from dialog: [%s]", GetErrorMessage(r));
+		return r;
+	}
+
+	if (__pTitle)
+		delete __pTitle;
+	__pTitle = new String(titleField->fieldData);
+
+	if (__pDescription)
+		delete __pDescription;
+	__pDescription = new String(descField->fieldData);
+
+	if (__id < 0) {
+		Location loc = GeoHelper::GetPresentLocation();
+		__pCoordinates = new Coordinates(loc.GetCoordinates());
+		__pTimestamp = new DateTime(loc.GetTimestamp());
+
+		r = Construct();
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error saving POI from object: [%s]", GetErrorMessage(r));
+		else {
+			StorageManager::getInstance()->GetPois()->Add(this);
+			AppLog("Successfully saved new POI from object.");
+		}
+
+		return r;
+	} else {
+		StorageManager::getInstance()->CRUDoperation(this, I_CRUDable::UPDATE);
+	}
 }
 
 int POI::GetFieldCount(void) {
-	return CONST_FIELD_COUNT;
+	return 2;
+}
+
+int POI::GetProviderID(void) {
+	return ID_FIELD_PROVIDER_POI;
 }
 
 void POI::SetTimestamp(Tizen::Base::DateTime* timestamp) {

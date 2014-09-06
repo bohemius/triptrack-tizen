@@ -27,12 +27,12 @@ EditFormPopup::~EditFormPopup(void) {
 }
 
 result EditFormPopup::Construct(IFormFieldProvider* fieldProvider,
-		IOnTrackChangeListener* resultListener, Dimension dimension,
+		IOnDataChangedListener* resultListener, Dimension dimension,
 		String title) {
 	result r = E_SUCCESS;
 
 	__pFieldProvider = fieldProvider;
-	__pOnTrackChangeListener = resultListener;
+	__pOnDataChangedListener = resultListener;
 
 	VerticalBoxLayout layout;
 	layout.Construct(VERTICAL_DIRECTION_DOWNWARD);
@@ -191,7 +191,7 @@ void EditFormPopup::OnActionPerformed(const Tizen::Ui::Control& source,
 		}
 
 		__pFieldProvider->SaveFields(__pFieldList);
-		__pOnTrackChangeListener->Update();
+		__pOnDataChangedListener->Update();
 
 		this->SetShowState(false);
 		this->Invalidate(true);
@@ -250,5 +250,9 @@ result HMapsFieldProvider::SaveFields(void) {
 
 int HMapsFieldProvider::GetFieldCount(void) {
 	return 2;
+}
+
+int HMapsFieldProvider::GetProviderID(void) {
+	return ID_FIELD_PROVIDER_HMAPS;
 }
 

@@ -22,26 +22,19 @@ GeoHelper::~GeoHelper() {
 	// TODO Auto-generated destructor stub
 }
 
-Coordinates GeoHelper::GetPresentLocation(void) {
+Location GeoHelper::GetPresentLocation(void) {
 	LocationCriteria criteria;
 
 	criteria.SetAccuracy(LOC_ACCURACY_FINEST);
-	Coordinates c = LocationProvider::GetLocation(criteria).GetCoordinates();
 
-	//Coordinates c;
-
-	//c.SetLatitude(50.6581693);
-	//c.SetLongitude(14.0402449);
-
-	return c;
-	//return LocationProvider::GetLastKnownLocation().GetCoordinates();
+	return LocationProvider::GetLocation(criteria);
 }
 
 result GeoHelper::GetPresentAddress(
 		IGeocodeQueryExecuteResponseListener* pListener) {
 	result r = E_SUCCESS;
 
-	Coordinates coord = GetPresentLocation();
+	Coordinates coord = GetPresentCoordinates();
 	ReverseGeocodeQuery* pQuery = new (std::nothrow) ReverseGeocodeQuery();
 	r = pQuery->Construct(coord,
 			ReverseGeocodeQuery::REVERSE_GEOCODE_MODE_RETRIEVE_ADDRESSES);
@@ -49,6 +42,10 @@ result GeoHelper::GetPresentAddress(
 		return r;
 	r = pQuery->Execute(pListener);
 	return r;
+}
+
+Tizen::Locations::Coordinates GeoHelper::GetPresentCoordinates(void) {
+	return GetPresentLocation().GetCoordinates();
 }
 
 GeoBoundingBox GeoHelper::GetGeoBoundingBox(Tracker* tracker) {
@@ -82,8 +79,8 @@ GeoBoundingBox GeoHelper::GetGeoBoundingBox(Tracker* tracker) {
 
 	while (pEnum->MoveNext() == E_SUCCESS) {
 		r = pEnum->GetCurrent(location);
-		tempLong=location->getLongitude();
-		tempLat=location->getLatitude();
+		tempLong = location->getLongitude();
+		tempLat = location->getLatitude();
 
 		if (r == E_SUCCESS) {
 			if (topLeft.GetLongitude() > tempLong)
@@ -100,7 +97,7 @@ GeoBoundingBox GeoHelper::GetGeoBoundingBox(Tracker* tracker) {
 	}
 
 	// Throw an error if boundaries contains poles
-	if (topLeft.GetLatitude() >= 80.0	|| bottomRight.GetLatitude() <= -66) {
+	if (topLeft.GetLatitude() >= 80.0 || bottomRight.GetLatitude() <= -66) {
 		AppLogException("Bounding box near poles");
 		return retVal;
 	}

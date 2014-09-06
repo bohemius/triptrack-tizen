@@ -227,9 +227,6 @@ void TripTrackForm::OnGeocodeQueryCompleted(
 	String desc = L"Traveling from " + street + L", " + city + L", " + country;
 	String title = L"Tracking from " + city;
 
-	//HMapsFieldProvider* fieldProvider = new HMapsFieldProvider(title, desc);
-	//__pTrackListPanel->Update();
-
 	Tracker* pTracker = new Tracker();
 	pTracker->SetTitle(new String(desc));
 	pTracker->SetDescription(new String(desc));
@@ -296,6 +293,8 @@ void TripTrackForm::OnActionPerformed(const Tizen::Ui::Control& source,
 		break;
 	case ID_FOOTER_BUTTON_ADD_POI: {
 		AppLog("Opening create POI form popup");
+		POI* pPoi=new POI();
+		ShowEditPopUp(pPoi);
 	}
 		break;
 	case ID_FOOTER_BUTTTON_ADD_TRACK: {
@@ -458,12 +457,25 @@ void TripTrackForm::ShowEditPopUp(IFormFieldProvider* pProvider) {
 	EditFormPopup* pEditPopup = new EditFormPopup();
 
 	Rectangle bounds = GetClientAreaBounds();
-	r = pEditPopup->Construct(pProvider, __pTrackListPanel,
-			Dimension((int) bounds.width * 0.90, (int) bounds.height * 0.90),
-			I18N::GetLocalizedString(ID_STRING_CREATE_TRACK_POPUP_TITLE));
-	if (r != E_SUCCESS)
+	if (pProvider->GetProviderID()
+			== IFormFieldProvider::ID_FIELD_PROVIDER_TRACK) {
+		r = pEditPopup->Construct(pProvider, __pTrackListPanel,
+				Dimension((int) bounds.width * 0.90,
+						(int) bounds.height * 0.90),
+				I18N::GetLocalizedString(ID_STRING_CREATE_TRACK_POPUP_TITLE));
+	}
+	else if (pProvider->GetProviderID() == IFormFieldProvider::ID_FIELD_PROVIDER_POI) {
+		r = pEditPopup->Construct(pProvider, __pPoiListPanel,
+						Dimension((int) bounds.width * 0.90,
+								(int) bounds.height * 0.90),
+						I18N::GetLocalizedString(ID_STRING_CREATE_TRACK_POPUP_TITLE));
+	} else
+		r=E_INVALID_OPERATION;
+	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error constructing edit form popup: [%s]", GetErrorMessage(r));
+		return;
+	}
 
 	pEditPopup->Show();
 }

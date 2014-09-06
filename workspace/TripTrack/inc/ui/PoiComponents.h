@@ -32,13 +32,13 @@ private:
 
 class PoiIconListPanel: public Tizen::Ui::Controls::Panel,
 		public Tizen::Ui::Controls::IGroupedListViewItemEventListener,
-		public Tizen::Ui::Controls::IGroupedListViewItemProvider {
+		public Tizen::Ui::Controls::IGroupedListViewItemProvider,
+		public IOnDataChangedListener {
 
 public:
 	PoiIconListPanel(Tizen::Graphics::Rectangle &rect);
 	~PoiIconListPanel(void);
 	result Construct(void);
-	result Update(void);
 
 	// IGroupedListViewItemEventListener
 	virtual void OnGroupedListViewContextItemStateChanged(
@@ -64,6 +64,9 @@ public:
 			Tizen::Ui::Controls::ListItemBase* pItem, int itemWidth);
 	virtual bool DeleteGroupItem(int groupIndex,
 			Tizen::Ui::Controls::GroupItem* pItem, int itemWidth);
+
+	// IOnDataChangedListener
+	virtual result Update(void);
 
 private:
 	Tizen::Base::String* BuildTileText(POI* pPoi);

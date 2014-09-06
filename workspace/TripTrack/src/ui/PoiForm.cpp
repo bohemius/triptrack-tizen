@@ -186,24 +186,33 @@ void PoiForm::OnSceneActivatedN(
 		__pPoiPanel->RemoveAllControls();
 
 	/*Create the media for title background*/
-	TTMedia* pMedia = new TTMedia();
-	r = pMedia->Construct(__pPoi->GetDefImageId());
-	if (r != E_SUCCESS)
-		AppLogException(
-				"Error constructing media with ID [%ld]: [%s]", __pPoi->GetDefImageId(), GetErrorMessage(r));
+	Bitmap* pTitleBgBitmap;
 
-	ImageBuffer imgBuf;
-	r = imgBuf.Construct(*(pMedia->GetSourceUri()), __pTitleRect->width,
-			__pTitleRect->height, IMAGE_SCALING_METHOD_BICUBIC);
-	if (r != E_SUCCESS)
-		AppLogException(
-				"Error constructing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+	if (__pPoi->GetDefImageId() > 0) {
+		TTMedia* pMedia = new TTMedia();
+		r = pMedia->Construct(__pPoi->GetDefImageId());
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error constructing media with ID [%ld]: [%s]", __pPoi->GetDefImageId(), GetErrorMessage(r));
 
-	Bitmap* pTitleBgBitmap = imgBuf.GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565,
-			BUFFER_SCALING_AUTO);
-	if (r != E_SUCCESS)
-		AppLogException(
-				"Error construction bitmap image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+		ImageBuffer imgBuf;
+		r = imgBuf.Construct(*(pMedia->GetSourceUri()), __pTitleRect->width,
+				__pTitleRect->height, IMAGE_SCALING_METHOD_BICUBIC);
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error constructing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+
+		pTitleBgBitmap = imgBuf.GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565,
+				BUFFER_SCALING_AUTO);
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error construction bitmap image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+	} else {
+		AppResource* pAppRes=Application::GetInstance()->GetAppResource();
+		pTitleBgBitmap = pAppRes->GetBitmapN(L"BlankPoi.png");
+		pTitleBgBitmap->SetScalingQuality(BITMAP_SCALING_QUALITY_HIGH);
+		pTitleBgBitmap->Scale(Dimension(__pTitleRect->width, __pTitleRect->height));
+	}
 
 	/*set the title label*/
 	if (__pTitleLabel == null) {
@@ -256,7 +265,8 @@ void PoiForm::OnSceneActivatedN(
 	}
 	__pMediaIconListView->SetItemProvider(*this);
 	__pMediaIconListView->AddIconListViewItemEventListener(*this);
-	__pMediaIconListView->SetItemBorderStyle(ICON_LIST_VIEW_ITEM_BORDER_STYLE_OUTLINE);
+	__pMediaIconListView->SetItemBorderStyle(
+			ICON_LIST_VIEW_ITEM_BORDER_STYLE_OUTLINE);
 	__pMediaIconListView->SetItemSpacing(TILES_SPACING_X, TILES_SPACING_Y);
 	__pPoiPanel->AddControl(__pMediaIconListView);
 

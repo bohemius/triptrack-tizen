@@ -19,7 +19,7 @@ class MapForm: public Tizen::Ui::Controls::Form,
 		public HMaps::IMapEventListener,
 		public Tizen::Ui::Controls::IFormBackEventListener,
 		public Tizen::Ui::Scenes::ISceneEventListener,
-		public IOnTrackChangeListener {
+		public IOnDataChangedListener {
 public:
 	MapForm();
 	virtual ~MapForm();

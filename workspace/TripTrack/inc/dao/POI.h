@@ -24,6 +24,7 @@ public:
 
 	long long int GetDefImageId() const;
 	void SetDefImageId(long long int defImageId);
+	result Construct(void);
 	result Construct(long long int id);
 	result Construct(Tizen::Base::String &Title,
 			Tizen::Base::String &Description,
@@ -53,6 +54,7 @@ public:
 	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void);
 	virtual result SaveFields(Tizen::Base::Collection::LinkedListT<FormField*>*);
 	virtual int GetFieldCount(void);
+	virtual int GetProviderID(void);
 
 	Tizen::Base::DateTime* GetTimestamp() const;
 	void SetTimestamp(Tizen::Base::DateTime* timestamp);

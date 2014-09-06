@@ -55,6 +55,7 @@ public:
 	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void);
 	virtual result SaveFields(Tizen::Base::Collection::LinkedListT<FormField*>* fieldList);
 	virtual int GetFieldCount(void);
+	virtual int GetProviderID(void);
 
 	double GetDistance() const;
 	int GetStatus() const;

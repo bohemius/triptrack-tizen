@@ -487,6 +487,10 @@ Tizen::Base::TimeSpan Tracker::GetDuration(void) {
 		return (TimeSpan(0));
 }
 
+int Tracker::GetProviderID(void) {
+	return ID_FIELD_PROVIDER_TRACK;
+}
+
 void Tracker::SetDistance(double distance) {
 	__distance = distance;
 }
