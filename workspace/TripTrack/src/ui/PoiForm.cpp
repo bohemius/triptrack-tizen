@@ -27,7 +27,7 @@ using namespace Tizen::Ui;
 
 PoiForm::PoiForm() :
 		__pTitleLabel(null), __pDescriptionLabel(null), __pPoiPanel(null), __pMediaIconListView(
-				null), __pPoi(null) {
+				null), __pPoi(null), __pLongPressDetector(null) {
 }
 
 bool PoiForm::Initialize(void) {
@@ -93,6 +93,9 @@ result PoiForm::OnInitializing(void) {
 	pFooter->AddActionEventListener(*this);
 
 	SetFormBackEventListener(this);
+	__pLongPressDetector = new TouchLongPressGestureDetector();
+	r = __pLongPressDetector->Construct();
+	__pLongPressDetector->AddLongPressGestureEventListener(*this);
 
 	return r;
 
@@ -193,46 +196,7 @@ void PoiForm::OnSceneActivatedN(
 		Bitmap* pTitleBgBitmap;
 
 		if (__pPoi->GetDefImageId() > 0) {
-			TTMedia* pMedia = new TTMedia();
-			r = pMedia->Construct(__pPoi->GetDefImageId());
-			if (r != E_SUCCESS)
-				AppLogException(
-						"Error constructing media with ID [%ld]: [%s]", __pPoi->GetDefImageId(), GetErrorMessage(r));
-
-			ImageBuffer imgBuf;
-
-			r = imgBuf.Construct(*(pMedia->GetSourceUri()), null, false);
-			if (r != E_SUCCESS)
-				AppLogException(
-						"Error constructing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
-
-			int deltaH = int(
-					(imgBuf.GetWidth() * __pTitleRect->height
-							- __pTitleRect->width * imgBuf.GetHeight())
-							/ (-1.0 * __pTitleRect->width));
-			ImageBuffer* croppedBuf = imgBuf.CropN(0, deltaH / 2,
-					imgBuf.GetWidth(), imgBuf.GetHeight() - deltaH / 2);
-			r = GetLastResult();
-			if (r != E_SUCCESS)
-				AppLogException(
-						"Error cropping title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
-
-			ImageBuffer* resizedBuf = croppedBuf->ResizeN(__pTitleRect->width,
-					__pTitleRect->height);
-			r = GetLastResult();
-			if (r != E_SUCCESS)
-				AppLogException(
-						"Error resizing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
-
-			pTitleBgBitmap = resizedBuf->GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565,
-					BUFFER_SCALING_AUTO);
-			r = GetLastResult();
-			if (r != E_SUCCESS)
-				AppLogException(
-						"Error construction bitmap image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
-
-			delete croppedBuf;
-			delete resizedBuf;
+			pTitleBgBitmap=CreateTitleBitmap();
 		} else {
 			AppResource* pAppRes = Application::GetInstance()->GetAppResource();
 			pTitleBgBitmap = pAppRes->GetBitmapN(L"BlankPoi.png");
@@ -294,6 +258,7 @@ void PoiForm::OnSceneActivatedN(
 		__pMediaIconListView->SetItemProvider(*this);
 		__pMediaIconListView->AddIconListViewItemEventListener(*this);
 		__pMediaIconListView->AddTouchEventListener(*this);
+		__pMediaIconListView->AddGestureDetector(__pLongPressDetector);
 		__pMediaIconListView->SetItemBorderStyle(
 				ICON_LIST_VIEW_ITEM_BORDER_STYLE_OUTLINE);
 		__pMediaIconListView->SetItemSpacing(TILES_SPACING_X, TILES_SPACING_Y);
@@ -480,7 +445,7 @@ void PoiForm::OnIconListViewOverlayBitmapSelected(
 void PoiForm::OnTouchPressed(const Tizen::Ui::Control& source,
 		const Tizen::Graphics::Point& currentPosition,
 		const Tizen::Ui::TouchEventInfo& touchInfo) {
-	AppLog("Clicked on image on poi form");
+	__lastPosition = currentPosition;
 }
 
 void PoiForm::ProcessCameraResult(Tizen::Base::String* imagePath) {
@@ -530,18 +495,76 @@ void PoiForm::OnTouchDoublePressed(const Tizen::Ui::Control& source,
 	}
 }
 
+void PoiForm::OnLongPressGestureDetected(
+		Tizen::Ui::TouchLongPressGestureDetector& gestureDetector) {
+	AppLog("Got a long press on poi form");
+	TTMedia* pMedia = GetMediaFromClick(__lastPosition);
+
+	__pPoi->SetDefImageId(pMedia->GetId());
+	StorageManager::getInstance()->CRUDoperation(__pPoi, I_CRUDable::UPDATE);
+	__pTitleLabel->SetBackgroundBitmap(*(CreateTitleBitmap()));
+	__pTitleLabel->Draw();
+	__pMediaIconListView->UpdateList();
+}
+
 TTMedia* PoiForm::GetMediaFromClick(Point point) {
 	TTMedia* retVal = null;
 
 	result r = E_SUCCESS;
 
-	int index = __pMediaIconListView->GetItemIndexFromPosition(
-			__pMediaIconListView->ConvertToControlPosition(point));
+	int index = __pMediaIconListView->GetItemIndexFromPosition(point);
 	r = __pPoi->GetAssociatedMedia()->GetAt(index, retVal);
 	if (r != E_SUCCESS || retVal == null) {
 		AppLogException(
 				"Error getting Media for list item with index [%d]: ", index, GetErrorMessage(r));
 	}
 	return retVal;
+}
+
+Tizen::Graphics::Bitmap* PoiForm::CreateTitleBitmap(void) {
+	result r = E_SUCCESS;
+
+	TTMedia* pMedia = new TTMedia();
+	r = pMedia->Construct(__pPoi->GetDefImageId());
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error constructing media with ID [%ld]: [%s]", __pPoi->GetDefImageId(), GetErrorMessage(r));
+
+	ImageBuffer imgBuf;
+
+	r = imgBuf.Construct(*(pMedia->GetSourceUri()), null, false);
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error constructing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+
+	int deltaH = int(
+			(imgBuf.GetWidth() * __pTitleRect->height
+					- __pTitleRect->width * imgBuf.GetHeight())
+					/ (-1.0 * __pTitleRect->width));
+	ImageBuffer* croppedBuf = imgBuf.CropN(0, deltaH / 2, imgBuf.GetWidth(),
+			imgBuf.GetHeight() - deltaH / 2);
+	r = GetLastResult();
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error cropping title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+
+	ImageBuffer* resizedBuf = croppedBuf->ResizeN(__pTitleRect->width,
+			__pTitleRect->height);
+	r = GetLastResult();
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error resizing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+
+	Bitmap* pTitleBgBitmap = resizedBuf->GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565,
+			BUFFER_SCALING_AUTO);
+	r = GetLastResult();
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error construction bitmap image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+
+	delete croppedBuf;
+	delete resizedBuf;
+
+	return pTitleBgBitmap;
 }
 

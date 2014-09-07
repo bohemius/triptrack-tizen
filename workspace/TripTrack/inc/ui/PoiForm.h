@@ -21,6 +21,7 @@ class PoiForm: public Tizen::Ui::Controls::Form,
 		public Tizen::Ui::Controls::IIconListViewItemEventListener,
 		public Tizen::App::IAppControlResponseListener,
 		public Tizen::Ui::ITouchEventListener,
+		public Tizen::Ui::ITouchLongPressGestureEventListener,
 		public IOnDataChangedListener {
 public:
 	PoiForm();
@@ -86,6 +87,14 @@ public:
 			const Tizen::Graphics::Point &currentPosition,
 			const Tizen::Ui::TouchEventInfo &touchInfo);
 
+	// ITouchLongPressGestureEventListener
+	virtual void OnLongPressGestureDetected(
+			Tizen::Ui::TouchLongPressGestureDetector& gestureDetector);
+	virtual void OnLongPressGestureCanceled(
+			Tizen::Ui::TouchLongPressGestureDetector &gestureDetector) {
+	}
+	;
+
 private:
 	result LoadResources(void);
 	result LoadImageList(void);
@@ -93,6 +102,7 @@ private:
 	void OpenCamera(void);
 	void ProcessCameraResult(Tizen::Base::String* imagePath);
 	TTMedia* GetMediaFromClick(Tizen::Graphics::Point point);
+	Tizen::Graphics::Bitmap* CreateTitleBitmap(void);
 
 private:
 	static const int ID_FOOTER_BUTTON_CAMERA = 200;
@@ -132,6 +142,8 @@ private:
 	Tizen::Ui::Controls::Label* __pDescriptionLabel;
 	Tizen::Ui::Controls::Panel* __pPoiPanel;
 	Tizen::Ui::Controls::IconListView* __pMediaIconListView;
+	Tizen::Ui::TouchLongPressGestureDetector* __pLongPressDetector;
+	Tizen::Graphics::Point __lastPosition;
 
 	POI* __pPoi;
 
