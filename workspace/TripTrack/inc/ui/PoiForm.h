@@ -131,6 +131,7 @@ private:
 	Tizen::Graphics::Bitmap* __pCameraBitmap;
 	Tizen::Graphics::Bitmap* __pLocationBitmap;
 	Tizen::Graphics::Bitmap* __pFbBitmap;
+	Tizen::Graphics::Bitmap* __pCheckBitmap;
 
 	Tizen::Graphics::Bitmap* __pBgBitmap;
 

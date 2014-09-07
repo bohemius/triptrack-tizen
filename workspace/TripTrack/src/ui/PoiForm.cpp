@@ -147,6 +147,7 @@ result PoiForm::LoadResources(void) {
 	__pEditBitmap = pAppRes->GetBitmapN(L"edit.png");
 	__pFbBitmap = pAppRes->GetBitmapN(L"facebook.png");
 	__pLocationBitmap = pAppRes->GetBitmapN(L"location.png");
+	__pCheckBitmap = pAppRes->GetBitmapN(L"check.png");
 
 	__pBgBitmap = pAppRes->GetBitmapN(L"bg_160.jpg");
 
@@ -196,7 +197,7 @@ void PoiForm::OnSceneActivatedN(
 		Bitmap* pTitleBgBitmap;
 
 		if (__pPoi->GetDefImageId() > 0) {
-			pTitleBgBitmap=CreateTitleBitmap();
+			pTitleBgBitmap = CreateTitleBitmap();
 		} else {
 			AppResource* pAppRes = Application::GetInstance()->GetAppResource();
 			pTitleBgBitmap = pAppRes->GetBitmapN(L"BlankPoi.png");
@@ -350,7 +351,9 @@ Tizen::Ui::Controls::IconListViewItem* PoiForm::CreateItem(int index) {
 	if (__pPoi->GetDefImageId() != pMedia->GetId())
 		r = pPoiItem->SetOverlayBitmap(ID_OVERLAY_BITMAP_DELETE,
 				__pDeleteBitmap, ALIGNMENT_RIGHT, ALIGNMENT_TOP);
-
+	else
+		r = pPoiItem->SetOverlayBitmap(ID_OVERLAY_BITMAP_DELETE, __pCheckBitmap,
+				ALIGNMENT_RIGHT, ALIGNMENT_TOP);
 	delete pMediaTile;
 
 	return pPoiItem;
@@ -438,8 +441,10 @@ void PoiForm::OnIconListViewOverlayBitmapSelected(
 		return;
 	}
 
-	__pPoi->DeleteMedia(pMedia);
-	__pMediaIconListView->RefreshList(index, LIST_REFRESH_TYPE_ITEM_REMOVE);
+	if (pMedia->GetId() != __pPoi->GetDefImageId()) {
+		__pPoi->DeleteMedia(pMedia);
+		__pMediaIconListView->RefreshList(index, LIST_REFRESH_TYPE_ITEM_REMOVE);
+	}
 }
 
 void PoiForm::OnTouchPressed(const Tizen::Ui::Control& source,
