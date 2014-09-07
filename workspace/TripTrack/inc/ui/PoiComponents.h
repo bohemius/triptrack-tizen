@@ -29,18 +29,50 @@ public:
 private:
 	POI* __pPoi;
 
-	Tizen::Graphics::EnrichedText* CreateTextOverLay(Tizen::Graphics::FloatDimension overlayDim);
+	Tizen::Graphics::EnrichedText* CreateTextOverLay(
+			Tizen::Graphics::FloatDimension overlayDim);
 };
 
 class PoiIconListPanel: public Tizen::Ui::Controls::Panel,
 		public Tizen::Ui::Controls::IGroupedListViewItemEventListener,
 		public Tizen::Ui::Controls::IGroupedListViewItemProvider,
-		public IOnDataChangedListener {
+		public IOnDataChangedListener,
+		public Tizen::Ui::ITouchEventListener,
+		public Tizen::Ui::IActionEventListener {
 
 public:
 	PoiIconListPanel(Tizen::Graphics::Rectangle &rect);
 	~PoiIconListPanel(void);
 	result Construct(void);
+
+	// IActionEventListener
+	virtual void OnActionPerformed(const Tizen::Ui::Control &source,
+			int actionId);
+
+	// ITouchEventListener
+	virtual void OnTouchPressed(const Tizen::Ui::Control &source,
+			const Tizen::Graphics::Point &currentPosition,
+			const Tizen::Ui::TouchEventInfo &touchInfo);
+	virtual void OnTouchFocusIn(const Tizen::Ui::Control &source,
+			const Tizen::Graphics::Point &currentPosition,
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
+	virtual void OnTouchFocusOut(const Tizen::Ui::Control &source,
+			const Tizen::Graphics::Point &currentPosition,
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
+	virtual void OnTouchMoved(const Tizen::Ui::Control &source,
+			const Tizen::Graphics::Point &currentPosition,
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
+	virtual void OnTouchReleased(const Tizen::Ui::Control &source,
+			const Tizen::Graphics::Point &currentPosition,
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
 
 	// IGroupedListViewItemEventListener
 	virtual void OnGroupedListViewContextItemStateChanged(
@@ -54,6 +86,9 @@ public:
 	virtual void OnGroupedListViewItemSwept(
 			Tizen::Ui::Controls::GroupedListView &listView, int groupIndex,
 			int itemIndex, Tizen::Ui::Controls::SweepDirection direction);
+	virtual void OnGroupedListViewItemLongPressed(
+			Tizen::Ui::Controls::GroupedListView &listView, int groupIndex,
+			int itemIndex, int elementId, bool &invokeListViewItemCallback);
 
 	// IGroupedListViewItemProvider
 	virtual int GetGroupCount(void);
@@ -71,16 +106,23 @@ public:
 	virtual result Update(void);
 
 private:
+	void DeletePoi(POI* pPoi);
+	POI* GetPoiFromClick(void);
 	Tizen::Base::String* BuildTileText(POI* pPoi);
+
 	Tizen::Ui::Controls::GroupedListView* __pPoiGroupedListView;
 	result LoadResources(void);
 	Tizen::Graphics::Rectangle* __pContainerRectangle;
 	Tizen::Graphics::FloatRectangle* __pBitmapRectangle;
+	Tizen::Ui::Controls::ContextMenu* __pPoiListContextMenu;
+	Tizen::Graphics::Point lastClickedPosition;
+	Tizen::Graphics::Bitmap* __pDeleteBitmap;
 
 	Tizen::Base::Collection::HashMapT<long long int,
 			Tizen::Base::Collection::LinkedListT<POI*>*>* __pPoiMap;
 
 	static const int ID_FORMAT_CUSTOM = 503;
+	static const int ID_CONTEXT_ITEM_DELETE = 602;
 };
 
 #endif /* POICOMPONENTS_H_ */

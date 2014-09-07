@@ -48,6 +48,9 @@ public:
 			Tizen::Ui::Controls::IconListView &view, int index,
 			Tizen::Ui::Controls::IconListViewItemStatus status);
 	virtual Tizen::Ui::Controls::IconListViewItem* CreateItem(int index);
+	virtual void OnIconListViewOverlayBitmapSelected(
+			Tizen::Ui::Controls::IconListView& iconListView, int index,
+			int overlayBitmapId);
 	virtual bool DeleteItem(int index,
 			Tizen::Ui::Controls::IconListViewItem* pItem);
 	virtual int GetItemCount(void);
@@ -81,7 +84,10 @@ private:
 	static const float TILES_OFFSET_X = 0.0f;
 	static const float TILES_OFFSET_Y = 30.0f;
 
+	static const int ID_OVERLAY_BITMAP_DELETE = 801;
+
 	Tizen::Graphics::Bitmap* __pEditBitmap;
+	Tizen::Graphics::Bitmap* __pDeleteBitmap;
 	Tizen::Graphics::Bitmap* __pCameraBitmap;
 	Tizen::Graphics::Bitmap* __pLocationBitmap;
 	Tizen::Graphics::Bitmap* __pFbBitmap;

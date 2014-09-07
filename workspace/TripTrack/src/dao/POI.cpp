@@ -467,6 +467,38 @@ int POI::GetProviderID(void) {
 	return ID_FIELD_PROVIDER_POI;
 }
 
+result POI::RemoveAllMedia(void) {
+	String sqlStatement;
+	DbStatement* pStmt = null;
+	Database* db;
+	result r = E_SUCCESS;
+
+	sqlStatement.Append(L"DELETE FROM media WHERE POI_ID = ?");
+
+	db = BootstrapManager::getInstance()->getDatabase();
+	pStmt = db->CreateStatementN(sqlStatement);
+	r = GetLastResult();
+	AppLog( "Creating DELETE statement for media with POI_ID: [%ld]", __id);
+	if (pStmt == 0 || r != E_SUCCESS) {
+		AppLogException(
+				"Error creating sql statement for DELETE for media with POI_ID [%ld]: [%s]", __id, GetErrorMessage(r));
+		return 0;
+	}
+	AppLog( "Sql DELETE statement created for media with POI_ID [%ld]", __id);
+	pStmt->BindInt64(0, __id);
+
+	StorageManager::getInstance()->PerformTransaction(pStmt);
+	r = GetLastResult();
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error performing transaction to remove all media for poi with id [%ld]: ", __id, GetErrorMessage(r));
+	else if (__pAssociatedMedia != null) {
+		__pAssociatedMedia->RemoveAll();
+		delete __pAssociatedMedia;
+	}
+	return r;
+}
+
 void POI::SetTimestamp(Tizen::Base::DateTime* timestamp) {
 	if (__pTimestamp != null)
 		delete __pTimestamp;

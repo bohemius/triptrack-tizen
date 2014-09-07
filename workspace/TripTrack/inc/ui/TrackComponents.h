@@ -110,7 +110,6 @@ private:
 	Tizen::Ui::Controls::ContextMenu* __pTrackListContextMenu;
 	Tizen::Graphics::Bitmap *__pMapBitmap, *__pEditBitmap, *__pDeleteBitmap;
 	Tizen::Locations::LocationProvider *__pLocProvider;
-	int _trackingIndex;
 	Tizen::Graphics::Point lastClickedPosition;
 	TrackerManager* __pTrackerMgr;
 

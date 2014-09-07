@@ -135,7 +135,6 @@ TrackListPanel::~TrackListPanel(void) {
 
 result TrackListPanel::Construct(void) {
 	result r = E_SUCCESS;
-	_trackingIndex = -1;
 
 	//load resources
 	r = LoadResources();
@@ -263,12 +262,12 @@ void TrackListPanel::OnListViewItemStateChanged(
 void TrackListPanel::OnListViewItemSwept(
 		Tizen::Ui::Controls::ListView& listView, int index,
 		Tizen::Ui::Controls::SweepDirection direction) {
+	AppLog(">>>>>>>>>>>Swept on track item<<<<<<<<<<<<<<");
 }
 
 void TrackListPanel::OnListViewItemLongPressed(
 		Tizen::Ui::Controls::ListView& listView, int index, int elementId,
 		bool& invokeListViewItemCallback) {
-
 	__pTrackListContextMenu->SetAnchorPosition(lastClickedPosition);
 	__pTrackListContextMenu->SetShowState(true);
 	__pTrackListContextMenu->Show();
@@ -303,7 +302,6 @@ Tizen::Ui::Controls::ListItemBase* TrackListPanel::CreateItem(int index,
 
 bool TrackListPanel::DeleteItem(int index,
 		Tizen::Ui::Controls::ListItemBase* pItem, float itemWidth) {
-	//TODO implement track deletion on the UI
 	delete pItem;
 	pItem = null;
 	return true;
@@ -336,7 +334,6 @@ void TrackListPanel::OnActionPerformed(const Tizen::Ui::Control& source,
 	}
 		break;
 	case ID_CONTEXT_ITEM_DELETE: {
-		//TODO check and display warning and stop tracking before deleting
 		Tracker* pTracker = GetTrackerFromClick();
 		DeleteTracker(pTracker);
 		Update();
@@ -404,30 +401,39 @@ void TrackListPanel::DisplayMap(Tracker* tracker) {
 void TrackListPanel::DeleteTracker(Tracker* tracker) {
 	result r = E_SUCCESS;
 
-	//TODO localize this
-	String text = String(L"The track is active, delete anyway?");
+	if (tracker->GetStatus() == Tracker::ACTIVE) {
+		//TODO localize this
+		String text = String(L"The track is active, delete anyway?");
 
-	MessageBox msgBox;
-	msgBox.Construct("Warning", text, MSGBOX_STYLE_YESNO);
-	msgBox.SetColor(Color(46, 151, 199));
-	msgBox.SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+		MessageBox msgBox;
+		msgBox.Construct("Warning", text, MSGBOX_STYLE_YESNO);
+		msgBox.SetColor(Color(46, 151, 199));
+		msgBox.SetTextColor(Color::GetColor(COLOR_ID_WHITE));
 
-	int result = 0;
-	msgBox.ShowAndWait(result);
+		int result = 0;
+		msgBox.ShowAndWait(result);
 
-	if (result == MSGBOX_RESULT_YES) {
-		__pTrackerMgr->SetCurrentTracker(null);
-		tracker->SetStatus(Tracker::PAUSED);
-		r = __pTrackerMgr->GetLocationProvider()->StopLocationUpdates();
-		if (r != E_SUCCESS)
-			AppLogException(
-					"Error removing stoping location updates", GetErrorMessage(r));
+		if (result == MSGBOX_RESULT_YES) {
+			__pTrackerMgr->SetCurrentTracker(null);
+			tracker->SetStatus(Tracker::PAUSED);
+			r = __pTrackerMgr->GetLocationProvider()->StopLocationUpdates();
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error stoping location updates", GetErrorMessage(r));
+			r = __pTrackerMgr->RemoveTracker(tracker);
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error removing tracker [%ls] with id [%d]: [%s]", tracker->GetTitle()->GetPointer(), tracker->GetTrackerId(), GetErrorMessage(r));
+		} else
+			return;
+	} else {
 		r = __pTrackerMgr->RemoveTracker(tracker);
 		if (r != E_SUCCESS)
 			AppLogException(
 					"Error removing tracker [%ls] with id [%d]: [%s]", tracker->GetTitle()->GetPointer(), tracker->GetTrackerId(), GetErrorMessage(r));
-	} else
 		return;
+	}
+
 }
 
 Tracker* TrackListPanel::GetTrackerFromClick() {

@@ -139,6 +139,7 @@ result PoiForm::LoadResources(void) {
 	AppResource* pAppRes = Application::GetInstance()->GetAppResource();
 
 	__pCameraBitmap = pAppRes->GetBitmapN(L"camera.png");
+	__pDeleteBitmap = pAppRes->GetBitmapN(L"delete.png");
 	__pEditBitmap = pAppRes->GetBitmapN(L"edit.png");
 	__pFbBitmap = pAppRes->GetBitmapN(L"facebook.png");
 	__pLocationBitmap = pAppRes->GetBitmapN(L"location.png");
@@ -199,21 +200,26 @@ void PoiForm::OnSceneActivatedN(
 
 		r = imgBuf.Construct(*(pMedia->GetSourceUri()), null, false);
 		if (r != E_SUCCESS)
-					AppLogException(
-							"Error constructing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+			AppLogException(
+					"Error constructing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
 
-		int deltaH=int ((imgBuf.GetWidth()*__pTitleRect->height-__pTitleRect->width*imgBuf.GetHeight())/(-1.0*__pTitleRect->width));
-		ImageBuffer* croppedBuf = imgBuf.CropN(0, deltaH/2, imgBuf.GetWidth(), imgBuf.GetHeight()-deltaH/2);
+		int deltaH = int(
+				(imgBuf.GetWidth() * __pTitleRect->height
+						- __pTitleRect->width * imgBuf.GetHeight())
+						/ (-1.0 * __pTitleRect->width));
+		ImageBuffer* croppedBuf = imgBuf.CropN(0, deltaH / 2, imgBuf.GetWidth(),
+				imgBuf.GetHeight() - deltaH / 2);
 		r = GetLastResult();
 		if (r != E_SUCCESS)
-					AppLogException(
-							"Error cropping title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+			AppLogException(
+					"Error cropping title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
 
-		ImageBuffer* resizedBuf= croppedBuf->ResizeN(__pTitleRect->width,__pTitleRect->height);
+		ImageBuffer* resizedBuf = croppedBuf->ResizeN(__pTitleRect->width,
+				__pTitleRect->height);
 		r = GetLastResult();
 		if (r != E_SUCCESS)
-					AppLogException(
-							"Error resizing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+			AppLogException(
+					"Error resizing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
 
 		pTitleBgBitmap = resizedBuf->GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565,
 				BUFFER_SCALING_AUTO);
@@ -369,8 +375,10 @@ Tizen::Ui::Controls::IconListViewItem* PoiForm::CreateItem(int index) {
 		AppLogException(
 				"Error constructing icon list item for media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
 	}
+	if (__pPoi->GetDefImageId() != pMedia->GetId())
+		r = pPoiItem->SetOverlayBitmap(ID_OVERLAY_BITMAP_DELETE,
+				__pDeleteBitmap, ALIGNMENT_RIGHT, ALIGNMENT_TOP);
 
-	delete pMedia;
 	delete pMediaTile;
 
 	return pPoiItem;
@@ -378,6 +386,9 @@ Tizen::Ui::Controls::IconListViewItem* PoiForm::CreateItem(int index) {
 
 bool PoiForm::DeleteItem(int index,
 		Tizen::Ui::Controls::IconListViewItem* pItem) {
+	delete pItem;
+	pItem = null;
+	return true;
 }
 
 int PoiForm::GetItemCount(void) {
@@ -437,6 +448,23 @@ result PoiForm::Update(void) {
 	__pTitleLabel->Draw();
 	__pDescriptionLabel->SetText(*(__pPoi->GetDescription()));
 	__pDescriptionLabel->Draw();
+}
+
+void PoiForm::OnIconListViewOverlayBitmapSelected(
+		Tizen::Ui::Controls::IconListView& iconListView, int index,
+		int overlayBitmapId) {
+	result r = E_SUCCESS;
+	TTMedia * pMedia = null;
+
+	r = __pPoi->GetAssociatedMedia()->GetAt(index, pMedia);
+	if (r != E_SUCCESS || pMedia == null) {
+		AppLogException(
+				"Error getting media with index [%d] from collection from POI with id [%lld]: ", index, __pPoi->GetId(), GetErrorMessage(r));
+		return;
+	}
+
+	__pPoi->DeleteMedia(pMedia);
+	__pMediaIconListView->RefreshList(index, LIST_REFRESH_TYPE_ITEM_REMOVE);
 }
 
 void PoiForm::ProcessCameraResult(Tizen::Base::String* imagePath) {

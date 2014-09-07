@@ -23,7 +23,8 @@ using namespace Tizen::Ui;
 
 PoiIconListPanel::PoiIconListPanel(Rectangle &rect) :
 		__pPoiGroupedListView(null), __pContainerRectangle(null), __pBitmapRectangle(
-				null), __pPoiMap(null) {
+				null), __pPoiMap(null), __pPoiListContextMenu(null), __pDeleteBitmap(
+				null) {
 	Panel::Construct(Rectangle(0, 0, rect.width, rect.height));
 }
 
@@ -50,6 +51,22 @@ result PoiIconListPanel::Construct() {
 				"Error loading resources for poi scroll panel: [%s]", GetErrorMessage(r));
 		return r;
 	}
+
+	//construct context menu
+	__pPoiListContextMenu = new (std::nothrow) ContextMenu();
+
+	r = __pPoiListContextMenu->Construct(FloatPoint(200.0, 600.0),
+			CONTEXT_MENU_STYLE_LIST);
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error constructing track list context menu: [%s]", GetErrorMessage(r));
+	}
+	__pPoiListContextMenu->SetFocusable(true);
+	__pPoiListContextMenu->AddItem(L"Delete", ID_CONTEXT_ITEM_DELETE,
+			*__pDeleteBitmap, __pDeleteBitmap, __pDeleteBitmap);
+	__pPoiListContextMenu->SetColor(Color(46, 151, 199));
+	__pPoiListContextMenu->AddActionEventListener(*this);
+
 	//define dimensions
 	__pContainerRectangle = new Rectangle(0, 0, GetBounds().width,
 			GetBounds().height);
@@ -70,6 +87,7 @@ result PoiIconListPanel::Construct() {
 		return r;
 	}
 	__pPoiGroupedListView->AddGroupedListViewItemEventListener(*this);
+	__pPoiGroupedListView->AddTouchEventListener(*this);
 
 	AddControl(*__pPoiGroupedListView);
 
@@ -270,8 +288,89 @@ result PoiIconListPanel::Update(void) {
 	return r;
 }
 
+void PoiIconListPanel::OnActionPerformed(const Tizen::Ui::Control& source,
+		int actionId) {
+	switch (actionId) {
+	case ID_CONTEXT_ITEM_DELETE: {
+		POI* pPoi = GetPoiFromClick();
+		DeletePoi(pPoi);
+		Update();
+	}
+		break;
+	}
+}
+
+void PoiIconListPanel::OnTouchPressed(const Tizen::Ui::Control& source,
+		const Tizen::Graphics::Point& currentPosition,
+		const Tizen::Ui::TouchEventInfo& touchInfo) {
+	if (&source == __pPoiGroupedListView) {
+		lastClickedPosition = source.ConvertToScreenPosition(currentPosition);
+		int grpIdx, idx;
+		__pPoiGroupedListView->GetItemIndexFromPosition(
+				source.ConvertToControlPosition(lastClickedPosition), grpIdx,
+				idx);
+		AppLog(
+				"Clicked on poi list view, position: [%d] [%d], on list view item with grp id: [%d] id: [%d]", currentPosition.x, currentPosition.y, grpIdx, idx);
+	}
+}
+
+void PoiIconListPanel::DeletePoi(POI* pPoi) {
+	result r = E_SUCCESS;
+
+	r = pPoi->RemoveAllMedia();
+	if (r != E_SUCCESS)
+		AppLogException("Error removing media for POI: ", GetErrorMessage(r));
+
+	AppLog(
+			"Removing existing POI [%ls] with ID [%d] from database.", pPoi->GetTitle()->GetPointer(), pPoi->GetId());
+	StorageManager::getInstance()->CRUDoperation(pPoi, I_CRUDable::DELETE);
+	r = GetLastResult();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error removing POI [%ls] with ID [%d] from database: [%s]", pPoi->GetTitle()->GetPointer(), pPoi->GetId(), GetErrorMessage(r));
+		return;
+	}
+	AppLog(
+			"Successfully removed POI [%ls] with ID [%d] from collection and database.", pPoi->GetTitle()->GetPointer(), pPoi->GetId());
+}
+
+POI* PoiIconListPanel::GetPoiFromClick(void) {
+	POI* pPoi = null;
+
+	result r = E_SUCCESS;
+
+	int grpIdx, idx;
+	r = __pPoiGroupedListView->GetItemIndexFromPosition(
+			__pPoiGroupedListView->ConvertToControlPosition(
+					lastClickedPosition), grpIdx, idx);
+	AppLog("Id of selected list item: grp id [%d], id [%d]", grpIdx, idx);
+
+	IListT<long long int>* groupList = __pPoiMap->GetKeysN();
+
+	long long int key;
+	r = groupList->GetAt(grpIdx, key);
+
+	LinkedListT<POI*>* poiList = null;
+	r = __pPoiMap->GetValue(key, poiList);
+
+	r = poiList->GetAt(idx, pPoi);
+
+	return pPoi;
+}
+
+void PoiIconListPanel::OnGroupedListViewItemLongPressed(
+		Tizen::Ui::Controls::GroupedListView& listView, int groupIndex,
+		int itemIndex, int elementId, bool& invokeListViewItemCallback) {
+	__pPoiListContextMenu->SetAnchorPosition(lastClickedPosition);
+	__pPoiListContextMenu->SetShowState(true);
+	__pPoiListContextMenu->Show();
+}
+
 result PoiIconListPanel::LoadResources(void) {
 	result r = E_SUCCESS;
+
+	AppResource* pAppRes = Application::GetInstance()->GetAppResource();
+	__pDeleteBitmap = pAppRes->GetBitmapN(L"delete.png");
 
 	__pPoiMap = StorageManager::getInstance()->GetPoiHash();
 	AppLog("Loaded [%d] poi groups", __pPoiMap->GetCount());
@@ -350,13 +449,13 @@ Tizen::Graphics::EnrichedText* PoiListElement::CreateTextOverLay(
 	plainFont.Construct(FONT_STYLE_PLAIN, 40);
 
 	TextElement* pTimeElement = new TextElement();
-	r = pTimeElement->Construct(__pPoi->GetTimestamp()->ToString()+"\n");
+	r = pTimeElement->Construct(__pPoi->GetTimestamp()->ToString() + "\n");
 
 	pTimeElement->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
 	pTimeElement->SetFont(boldFont);
 
 	TextElement* pTitleElement = new TextElement();
-	r = pTitleElement->Construct(*(__pPoi->GetTitle())+"\n\n");
+	r = pTitleElement->Construct(*(__pPoi->GetTitle()) + "\n\n");
 
 	pTitleElement->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
 	pTitleElement->SetFont(boldFont);

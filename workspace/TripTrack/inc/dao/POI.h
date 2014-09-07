@@ -42,6 +42,7 @@ public:
 	void SetTitle(Tizen::Base::String* title);
 	void AddMedia(TTMedia* media);
 	void DeleteMedia(TTMedia* media);
+	result RemoveAllMedia(void);
 	long long int GetId() const;
 
 	//ICRUDable

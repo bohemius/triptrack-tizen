@@ -428,8 +428,9 @@ result Tracker::SaveFields(LinkedListT<FormField*>* fieldList) {
 		SetStatus(ACTIVE);
 		if (TrackerManager::getInstance()->GetLocationProvider()->GetLocationUpdateStatus()
 				== LOC_SVC_STATUS_IDLE)
-			TrackerManager::getInstance()->GetLocationProvider()->StartLocationUpdatesByInterval(5);
-			TrackerManager::getInstance()->SetCurrentTracker(this);
+			TrackerManager::getInstance()->GetLocationProvider()->StartLocationUpdatesByInterval(
+					5);
+		TrackerManager::getInstance()->SetCurrentTracker(this);
 		return r;
 	} else {
 		StorageManager::getInstance()->CRUDoperation(this, I_CRUDable::UPDATE);
@@ -467,8 +468,10 @@ result Tracker::RemoveTrackPoints(void) {
 	if (r != E_SUCCESS)
 		AppLogException(
 				"Error performing transaction to remove all track point for track with id [%ld]: ", __trackerId, GetErrorMessage(r));
-	else if (__pTrackPoints != null)
+	else if (__pTrackPoints != null) {
 		__pTrackPoints->RemoveAll();
+		delete __pTrackPoints;
+	}
 
 	return r;
 }
