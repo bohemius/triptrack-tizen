@@ -11,6 +11,7 @@
 #include <FSysSystemTime.h>
 #include <FLocations.h>
 #include <HMaps.h>
+#include <FIo.h>
 #include "dao/TTMedia.h"
 #include "util/GraphicsUtils.h"
 #include "ui/CommonComponents.h"
@@ -31,6 +32,7 @@ using namespace Tizen::Ui;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Ui::Scenes;
 using namespace Tizen::Locations;
+using namespace Tizen::Io;
 using namespace HMaps;
 
 TripTrackForm::TripTrackForm(void) :
@@ -134,12 +136,9 @@ void TripTrackForm::OnAppControlCompleteResponseReceived(
 				if (pValueList) {
 					String* pValue = dynamic_cast<String*>(pValueList->GetAt(0));
 					AppLog("Captured image path: [%ls]", pValue->GetPointer());
+
 					ProcessCameraResult(pValue);
 					SetPoiView();
-					/*result r = __pPoiListPanel->UpdatePoiCollection();
-					 if (r != E_SUCCESS)
-					 AppLogException(
-					 "Error updating poi icon list panel: [%s]", GetErrorMessage(r));*/
 				}
 			}
 		} else if (appControlResult == APP_CTRL_RESULT_FAILED) {
@@ -293,7 +292,7 @@ void TripTrackForm::OnActionPerformed(const Tizen::Ui::Control& source,
 		break;
 	case ID_FOOTER_BUTTON_ADD_POI: {
 		AppLog("Opening create POI form popup");
-		POI* pPoi=new POI();
+		POI* pPoi = new POI();
 		ShowEditPopUp(pPoi);
 	}
 		break;
@@ -463,14 +462,14 @@ void TripTrackForm::ShowEditPopUp(IFormFieldProvider* pProvider) {
 				Dimension((int) bounds.width * 0.90,
 						(int) bounds.height * 0.90),
 				I18N::GetLocalizedString(ID_STRING_CREATE_TRACK_POPUP_TITLE));
-	}
-	else if (pProvider->GetProviderID() == IFormFieldProvider::ID_FIELD_PROVIDER_POI) {
+	} else if (pProvider->GetProviderID()
+			== IFormFieldProvider::ID_FIELD_PROVIDER_POI) {
 		r = pEditPopup->Construct(pProvider, __pPoiListPanel,
-						Dimension((int) bounds.width * 0.90,
-								(int) bounds.height * 0.90),
-						I18N::GetLocalizedString(ID_STRING_CREATE_TRACK_POPUP_TITLE));
+				Dimension((int) bounds.width * 0.90,
+						(int) bounds.height * 0.90),
+				I18N::GetLocalizedString(ID_STRING_CREATE_TRACK_POPUP_TITLE));
 	} else
-		r=E_INVALID_OPERATION;
+		r = E_INVALID_OPERATION;
 	if (r != E_SUCCESS) {
 		AppLogException(
 				"Error constructing edit form popup: [%s]", GetErrorMessage(r));

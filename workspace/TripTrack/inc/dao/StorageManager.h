@@ -10,6 +10,7 @@
 
 #include <FIo.h>
 #include <FBase.h>
+#include <FUi.h>
 #include "ICRUD.h"
 #include "dao/POI.h"
 #include "dao/TTMedia.h"
@@ -21,13 +22,18 @@ public:
 	virtual ~StorageManager();
 	result Construct(Tizen::Io::Database* database);
 	static StorageManager* getInstance(void);
-	Tizen::Io::DbEnumerator* CRUDoperation(I_CRUDable* entity, enum I_CRUDable::CRUD_OP);
-	Tizen::Io::DbEnumerator* PerformTransaction(Tizen::Io::DbStatement* statement);
+	Tizen::Io::DbEnumerator* CRUDoperation(I_CRUDable* entity,
+			enum I_CRUDable::CRUD_OP);
+	Tizen::Io::DbEnumerator* PerformTransaction(
+			Tizen::Io::DbStatement* statement);
 	Tizen::Base::Collection::LinkedListT<POI*>* GetPois(void);
-	Tizen::Base::Collection::HashMapT<long long int, Tizen::Base::Collection::LinkedListT<POI*>*>* GetPoiHash(void);
-	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetMedia(long long int poiId);
+	Tizen::Base::Collection::HashMapT<long long int,
+			Tizen::Base::Collection::LinkedListT<POI*>*>* GetPoiHash(void);
+	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetMedia(
+			long long int poiId);
 	Tizen::Base::Collection::LinkedListT<Tracker*>* GetTracks(void);
-	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetLocations(long long int trackerId);
+	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetLocations(
+			long long int trackerId);
 	Tizen::Base::Collection::LinkedListT<POI*>* GetPois(Tracker* pTracker);
 
 private:

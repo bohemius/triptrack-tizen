@@ -6,6 +6,7 @@
 extern const wchar_t* FORM_MAIN;
 extern const wchar_t* FORM_POI;
 extern const wchar_t* FORM_MAP;
+extern const wchar_t* FORM_GALLERY;
 
 class FormFactory
 	: public Tizen::Ui::Scenes::IFormFactory

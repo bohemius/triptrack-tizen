@@ -255,4 +255,3 @@ int HMapsFieldProvider::GetFieldCount(void) {
 int HMapsFieldProvider::GetProviderID(void) {
 	return ID_FIELD_PROVIDER_HMAPS;
 }
-

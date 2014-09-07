@@ -10,7 +10,7 @@
 #ifndef TTMEDIA_H_
 #define TTMEDIA_H_
 
-class TTMedia: public I_CRUDable {
+class TTMedia: public I_CRUDable, public Tizen::Base::Object {
 public:
 	TTMedia();
 	virtual ~TTMedia();

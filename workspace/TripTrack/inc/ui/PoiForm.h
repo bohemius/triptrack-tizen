@@ -20,6 +20,7 @@ class PoiForm: public Tizen::Ui::Controls::Form,
 		public Tizen::Ui::Controls::IIconListViewItemProvider,
 		public Tizen::Ui::Controls::IIconListViewItemEventListener,
 		public Tizen::App::IAppControlResponseListener,
+		public Tizen::Ui::ITouchEventListener,
 		public IOnDataChangedListener {
 public:
 	PoiForm();
@@ -57,12 +58,41 @@ public:
 
 	virtual result Update(void);
 
+	// ITouchEventListener
+	virtual void OnTouchPressed(const Tizen::Ui::Control &source,
+			const Tizen::Graphics::Point &currentPosition,
+			const Tizen::Ui::TouchEventInfo &touchInfo);
+	virtual void OnTouchFocusIn(const Tizen::Ui::Control &source,
+			const Tizen::Graphics::Point &currentPosition,
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
+	virtual void OnTouchFocusOut(const Tizen::Ui::Control &source,
+			const Tizen::Graphics::Point &currentPosition,
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
+	virtual void OnTouchMoved(const Tizen::Ui::Control &source,
+			const Tizen::Graphics::Point &currentPosition,
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
+	virtual void OnTouchReleased(const Tizen::Ui::Control &source,
+			const Tizen::Graphics::Point &currentPosition,
+			const Tizen::Ui::TouchEventInfo &touchInfo) {
+	}
+	;
+	virtual void OnTouchDoublePressed(const Tizen::Ui::Control &source,
+			const Tizen::Graphics::Point &currentPosition,
+			const Tizen::Ui::TouchEventInfo &touchInfo);
+
 private:
 	result LoadResources(void);
 	result LoadImageList(void);
 	void ShowEditPopup(void);
 	void OpenCamera(void);
 	void ProcessCameraResult(Tizen::Base::String* imagePath);
+	TTMedia* GetMediaFromClick(Tizen::Graphics::Point point);
 
 private:
 	static const int ID_FOOTER_BUTTON_CAMERA = 200;

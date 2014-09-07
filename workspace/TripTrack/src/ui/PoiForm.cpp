@@ -23,6 +23,7 @@ using namespace Tizen::Graphics;
 using namespace Tizen::App;
 using namespace Tizen::Ui::Scenes;
 using namespace Tizen::Locations;
+using namespace Tizen::Ui;
 
 PoiForm::PoiForm() :
 		__pTitleLabel(null), __pDescriptionLabel(null), __pPoiPanel(null), __pMediaIconListView(
@@ -51,7 +52,7 @@ result PoiForm::OnInitializing(void) {
 	}
 
 	//define spacing
-	__pClientBounds = new Rectangle(GetBounds());
+	__pClientBounds = new Rectangle(GetClientAreaBounds());
 	__pTitleRect = new Rectangle(0, 0, __pClientBounds->width,
 			__pClientBounds->height / 6);
 	__pDescRect = new Rectangle(0, __pClientBounds->height / 6 + 1,
@@ -167,133 +168,139 @@ void PoiForm::OnSceneActivatedN(
 
 	result r = E_SUCCESS;
 
-	/*Get the poi from passed arguments*/
-	Object* param = pArgs->GetAt(0);
-	__pPoi = static_cast<POI*>(param);
-	AppLog("PoiForm got POI [%ls]", __pPoi->GetTitle()->GetPointer());
+	if (previousSceneId != SCENE_GALLERY_FORM) {
+		/*Get the poi from passed arguments*/
+		Object* param = pArgs->GetAt(0);
+		__pPoi = static_cast<POI*>(param);
+		AppLog("PoiForm got POI [%ls]", __pPoi->GetTitle()->GetPointer());
 
-	//load the icon list
-	r = LoadImageList();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error loading media for poi with id [%ld] from database: [%s]", __pPoi->GetId(), GetErrorMessage(r));
+		//load the icon list
+		r = LoadImageList();
+		if (r != E_SUCCESS) {
+			AppLogException(
+					"Error loading media for poi with id [%ld] from database: [%s]", __pPoi->GetId(), GetErrorMessage(r));
+		}
+
+		/*Create the panel*/
+		if (__pPoiPanel == null) {
+			__pPoiPanel = new Panel();
+			r = __pPoiPanel->Construct(*__pClientBounds);
+		} else {
+			__pPoiPanel->RemoveAllControls();
+		}
+
+		/*Create the media for title background*/
+		Bitmap* pTitleBgBitmap;
+
+		if (__pPoi->GetDefImageId() > 0) {
+			TTMedia* pMedia = new TTMedia();
+			r = pMedia->Construct(__pPoi->GetDefImageId());
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error constructing media with ID [%ld]: [%s]", __pPoi->GetDefImageId(), GetErrorMessage(r));
+
+			ImageBuffer imgBuf;
+
+			r = imgBuf.Construct(*(pMedia->GetSourceUri()), null, false);
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error constructing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+
+			int deltaH = int(
+					(imgBuf.GetWidth() * __pTitleRect->height
+							- __pTitleRect->width * imgBuf.GetHeight())
+							/ (-1.0 * __pTitleRect->width));
+			ImageBuffer* croppedBuf = imgBuf.CropN(0, deltaH / 2,
+					imgBuf.GetWidth(), imgBuf.GetHeight() - deltaH / 2);
+			r = GetLastResult();
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error cropping title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+
+			ImageBuffer* resizedBuf = croppedBuf->ResizeN(__pTitleRect->width,
+					__pTitleRect->height);
+			r = GetLastResult();
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error resizing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+
+			pTitleBgBitmap = resizedBuf->GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565,
+					BUFFER_SCALING_AUTO);
+			r = GetLastResult();
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error construction bitmap image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
+
+			delete croppedBuf;
+			delete resizedBuf;
+		} else {
+			AppResource* pAppRes = Application::GetInstance()->GetAppResource();
+			pTitleBgBitmap = pAppRes->GetBitmapN(L"BlankPoi.png");
+			pTitleBgBitmap->SetScalingQuality(BITMAP_SCALING_QUALITY_HIGH);
+			pTitleBgBitmap->Scale(
+					Dimension(__pTitleRect->width, __pTitleRect->height));
+		}
+
+		/*set the title label*/
+		if (__pTitleLabel == null) {
+			__pTitleLabel = new Label();
+			r = __pTitleLabel->Construct(*__pTitleRect, *(__pPoi->GetTitle()));
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error constructing title label for poi form: [%s]", GetErrorMessage(r));
+
+			__pTitleLabel->SetBackgroundBitmap(*pTitleBgBitmap);
+			__pTitleLabel->SetMargin(TITLE_PADDING_Y, TITLE_PADDING_X);
+			__pTitleLabel->SetTextHorizontalAlignment(ALIGNMENT_LEFT);
+			__pTitleLabel->SetTextVerticalAlignment(ALIGNMENT_BOTTOM);
+			__pTitleLabel->SetTextConfig(TITLE_TEXT_SIZE,
+					LABEL_TEXT_STYLE_BOLD);
+			__pTitleLabel->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+		} else
+			__pTitleLabel->SetText(*(__pPoi->GetTitle()));
+		__pPoiPanel->AddControl(__pTitleLabel);
+
+		/*set the description label*/
+		if (__pDescriptionLabel == null) {
+			__pDescriptionLabel = new Label();
+			r = __pDescriptionLabel->Construct(*__pDescRect,
+					*(__pPoi->GetDescription()));
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error constructing description label for poi form: [%s]", GetErrorMessage(r));
+
+			__pDescriptionLabel->SetTextConfig(DESCRIPTION_TEXT_SIZE,
+					LABEL_TEXT_STYLE_NORMAL);
+			__pDescriptionLabel->SetMargin(DESCRIPTION_PADDING_Y,
+					DESCRIPTION_PADDING_X);
+			__pDescriptionLabel->SetTextVerticalAlignment(ALIGNMENT_TOP);
+			__pDescriptionLabel->SetTextHorizontalAlignment(ALIGNMENT_LEFT);
+			__pDescriptionLabel->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+		} else
+			__pDescriptionLabel->SetText(*(__pPoi->GetDescription()));
+		__pPoiPanel->AddControl(__pDescriptionLabel);
+
+		/*set the tile list for image browsing*/
+		if (__pMediaIconListView == null) {
+			__pMediaIconListView = new IconListView();
+			r = __pMediaIconListView->Construct(*__pListRect,
+					FloatDimension(tile_width, tile_height),
+					ICON_LIST_VIEW_STYLE_NORMAL,
+					ICON_LIST_VIEW_SCROLL_DIRECTION_VERTICAL);
+			if (r != E_SUCCESS)
+				AppLogException(
+						"Error constructing icon list view from media collection: [%s]", GetErrorMessage(r));
+		}
+		__pMediaIconListView->SetItemProvider(*this);
+		__pMediaIconListView->AddIconListViewItemEventListener(*this);
+		__pMediaIconListView->AddTouchEventListener(*this);
+		__pMediaIconListView->SetItemBorderStyle(
+				ICON_LIST_VIEW_ITEM_BORDER_STYLE_OUTLINE);
+		__pMediaIconListView->SetItemSpacing(TILES_SPACING_X, TILES_SPACING_Y);
+		__pPoiPanel->AddControl(__pMediaIconListView);
+
+		AddControl(__pPoiPanel);
 	}
-
-	/*Create the panel*/
-	if (__pPoiPanel == null) {
-		__pPoiPanel = new Panel();
-		r = __pPoiPanel->Construct(*__pClientBounds);
-	} else
-		__pPoiPanel->RemoveAllControls();
-
-	/*Create the media for title background*/
-	Bitmap* pTitleBgBitmap;
-
-	if (__pPoi->GetDefImageId() > 0) {
-		TTMedia* pMedia = new TTMedia();
-		r = pMedia->Construct(__pPoi->GetDefImageId());
-		if (r != E_SUCCESS)
-			AppLogException(
-					"Error constructing media with ID [%ld]: [%s]", __pPoi->GetDefImageId(), GetErrorMessage(r));
-
-		ImageBuffer imgBuf;
-
-		r = imgBuf.Construct(*(pMedia->GetSourceUri()), null, false);
-		if (r != E_SUCCESS)
-			AppLogException(
-					"Error constructing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
-
-		int deltaH = int(
-				(imgBuf.GetWidth() * __pTitleRect->height
-						- __pTitleRect->width * imgBuf.GetHeight())
-						/ (-1.0 * __pTitleRect->width));
-		ImageBuffer* croppedBuf = imgBuf.CropN(0, deltaH / 2, imgBuf.GetWidth(),
-				imgBuf.GetHeight() - deltaH / 2);
-		r = GetLastResult();
-		if (r != E_SUCCESS)
-			AppLogException(
-					"Error cropping title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
-
-		ImageBuffer* resizedBuf = croppedBuf->ResizeN(__pTitleRect->width,
-				__pTitleRect->height);
-		r = GetLastResult();
-		if (r != E_SUCCESS)
-			AppLogException(
-					"Error resizing title background image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
-
-		pTitleBgBitmap = resizedBuf->GetBitmapN(BITMAP_PIXEL_FORMAT_RGB565,
-				BUFFER_SCALING_AUTO);
-		r = GetLastResult();
-		if (r != E_SUCCESS)
-			AppLogException(
-					"Error construction bitmap image from media [%ls]: [%s]", pMedia->GetSourceUri()->GetPointer(), GetErrorMessage(r));
-		delete croppedBuf;
-		delete resizedBuf;
-	} else {
-		AppResource* pAppRes = Application::GetInstance()->GetAppResource();
-		pTitleBgBitmap = pAppRes->GetBitmapN(L"BlankPoi.png");
-		pTitleBgBitmap->SetScalingQuality(BITMAP_SCALING_QUALITY_HIGH);
-		pTitleBgBitmap->Scale(
-				Dimension(__pTitleRect->width, __pTitleRect->height));
-	}
-
-	/*set the title label*/
-	if (__pTitleLabel == null) {
-		__pTitleLabel = new Label();
-		r = __pTitleLabel->Construct(*__pTitleRect, *(__pPoi->GetTitle()));
-		if (r != E_SUCCESS)
-			AppLogException(
-					"Error constructing title label for poi form: [%s]", GetErrorMessage(r));
-
-		__pTitleLabel->SetBackgroundBitmap(*pTitleBgBitmap);
-		__pTitleLabel->SetMargin(TITLE_PADDING_Y, TITLE_PADDING_X);
-		__pTitleLabel->SetTextHorizontalAlignment(ALIGNMENT_LEFT);
-		__pTitleLabel->SetTextVerticalAlignment(ALIGNMENT_BOTTOM);
-		__pTitleLabel->SetTextConfig(TITLE_TEXT_SIZE, LABEL_TEXT_STYLE_BOLD);
-		__pTitleLabel->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
-	} else
-		__pTitleLabel->SetText(*(__pPoi->GetTitle()));
-	__pPoiPanel->AddControl(__pTitleLabel);
-
-	/*set the description label*/
-	if (__pDescriptionLabel == null) {
-		__pDescriptionLabel = new Label();
-		r = __pDescriptionLabel->Construct(*__pDescRect,
-				*(__pPoi->GetDescription()));
-		if (r != E_SUCCESS)
-			AppLogException(
-					"Error constructing description label for poi form: [%s]", GetErrorMessage(r));
-
-		__pDescriptionLabel->SetTextConfig(DESCRIPTION_TEXT_SIZE,
-				LABEL_TEXT_STYLE_NORMAL);
-		__pDescriptionLabel->SetMargin(DESCRIPTION_PADDING_Y,
-				DESCRIPTION_PADDING_X);
-		__pDescriptionLabel->SetTextVerticalAlignment(ALIGNMENT_TOP);
-		__pDescriptionLabel->SetTextHorizontalAlignment(ALIGNMENT_LEFT);
-		__pDescriptionLabel->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
-	} else
-		__pDescriptionLabel->SetText(*(__pPoi->GetDescription()));
-	__pPoiPanel->AddControl(__pDescriptionLabel);
-
-	/*set the tile list for image browsing*/
-	if (__pMediaIconListView == null) {
-		__pMediaIconListView = new IconListView();
-		r = __pMediaIconListView->Construct(*__pListRect,
-				FloatDimension(tile_width, tile_height),
-				ICON_LIST_VIEW_STYLE_NORMAL,
-				ICON_LIST_VIEW_SCROLL_DIRECTION_VERTICAL);
-		if (r != E_SUCCESS)
-			AppLogException(
-					"Error constructing icon list view from media collection: [%s]", GetErrorMessage(r));
-	}
-	__pMediaIconListView->SetItemProvider(*this);
-	__pMediaIconListView->AddIconListViewItemEventListener(*this);
-	__pMediaIconListView->SetItemBorderStyle(
-			ICON_LIST_VIEW_ITEM_BORDER_STYLE_OUTLINE);
-	__pMediaIconListView->SetItemSpacing(TILES_SPACING_X, TILES_SPACING_Y);
-	__pPoiPanel->AddControl(__pMediaIconListView);
-
-	AddControl(__pPoiPanel);
 }
 
 void PoiForm::OnSceneDeactivated(
@@ -392,7 +399,10 @@ bool PoiForm::DeleteItem(int index,
 }
 
 int PoiForm::GetItemCount(void) {
-	return __pPoi->GetAssociatedMedia()->GetCount();
+	if (__pPoi != null)
+		return __pPoi->GetAssociatedMedia()->GetCount();
+	else
+		return 0;
 }
 
 result PoiForm::LoadImageList(void) {
@@ -414,7 +424,7 @@ void PoiForm::ShowEditPopup(void) {
 	Rectangle bounds = GetClientAreaBounds();
 	r = pEditPopup->Construct(__pPoi, this,
 			Dimension((int) bounds.width * 0.90, (int) bounds.height * 0.90),
-			I18N::GetLocalizedString(ID_STRING_CREATE_POI_POPUP_TITLE));
+			I18N::GetLocalizedString(ID_STRING_EDIT_POI_POPUP_TITLE));
 
 	if (r != E_SUCCESS) {
 		AppLogException(
@@ -467,6 +477,12 @@ void PoiForm::OnIconListViewOverlayBitmapSelected(
 	__pMediaIconListView->RefreshList(index, LIST_REFRESH_TYPE_ITEM_REMOVE);
 }
 
+void PoiForm::OnTouchPressed(const Tizen::Ui::Control& source,
+		const Tizen::Graphics::Point& currentPosition,
+		const Tizen::Ui::TouchEventInfo& touchInfo) {
+	AppLog("Clicked on image on poi form");
+}
+
 void PoiForm::ProcessCameraResult(Tizen::Base::String* imagePath) {
 	result r = E_SUCCESS;
 
@@ -493,5 +509,39 @@ void PoiForm::ProcessCameraResult(Tizen::Base::String* imagePath) {
 	if (r != E_SUCCESS)
 		AppLogException(
 				"Error refreshing image list: [%s]", GetErrorMessage(r));
+}
+
+void PoiForm::OnTouchDoublePressed(const Tizen::Ui::Control& source,
+		const Tizen::Graphics::Point& currentPosition,
+		const Tizen::Ui::TouchEventInfo& touchInfo) {
+
+	LinkedList* parameterList = new LinkedList();
+	if (&source == __pMediaIconListView) {
+		int index = __pMediaIconListView->GetItemIndexFromPosition(
+				currentPosition);
+		AppLog("Double clicked on image on poi form on index [%d]", index);
+
+		parameterList->Add(__pPoi);
+		parameterList->Add(Integer(index));
+
+		SceneManager* pSceneMngr = SceneManager::GetInstance();
+		pSceneMngr->GoForward(ForwardSceneTransition(SCENE_GALLERY_FORM),
+				parameterList);
+	}
+}
+
+TTMedia* PoiForm::GetMediaFromClick(Point point) {
+	TTMedia* retVal = null;
+
+	result r = E_SUCCESS;
+
+	int index = __pMediaIconListView->GetItemIndexFromPosition(
+			__pMediaIconListView->ConvertToControlPosition(point));
+	r = __pPoi->GetAssociatedMedia()->GetAt(index, retVal);
+	if (r != E_SUCCESS || retVal == null) {
+		AppLogException(
+				"Error getting Media for list item with index [%d]: ", index, GetErrorMessage(r));
+	}
+	return retVal;
 }
 
