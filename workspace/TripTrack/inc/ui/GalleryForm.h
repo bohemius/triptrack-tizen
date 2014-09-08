@@ -60,6 +60,7 @@ private:
 	Tizen::Ui::Controls::Gallery* __pGallery;
 	POI* __pPoi;
 	Tizen::Base::Integer __selectedIndex;
+	Tizen::Ui::Scenes::SceneId __previousScene;
 
 };
 

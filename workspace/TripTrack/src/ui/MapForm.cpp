@@ -21,9 +21,14 @@ using namespace Tizen::Locations;
 using namespace Tizen::App;
 using namespace HMaps;
 
+static const int W_WINDOW_INFO_LABEL = 400;
+static const int H_WINDOW_INFO_LABEL = 200;
+static const int X_WINDOW_INFO_LABEL = 200;
+static const int Y_WINDOW_INFO_LABEL = 210;
+
 MapForm::MapForm() :
 		__pMap(null), __pTracker(null), __pTrackerMngr(null), __pPolyline(null), __pMarkerList(
-				null) {
+				null), __pInfoWindow(null), __pSelectedMarker(null) {
 }
 
 MapForm::~MapForm() {
@@ -49,6 +54,10 @@ result MapForm::OnInitializing(void) {
 		AddControl(__pMap);
 	}
 
+	if (__pInfoWindow == null)
+		InitializeInfoWindow();
+
+	__pMap->AddMapEventListener(*this);
 	SetFormBackEventListener(this);
 
 	return r;
@@ -69,6 +78,12 @@ void MapForm::OnSceneActivatedN(
 	result r = E_SUCCESS;
 	AppLog("Activated MAP_FORM scene");
 
+	if (previousSceneId == SCENE_GALLERY_FORM
+			|| previousSceneId == SCENE_POI_FORM) {
+		__pMap->Draw();
+		return;
+	}
+
 	Object* param = pArgs->GetAt(0);
 	__pTracker = static_cast<Tracker*>(param);
 	AppLog(
@@ -80,7 +95,8 @@ void MapForm::OnSceneActivatedN(
 
 	r = AddPois();
 	if (r != E_SUCCESS)
-		AppLogException("Error adding poi markers to map", GetErrorMessage(r));
+		AppLogException( "Error adding poi markers to map", GetErrorMessage(r));
+
 }
 
 void MapForm::OnMapLongPressed(Map& map,
@@ -88,10 +104,21 @@ void MapForm::OnMapLongPressed(Map& map,
 }
 
 void MapForm::OnMapRegionChanged(Map& map) {
+
+	if (__pSelectedMarker != null) {
+		Point placeMarkerPoint;
+		result r = __pMap->CoordinateToScreenPosition(
+				__pSelectedMarker->GetCoordinates(), placeMarkerPoint);
+		if (r == E_SUCCESS)
+			__pInfoWindow->SetPosition(placeMarkerPoint.x - X_WINDOW_INFO_LABEL,
+					placeMarkerPoint.y - Y_WINDOW_INFO_LABEL);
+	}
 }
 
 void MapForm::OnMapTapped(Map& map,
 		const Tizen::Locations::Coordinates& coordinate) {
+	if (__pInfoWindow->GetShowState() == true)
+		HideInfoWindow();
 }
 
 void MapForm::OnSceneDeactivated(
@@ -152,6 +179,8 @@ result MapForm::AddTrack(void) {
 			AppLogException(
 					"Error setting display region", GetErrorMessage(r));
 	}
+
+	return r;
 }
 
 result MapForm::AddPois(void) {
@@ -162,24 +191,24 @@ result MapForm::AddPois(void) {
 
 	//create a new list of markers from the POI collection
 	if (__pMarkerList != null && __pMarkerList->GetCount() > 0) {
-		IEnumeratorT<Marker*>* pEnum = __pMarkerList->GetEnumeratorN();
+		IEnumeratorT<PoiMarker*>* pEnum = __pMarkerList->GetEnumeratorN();
 
 		while (pEnum->MoveNext() == E_SUCCESS) {
-			Marker* pMarker;
-			pEnum->GetCurrent(pMarker);
-			__pMap->RemoveMapObject(pMarker);
+			PoiMarker* poiMarker;
+			pEnum->GetCurrent(poiMarker);
+			__pMap->RemoveMapObject(poiMarker->GetMarker());
 		}
 		__pMarkerList->RemoveAll();
 	}
 
-	__pMarkerList = new LinkedListT<Marker*>();
+	__pMarkerList = new LinkedListT<PoiMarker*>();
 
 	Marker* pStartMarker = new (std::nothrow) Marker();
 
 	pStartMarker->SetCoordinates(
 			*(__pTracker->StartPosition()->getCoordinates()));
 	pStartMarker->SetBitmap(*__pStartMarkerBitmap);
-	__pMarkerList->Add(pStartMarker);
+	__pMarkerList->Add(new PoiMarker(null, pStartMarker));
 	__pMap->AddMapObject(pStartMarker);
 
 	IEnumeratorT<POI*>* pPoiEnum = pPoiList->GetEnumeratorN();
@@ -192,19 +221,133 @@ result MapForm::AddPois(void) {
 			Marker* pMarker = new (std::nothrow) Marker();
 			pMarker->SetCoordinates(coor);
 			pMarker->SetBitmap(*__pPoiMarkerBitmap);
-			__pMarkerList->Add(pMarker);
+			pMarker->AddMapObjectEventListener(*this);
+			__pMarkerList->Add(new PoiMarker(pPoi, pMarker));
 			__pMap->AddMapObject(pMarker);
 		}
-
 	}
 
 	Marker* pEndMarker = new (std::nothrow) Marker();
 
 	pEndMarker->SetCoordinates(*(__pTracker->EndPosition()->getCoordinates()));
 	pEndMarker->SetBitmap(*__pEndMarkerBitmap);
-	__pMarkerList->Add(pEndMarker);
+	__pMarkerList->Add(new PoiMarker(null, pEndMarker));
 	__pMap->AddMapObject(pEndMarker);
 
 	return r;
+}
+
+result MapForm::InitializeInfoWindow(void) {
+	__pInfoWindow = new (std::nothrow) Label();
+	__pInfoWindow->Construct(
+			Rectangle(0, 0, W_WINDOW_INFO_LABEL, H_WINDOW_INFO_LABEL), L"");
+	__pInfoWindow->SetTextConfig(30, LABEL_TEXT_STYLE_NORMAL);
+	__pInfoWindow->SetTextHorizontalAlignment(ALIGNMENT_LEFT);
+	__pInfoWindow->SetTextVerticalAlignment(ALIGNMENT_TOP);
+	__pInfoWindow->SetBackgroundColor(Color(46, 151, 199));
+	__pInfoWindow->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+	__pInfoWindow->SetShowState(false);
+	__pInfoWindow->SetMargin(10, 10);
+
+	__pMap->AddControl(*__pInfoWindow);
+}
+
+void MapForm::HideInfoWindow() {
+	if (__pInfoWindow != null)
+		__pInfoWindow->SetShowState(false);
+	__pSelectedMarker = null;
+}
+
+void MapForm::OnMapObjectTapped(Map& map, MapObject& mapObject,
+		const Tizen::Locations::Coordinates& coord) {
+	result r = E_SUCCESS;
+
+	IEnumeratorT<PoiMarker*>* pEnum = __pMarkerList->GetEnumeratorN();
+	PoiMarker* currentPoi;
+	Point placeMarKerPoint;
+
+	String infoText;
+
+	while (pEnum->MoveNext() == E_SUCCESS) {
+		r = pEnum->GetCurrent(currentPoi);
+		if (currentPoi->GetMarker() == &mapObject) {
+			infoText = CreatePoiInfo(currentPoi->GetPoi());
+			break;
+		}
+	}
+
+	Marker* pMarker = static_cast<Marker*>(currentPoi->GetMarker());
+
+	if (__pSelectedMarker == pMarker)
+		HideInfoWindow();
+	else {
+		if (__pInfoWindow->GetShowState() == true)
+			HideInfoWindow();
+
+		r = __pMap->CoordinateToScreenPosition(pMarker->GetCoordinates(),
+				placeMarKerPoint);
+		if (r == E_SUCCESS) {
+			__pInfoWindow->SetText(infoText);
+			__pInfoWindow->SetPosition(placeMarKerPoint.x - X_WINDOW_INFO_LABEL,
+					placeMarKerPoint.y - Y_WINDOW_INFO_LABEL);
+			__pInfoWindow->SetShowState(true);
+			__pInfoWindow->Invalidate(true);
+			__pSelectedMarker = pMarker;
+		}
+	}
+}
+
+void MapForm::OnMapObjectDoubleTapped(Map& map, MapObject& mapObject,
+		const Tizen::Locations::Coordinates& coord) {
+	LinkedList* parameterList = new LinkedList();
+
+	Coordinates c = coord;
+	POI* pPoi = GetPoiFromClick(mapObject, c);
+
+	HideInfoWindow();
+	parameterList->Add(pPoi);
+	parameterList->Add(Integer(1));
+	SceneManager* pSceneMngr = SceneManager::GetInstance();
+	pSceneMngr->GoForward(ForwardSceneTransition(SCENE_POI_FORM),
+			parameterList);
+}
+
+void MapForm::OnMapObjectLongPressed(Map& map, MapObject& mapObject,
+		const Tizen::Locations::Coordinates& coord) {
+}
+
+void MapForm::ShowInfoWindow() {
+	if (__pInfoWindow != null)
+		__pInfoWindow->SetShowState(true);
+}
+
+Tizen::Base::String MapForm::CreatePoiInfo(POI* pPoi) {
+	String retVal;
+
+	retVal.Append(pPoi->GetTimestamp()->ToString());
+	retVal.Append("\n");
+	retVal.Append(*(pPoi->GetTitle()));
+	retVal.Append("\n\n");
+	retVal.Append(*(pPoi->GetDescription()));
+
+	return retVal;
+}
+
+POI* MapForm::GetPoiFromClick(HMaps::MapObject& mapObject,
+		Tizen::Locations::Coordinates& coord) {
+	result r = E_SUCCESS;
+	POI* retVal = null;
+
+	IEnumeratorT<PoiMarker*>* pEnum = __pMarkerList->GetEnumeratorN();
+	PoiMarker* currentPoi;
+
+	while (pEnum->MoveNext() == E_SUCCESS) {
+		r = pEnum->GetCurrent(currentPoi);
+		if (currentPoi->GetMarker() == &mapObject) {
+			retVal = currentPoi->GetPoi();
+			break;
+		}
+	}
+	return retVal;
 }
 

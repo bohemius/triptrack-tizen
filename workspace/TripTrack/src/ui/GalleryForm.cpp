@@ -61,7 +61,7 @@ void GalleryForm::OnFormBackRequested(Tizen::Ui::Controls::Form& source) {
 	paramList->Add(__pPoi);
 
 	SceneManager* pSceneMngr = SceneManager::GetInstance();
-	pSceneMngr->GoBackward(BackwardSceneTransition(SCENE_POI_FORM),paramList);
+	pSceneMngr->GoBackward(BackwardSceneTransition(__previousScene),paramList);
 }
 
 void GalleryForm::OnSceneActivatedN(
@@ -69,6 +69,8 @@ void GalleryForm::OnSceneActivatedN(
 		const Tizen::Ui::Scenes::SceneId& currentSceneId,
 		Tizen::Base::Collection::IList* pArgs) {
 	result r = E_SUCCESS;
+
+	__previousScene=previousSceneId;
 
 	/*Get the poi from passed arguments*/
 	Object* pPoiParam = pArgs->GetAt(0);

@@ -145,6 +145,7 @@ private:
 	Tizen::Ui::Controls::IconListView* __pMediaIconListView;
 	Tizen::Ui::TouchLongPressGestureDetector* __pLongPressDetector;
 	Tizen::Graphics::Point __lastPosition;
+	Tizen::Ui::Scenes::SceneId __previousScene;
 
 	POI* __pPoi;
 

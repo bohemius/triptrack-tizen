@@ -134,7 +134,13 @@ void PoiForm::OnActionPerformed(const Tizen::Ui::Control& source,
 
 void PoiForm::OnFormBackRequested(Tizen::Ui::Controls::Form& source) {
 	SceneManager* pSceneMngr = SceneManager::GetInstance();
-	pSceneMngr->GoBackward(BackwardSceneTransition(SCENE_MAIN_FORM));
+	LinkedList* paramList=new LinkedList();
+
+	if (__previousScene == SCENE_MAP_FORM) {
+		paramList->Add(__pPoi);
+	}
+
+	pSceneMngr->GoBackward(BackwardSceneTransition(__previousScene),paramList);
 }
 
 result PoiForm::LoadResources(void) {
@@ -171,6 +177,7 @@ void PoiForm::OnSceneActivatedN(
 		Tizen::Base::Collection::IList* pArgs) {
 
 	result r = E_SUCCESS;
+	__previousScene = previousSceneId;
 
 	if (previousSceneId != SCENE_GALLERY_FORM) {
 		/*Get the poi from passed arguments*/
