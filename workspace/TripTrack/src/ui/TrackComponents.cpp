@@ -46,10 +46,10 @@ String TrackListElement::FormatDistance(void) {
 	double distance = __pTracker->GetDistance();
 
 	if (distance < 1000.0) {
-		retVal.Append(Double::ToString(distance));
+		retVal.Format(10, L"%.2f", distance);
 		retVal.Append(L" m");
 	} else if (distance >= 1000.0) {
-		retVal.Append(Double::ToString(distance / 1000.0));
+		retVal.Format(10, L"%.2f", distance / 1000.0);
 		retVal.Append(L" km");
 	}
 
@@ -60,9 +60,16 @@ String TrackListElement::FormatDuration(void) {
 	String retVal = L"";
 	TimeSpan duration = __pTracker->GetDuration();
 
-	retVal.Append(
-			Double::ToString(
-					duration.GetHours() + duration.GetMinutes() / 60.0));
+	long long int minutes=duration.GetMinutes();
+	long long int hours=duration.GetHours();
+	long long int days = duration.GetDays();
+
+	if (minutes < 60)
+		retVal.Append(Long::ToString(minutes)+L" min");
+	else if (hours < 24)
+		retVal.Append(Long::ToString(hours)+L" h "+Long::ToString(minutes)+ L" min");
+	else
+		retVal.Append(Long::ToString(days)+L" d "+Long::ToString(hours)+L" h "+Long::ToString(minutes)+L" min");
 
 	return retVal;
 }

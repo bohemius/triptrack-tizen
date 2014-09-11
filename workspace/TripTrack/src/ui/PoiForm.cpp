@@ -138,9 +138,10 @@ void PoiForm::OnFormBackRequested(Tizen::Ui::Controls::Form& source) {
 
 	if (__previousScene == SCENE_MAP_FORM) {
 		paramList->Add(__pPoi);
-	}
+		pSceneMngr->GoBackward(BackwardSceneTransition(SCENE_MAP_FORM),paramList);
+	} else
+		pSceneMngr->GoBackward(BackwardSceneTransition(SCENE_MAIN_FORM),paramList);
 
-	pSceneMngr->GoBackward(BackwardSceneTransition(__previousScene),paramList);
 }
 
 result PoiForm::LoadResources(void) {
