@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<BuildInfo>
+<BcVersionInfo>
+<XmlVersion>1.0</XmlVersion>
+<SDKVersion>2.0.0</SDKVersion>
+<PlatformVersion>2.2</PlatformVersion>
+<LLVMVersion>3.1</LLVMVersion>
+</BcVersionInfo>
+<BcProject>
+<ProjectName>TripTrack</ProjectName>
+<FileName>TripTrack.bc</FileName>
+<OutputType>Executable</OutputType>
+<CompileOption>-D_DEBUG -I"D:\Developer\prjz\BLOCKSHOP\TT-TIZEN\workspace\TripTrack\inc" -O0 -g3 -Wall -fmessage-length=0        -D_APP_LOG</CompileOption>
+<LinkOption>-L"D:\Developer\prjz\BLOCKSHOP\TT-TIZEN\workspace\TripTrack\lib"  -Xlinker -rpath="/opt/usr/apps/i4CPJJOods/lib" -Xlinker -rpath="/home/developer/sdk_tools/lib"  -L"D:/Developer/sdk/tizen-sdk/platforms/tizen2.2/rootstraps/tizen-emulator-2.2.native/../hmaps-sdk-emulator/usr/lib/hmaps" -L"D:/Developer/sdk/tizen-sdk/platforms/tizen2.2/rootstraps/tizen-emulator-2.2.native/usr/lib" -L"D:/Developer/sdk/tizen-sdk/platforms/tizen2.2/rootstraps/tizen-emulator-2.2.native/usr/lib/osp"                              </LinkOption>
+</BcProject>
+</BuildInfo>
