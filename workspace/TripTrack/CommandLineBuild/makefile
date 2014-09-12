@@ -33,11 +33,12 @@ CXX_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
+src\
 src\util \
 src\ui \
 src\geo \
 src\dao \
-src \
+
 
 # -include src/util/subdir.mk
 # Add inputs and outputs from these tool invocations to the build variables 
@@ -252,4 +253,4 @@ makesubdirs: $(SUBDIRS)
 
 $(SUBDIRS):
 	@echo 'Creating sub directory: $@'
-	@mkdir -p $@
+	@mkdir $@
