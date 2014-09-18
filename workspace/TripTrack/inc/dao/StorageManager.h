@@ -16,6 +16,7 @@
 #include "dao/TTMedia.h"
 #include "dao/TTLocation.h"
 #include "geo/Tracker.h"
+#include "social/FacebookForm.h"
 
 class StorageManager {
 public:
@@ -35,11 +36,15 @@ public:
 	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetLocations(
 			long long int trackerId);
 	Tizen::Base::Collection::LinkedListT<POI*>* GetPois(Tracker* pTracker);
+	FacebookAccessToken GetFacebookCredentials(void) const;
+	void UpdateFacebookCredentials(FacebookAccessToken& credentials);
+
 
 private:
 	StorageManager();
 	static StorageManager* __pSelf;
 	Tizen::Io::Database* __pDb;
+	FacebookAccessToken __facebookCredentials;
 };
 
 #endif /* STORAGEMANAGER_H_ */

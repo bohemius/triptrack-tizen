@@ -5,6 +5,7 @@ extern const wchar_t* SCENE_MAIN_FORM;
 extern const wchar_t* SCENE_POI_FORM;
 extern const wchar_t* SCENE_MAP_FORM;
 extern const wchar_t* SCENE_GALLERY_FORM;
+extern const wchar_t* SCENE_FACEBOOK_FORM;
 
 class SceneRegister
 {

@@ -119,7 +119,14 @@ void PoiForm::OnActionPerformed(const Tizen::Ui::Control& source,
 	}
 		break;
 	case ID_FOOTER_BUTTON_FB: {
-		//TODO milestone 2
+		FacebookAccessToken creds =
+				StorageManager::getInstance()->GetFacebookCredentials();
+
+		if (creds.AccessToken == L"" || creds.ExpiryTime < 0) {
+			SceneManager* pSceneMngr = SceneManager::GetInstance();
+			pSceneMngr->GoForward(ForwardSceneTransition(SCENE_FACEBOOK_FORM), null);
+		} else
+			AppLog("Already got valid token");
 	}
 		break;
 	case ID_FOOTER_BUTTON_CAMERA: {
@@ -134,13 +141,15 @@ void PoiForm::OnActionPerformed(const Tizen::Ui::Control& source,
 
 void PoiForm::OnFormBackRequested(Tizen::Ui::Controls::Form& source) {
 	SceneManager* pSceneMngr = SceneManager::GetInstance();
-	LinkedList* paramList=new LinkedList();
+	LinkedList* paramList = new LinkedList();
 
 	if (__previousScene == SCENE_MAP_FORM) {
 		paramList->Add(__pPoi);
-		pSceneMngr->GoBackward(BackwardSceneTransition(SCENE_MAP_FORM),paramList);
+		pSceneMngr->GoBackward(BackwardSceneTransition(SCENE_MAP_FORM),
+				paramList);
 	} else
-		pSceneMngr->GoBackward(BackwardSceneTransition(SCENE_MAIN_FORM),paramList);
+		pSceneMngr->GoBackward(BackwardSceneTransition(SCENE_MAIN_FORM),
+				paramList);
 
 }
 
@@ -180,7 +189,8 @@ void PoiForm::OnSceneActivatedN(
 	result r = E_SUCCESS;
 	__previousScene = previousSceneId;
 
-	if (previousSceneId != SCENE_GALLERY_FORM) {
+	if (previousSceneId != SCENE_GALLERY_FORM
+			&& previousSceneId != SCENE_FACEBOOK_FORM) {
 		/*Get the poi from passed arguments*/
 		Object* param = pArgs->GetAt(0);
 		__pPoi = static_cast<POI*>(param);

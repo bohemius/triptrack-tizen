@@ -3,6 +3,7 @@
 #include "ui/PoiForm.h"
 #include "ui/MapForm.h"
 #include "ui/GalleryForm.h"
+#include "social/FacebookForm.h"
 
 using namespace Tizen::Ui::Scenes;
 using namespace Tizen::Ui::Controls;
@@ -11,6 +12,7 @@ const wchar_t* FORM_MAIN = L"Form_Main";
 const wchar_t* FORM_POI = L"Form_Poi";
 const wchar_t* FORM_MAP = L"Form_Map";
 const wchar_t* FORM_GALLERY = L"Form_Gallery";
+const wchar_t* FORM_FACEBOOK = L"Form_Facebook";
 
 FormFactory::FormFactory(void) {
 }
@@ -46,6 +48,11 @@ FormFactory::CreateFormN(const Tizen::Base::String& formId,
 		pNewForm = pForm;
 	} else if (formId == FORM_GALLERY) {
 		GalleryForm* pForm = new GalleryForm();
+		pForm->Initialize();
+		pSceneManager->AddSceneEventListener(sceneId, *pForm);
+		pNewForm = pForm;
+	} else if (formId == FORM_FACEBOOK) {
+		FacebookForm* pForm = new FacebookForm();
 		pForm->Initialize();
 		pSceneManager->AddSceneEventListener(sceneId, *pForm);
 		pNewForm = pForm;

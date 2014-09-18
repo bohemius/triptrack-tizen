@@ -8,6 +8,7 @@ const wchar_t* SCENE_MAIN_FORM = L"Scene_MainForm";
 const wchar_t* SCENE_POI_FORM = L"Scene_PoiForm";
 const wchar_t* SCENE_MAP_FORM = L"Scene_MapForm";
 const wchar_t* SCENE_GALLERY_FORM = L"Scene_GalleryForm";
+const wchar_t* SCENE_FACEBOOK_FORM = L"Scene_FacebookForm";
 
 SceneRegister::SceneRegister(void) {
 }
@@ -27,4 +28,5 @@ void SceneRegister::RegisterAllScenes(void) {
 	pSceneManager->RegisterScene(SCENE_POI_FORM, FORM_POI, PANEL_BLANK);
 	pSceneManager->RegisterScene(SCENE_MAP_FORM, FORM_MAP, PANEL_BLANK);
 	pSceneManager->RegisterScene(SCENE_GALLERY_FORM, FORM_GALLERY, PANEL_BLANK);
+	pSceneManager->RegisterScene(SCENE_FACEBOOK_FORM, FORM_FACEBOOK, PANEL_BLANK);
 }

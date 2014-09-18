@@ -467,7 +467,7 @@ void TripTrackForm::ShowEditPopUp(IFormFieldProvider* pProvider) {
 		r = pEditPopup->Construct(pProvider, __pPoiListPanel,
 				Dimension((int) bounds.width * 0.90,
 						(int) bounds.height * 0.90),
-				I18N::GetLocalizedString(ID_STRING_CREATE_TRACK_POPUP_TITLE));
+				I18N::GetLocalizedString(ID_STRING_CREATE_POI_POPUP_TITLE));
 	} else
 		r = E_INVALID_OPERATION;
 	if (r != E_SUCCESS) {
