@@ -21,9 +21,7 @@ struct FacebookAccessToken {
 class FacebookForm: public Tizen::Ui::Controls::Form,
 		public Tizen::Ui::Scenes::ISceneEventListener,
 		public Tizen::Ui::Controls::IFormBackEventListener,
-		public Tizen::Web::Controls::ILoadingListener,
-		public Tizen::Net::Http::IHttpTransactionEventListener,
-		public Tizen::Net::Http::IHttpProgressEventListener {
+		public Tizen::Web::Controls::ILoadingListener {
 
 public:
 	FacebookForm(void);
@@ -50,47 +48,13 @@ public:
 			Tizen::Web::Controls::LoadingErrorType error,
 			const Tizen::Base::String& reason);
 	virtual void OnLoadingCompleted(void);
-	virtual void OnEstimatedProgress(int progress);
 	virtual void OnPageTitleReceived(const Tizen::Base::String& title);
 	virtual bool OnLoadingRequested(const Tizen::Base::String& url,
 			Tizen::Web::Controls::WebNavigationType type);
 	virtual Tizen::Web::Controls::DecisionPolicy OnWebDataReceived(
 			const Tizen::Base::String& mime,
 			const Tizen::Net::Http::HttpHeader& header);
-
-	// IHttpTransactionEventListener handlers are declared
-	virtual void OnTransactionReadyToRead(
-			Tizen::Net::Http::HttpSession& httpSession,
-			Tizen::Net::Http::HttpTransaction& httpTransaction,
-			int availableBodyLen);
-	virtual void OnTransactionAborted(
-			Tizen::Net::Http::HttpSession& httpSession,
-			Tizen::Net::Http::HttpTransaction& httpTransaction, result r);
-	virtual void OnTransactionReadyToWrite(
-			Tizen::Net::Http::HttpSession& httpSession,
-			Tizen::Net::Http::HttpTransaction& httpTransaction,
-			int recommendedChunkSize);
-	virtual void OnTransactionHeaderCompleted(
-			Tizen::Net::Http::HttpSession& httpSession,
-			Tizen::Net::Http::HttpTransaction& httpTransaction, int headerLen,
-			bool authRequired);
-	virtual void OnTransactionCompleted(
-			Tizen::Net::Http::HttpSession& httpSession,
-			Tizen::Net::Http::HttpTransaction& httpTransaction);
-	virtual void OnTransactionCertVerificationRequiredN(
-			Tizen::Net::Http::HttpSession& httpSession,
-			Tizen::Net::Http::HttpTransaction& httpTransaction,
-			Tizen::Base::String* pCert);
-
-	// IHttpProgressEventListener handlers are declared
-	virtual void OnHttpUploadInProgress(
-			Tizen::Net::Http::HttpSession& httpSession,
-			Tizen::Net::Http::HttpTransaction& httpTransaction,
-			long long currentLength, long long totalLength);
-	virtual void OnHttpDownloadInProgress(
-			Tizen::Net::Http::HttpSession& httpSession,
-			Tizen::Net::Http::HttpTransaction& httpTransaction,
-			long long currentLength, long long totalLength);
+	virtual void OnEstimatedProgress(int progress);
 
 private:
 	virtual result OnInitializing(void);
@@ -98,7 +62,6 @@ private:
 	virtual void OnFormBackRequested(Tizen::Ui::Controls::Form& source);
 
 	result ExtractAccessToken(Tizen::Base::String& url);
-	result CreateFacebookAlbum(void);
 
 	Tizen::Web::Controls::Web* __pWeb;
 	Tizen::Base::String __accessUrl;

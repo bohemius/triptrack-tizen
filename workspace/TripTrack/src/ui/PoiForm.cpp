@@ -17,6 +17,7 @@
 
 using namespace Tizen::Base;
 using namespace Tizen::Base::Collection;
+using namespace Tizen::Base::Utility;
 using namespace Tizen::Media;
 using namespace Tizen::Ui::Controls;
 using namespace Tizen::Graphics;
@@ -24,10 +25,12 @@ using namespace Tizen::App;
 using namespace Tizen::Ui::Scenes;
 using namespace Tizen::Locations;
 using namespace Tizen::Ui;
+using namespace Tizen::Net::Http;
+using namespace Tizen::Web::Json;
 
 PoiForm::PoiForm() :
 		__pTitleLabel(null), __pDescriptionLabel(null), __pPoiPanel(null), __pMediaIconListView(
-				null), __pPoi(null), __pLongPressDetector(null) {
+				null), __pPoi(null), __pLongPressDetector(null), __pFbEnum(null) {
 }
 
 bool PoiForm::Initialize(void) {
@@ -52,7 +55,7 @@ result PoiForm::OnInitializing(void) {
 	}
 
 	//define spacing
-	__pClientBounds = new Rectangle(GetClientAreaBounds());
+	__pClientBounds = new Rectangle(GetBounds());
 	__pTitleRect = new Rectangle(0, 0, __pClientBounds->width,
 			__pClientBounds->height / 6);
 	__pDescRect = new Rectangle(0, __pClientBounds->height / 6 + 1,
@@ -124,9 +127,12 @@ void PoiForm::OnActionPerformed(const Tizen::Ui::Control& source,
 
 		if (creds.AccessToken == L"" || creds.ExpiryTime < 0) {
 			SceneManager* pSceneMngr = SceneManager::GetInstance();
-			pSceneMngr->GoForward(ForwardSceneTransition(SCENE_FACEBOOK_FORM), null);
-		} else
+			pSceneMngr->GoForward(ForwardSceneTransition(SCENE_FACEBOOK_FORM),
+					null);
+		} else {
 			AppLog("Already got valid token");
+			CreateFacebookAlbum();
+		}
 	}
 		break;
 	case ID_FOOTER_BUTTON_CAMERA: {
@@ -189,8 +195,7 @@ void PoiForm::OnSceneActivatedN(
 	result r = E_SUCCESS;
 	__previousScene = previousSceneId;
 
-	if (previousSceneId != SCENE_GALLERY_FORM
-			&& previousSceneId != SCENE_FACEBOOK_FORM) {
+	if (previousSceneId == SCENE_MAIN_FORM) {
 		/*Get the poi from passed arguments*/
 		Object* param = pArgs->GetAt(0);
 		__pPoi = static_cast<POI*>(param);
@@ -284,7 +289,8 @@ void PoiForm::OnSceneActivatedN(
 		__pPoiPanel->AddControl(__pMediaIconListView);
 
 		AddControl(__pPoiPanel);
-	}
+	} else if (previousSceneId == SCENE_FACEBOOK_FORM)
+		CreateFacebookAlbum();
 }
 
 void PoiForm::OnSceneDeactivated(
@@ -418,8 +424,6 @@ void PoiForm::ShowEditPopup(void) {
 		return;
 	}
 
-	int res = 0;
-
 	pEditPopup->Show();
 }
 
@@ -544,6 +548,82 @@ TTMedia* PoiForm::GetMediaFromClick(Point point) {
 	return retVal;
 }
 
+void PoiForm::OnTransactionReadyToRead(
+		Tizen::Net::Http::HttpSession& httpSession,
+		Tizen::Net::Http::HttpTransaction& httpTransaction,
+		int availableBodyLen) {
+}
+
+void PoiForm::OnTransactionAborted(Tizen::Net::Http::HttpSession& httpSession,
+		Tizen::Net::Http::HttpTransaction& httpTransaction, result r) {
+}
+
+void PoiForm::OnTransactionReadyToWrite(
+		Tizen::Net::Http::HttpSession& httpSession,
+		Tizen::Net::Http::HttpTransaction& httpTransaction,
+		int recommendedChunkSize) {
+}
+
+void PoiForm::OnTransactionHeaderCompleted(
+		Tizen::Net::Http::HttpSession& httpSession,
+		Tizen::Net::Http::HttpTransaction& httpTransaction, int headerLen,
+		bool authRequired) {
+}
+
+void PoiForm::OnTransactionCompleted(Tizen::Net::Http::HttpSession& httpSession,
+		Tizen::Net::Http::HttpTransaction& httpTransaction) {
+	result r = E_SUCCESS;
+
+	if (httpTransaction.GetResponse()->GetHttpStatusCode() == HTTP_STATUS_OK) {
+		if (__fbAlbumId < 0) {
+			ParseAlbumResponse(httpTransaction.GetResponse()->ReadBodyN());
+		}
+
+		if (__pFbEnum->MoveNext() == E_SUCCESS) {
+			r = CreateFacebookPhoto();
+			if (r != E_SUCCESS)
+				AppLogException("Error posting photo to face book");
+			else {
+				TTMedia* pMedia;
+				__pFbEnum->GetCurrent(pMedia);
+				AppLog(
+						"Posted to %ls facebook album with id %lld", pMedia->GetSourceUri()->GetPointer(), __fbAlbumId);
+			}
+		} else {
+			__fbAlbumId = -1;
+			delete __pFbEnum;
+			__pFbEnum = null;
+		}
+	} else {
+		AppLogException(
+				"Error during transaction: %d", httpTransaction.GetResponse()->GetHttpStatusCode());
+		__fbAlbumId = -1;
+		delete __pFbEnum;
+		__pFbEnum = null;
+	}
+
+	delete &httpTransaction;
+	delete &httpSession;
+}
+
+void PoiForm::OnTransactionCertVerificationRequiredN(
+		Tizen::Net::Http::HttpSession& httpSession,
+		Tizen::Net::Http::HttpTransaction& httpTransaction,
+		Tizen::Base::String* pCert) {
+}
+
+void PoiForm::OnHttpUploadInProgress(Tizen::Net::Http::HttpSession& httpSession,
+		Tizen::Net::Http::HttpTransaction& httpTransaction,
+		long long currentLength, long long totalLength) {
+	AppLog("Percent complete %.2f", totalLength/currentLength);
+}
+
+void PoiForm::OnHttpDownloadInProgress(
+		Tizen::Net::Http::HttpSession& httpSession,
+		Tizen::Net::Http::HttpTransaction& httpTransaction,
+		long long currentLength, long long totalLength) {
+}
+
 Tizen::Graphics::Bitmap* PoiForm::CreateTitleBitmap(void) {
 	result r = E_SUCCESS;
 
@@ -589,5 +669,184 @@ Tizen::Graphics::Bitmap* PoiForm::CreateTitleBitmap(void) {
 	delete resizedBuf;
 
 	return pTitleBgBitmap;
+}
+
+result PoiForm::CreateFacebookAlbum(void) {
+
+	result r = E_SUCCESS;
+
+	__pFbEnum = __pPoi->GetAssociatedMedia()->GetEnumeratorN();
+
+	HttpSession* pSession = null;
+	HttpTransaction* pTransaction = null;
+	HttpRequest* pRequest = null;
+	HttpMultipartEntity* pMultipartEntity = null;
+
+	//HttpMultipartEntity* pMultipartEntity = null;
+	String hostAddr(L"https://graph.facebook.com");
+
+	String reqUri = String(hostAddr);
+	reqUri.Append(L"/v2.1/me/albums?");
+	reqUri.Append(L"access_token=");
+	reqUri.Append(
+			StorageManager::getInstance()->GetFacebookCredentials().AccessToken);
+
+	pMultipartEntity = new HttpMultipartEntity();
+	pMultipartEntity->Construct();
+	pMultipartEntity->AddStringPart(L"name", *(__pPoi->GetTitle()));
+	pMultipartEntity->AddStringPart(L"message", *(__pPoi->GetDescription()));
+
+	AppLog("Creating http post request %ls", reqUri.GetPointer());
+	// Creates an HTTP session.
+	pSession = new HttpSession();
+	r = pSession->Construct(NET_HTTP_SESSION_MODE_NORMAL, null, hostAddr, null);
+	if (r != E_SUCCESS) {
+		AppLogException( "Error constructing http session", GetErrorMessage(r));
+		return r;
+	}
+
+	pTransaction = pSession->OpenTransactionN();
+	r = pTransaction->AddHttpTransactionListener(*this);
+	r = pTransaction->SetHttpProgressListener(*this);
+
+	pRequest = pTransaction->GetRequest();
+	pRequest->SetMethod(NET_HTTP_METHOD_POST);
+	pRequest->SetEntity(*pMultipartEntity);
+
+	r = pRequest->SetUri(reqUri);
+	if (r != E_SUCCESS) {
+		AppLogException("Error http request URI", GetErrorMessage(r));
+		return r;
+	}
+
+	pTransaction->SetUserObject(pMultipartEntity);
+	r = pTransaction->Submit();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error submitting http transaction", GetErrorMessage(r));
+		return r;
+	}
+
+	return r;
+
+}
+
+result PoiForm::CreateFacebookPhoto(void) {
+	result r = E_SUCCESS;
+
+	HttpSession* pSession = null;
+	HttpTransaction* pTransaction = null;
+	HttpRequest* pRequest = null;
+	HttpMultipartEntity* pMultipartEntity = null;
+
+	//HttpMultipartEntity* pMultipartEntity = null;
+	String hostAddr(L"https://graph.facebook.com");
+
+	String reqUri = String(hostAddr);
+	reqUri.Append(L"/v2.1/");
+	reqUri.Append(__fbAlbumId);
+	reqUri.Append("/photos?");
+	reqUri.Append(L"access_token=");
+	reqUri.Append(
+			StorageManager::getInstance()->GetFacebookCredentials().AccessToken);
+
+	TTMedia* pMedia;
+	__pFbEnum->GetCurrent(pMedia);
+
+	AppLog("Creating http post request %ls", reqUri.GetPointer());
+	// Creates an HTTP session.
+	pSession = new HttpSession();
+	r = pSession->Construct(NET_HTTP_SESSION_MODE_NORMAL, null, hostAddr, null);
+	if (r != E_SUCCESS) {
+		AppLogException( "Error constructing http session", GetErrorMessage(r));
+		return r;
+	}
+
+	pTransaction = pSession->OpenTransactionN();
+	r = pTransaction->AddHttpTransactionListener(*this);
+	r = pTransaction->SetHttpProgressListener(*this);
+
+	pRequest = pTransaction->GetRequest();
+	pRequest->SetMethod(NET_HTTP_METHOD_POST);
+
+	r = pRequest->SetUri(reqUri);
+	if (r != E_SUCCESS) {
+		AppLogException("Error http request URI", GetErrorMessage(r));
+		return r;
+	}
+
+	AppLog(
+			"Adding media with id:%lld uri: %ls", pMedia->GetId(), pMedia->GetSourceUri()->GetPointer());
+	pMultipartEntity = new HttpMultipartEntity();
+	pMultipartEntity->Construct();
+	String filePath(*(pMedia->GetSourceUri()));
+	int i;
+	filePath.LastIndexOf('/', 0, i);
+	String fileName;
+	filePath.SubString(i + 1, fileName);
+
+	ByteBuffer imageBuf;
+	r = imageBuf.Construct(
+			*(GraphicsUtils::CreateImageBuffer(
+					GraphicsUtils::CreateBitmap(filePath))));
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error submitting creating image buffer", GetErrorMessage(r));
+		return r;
+	}
+
+	//pMultipartEntity->AddStringPart(L"source", "facebook.png");
+	pMultipartEntity->AddFilePart("source", String(*(pMedia->GetSourceUri())));
+	//r = pMultipartEntity->AddFilePart(L"source", filePath, fileName, L"image/jpeg", L"ISO-8859-1");
+	//pMultipartEntity->AddFilePartByBuffer("source", fileName, imageBuf);
+
+	pRequest->SetEntity(*pMultipartEntity);
+	pTransaction->SetUserObject(pMultipartEntity);
+	r = pTransaction->Submit();
+	if (r != E_SUCCESS) {
+		AppLogException(
+				"Error submitting http transaction", GetErrorMessage(r));
+		return r;
+	}
+
+	return r;
+}
+
+result PoiForm::ParseAlbumResponse(Tizen::Base::ByteBuffer* pBuffer) {
+	result r = E_SUCCESS;
+
+	int count = 0;
+	String body = L"";
+	pBuffer->Reset();
+
+	AppLog("Parsing http response body for fb album id");
+
+	while (pBuffer->HasRemaining()) {
+		byte val;
+		r = pBuffer->GetByte(val);
+
+		if (r != E_SUCCESS)
+			AppLogException(
+					"Error reading byte number %d", count, GetErrorMessage(r));
+		else {
+			body.Append((char) val);
+			count++;
+		}
+	}
+
+	AppLog("Read %d bytes.\n", body.GetLength());
+	AppLog("%ls", body.GetPointer());
+
+	StringTokenizer tokenizer(body, " {}:\"");
+	while (tokenizer.HasMoreTokens()) {
+		String token;
+		tokenizer.GetNextToken(token);
+		if (token == L"id") {
+			tokenizer.GetNextToken(token);
+			LongLong::Parse(token, __fbAlbumId);
+			break;
+		}
+	}
+	return r;
 }
 

@@ -10,6 +10,7 @@
 
 #include <FUiCtrlForm.h>
 #include <FUi.h>
+#include <FNet.h>
 #include "dao/POI.h"
 #include "ui/CommonComponents.h"
 
@@ -22,6 +23,8 @@ class PoiForm: public Tizen::Ui::Controls::Form,
 		public Tizen::App::IAppControlResponseListener,
 		public Tizen::Ui::ITouchEventListener,
 		public Tizen::Ui::ITouchLongPressGestureEventListener,
+		public Tizen::Net::Http::IHttpTransactionEventListener,
+		public Tizen::Net::Http::IHttpProgressEventListener,
 		public IOnDataChangedListener {
 public:
 	PoiForm();
@@ -95,6 +98,40 @@ public:
 	}
 	;
 
+	// IHttpTransactionEventListener handlers are declared
+	virtual void OnTransactionReadyToRead(
+			Tizen::Net::Http::HttpSession& httpSession,
+			Tizen::Net::Http::HttpTransaction& httpTransaction,
+			int availableBodyLen);
+	virtual void OnTransactionAborted(
+			Tizen::Net::Http::HttpSession& httpSession,
+			Tizen::Net::Http::HttpTransaction& httpTransaction, result r);
+	virtual void OnTransactionReadyToWrite(
+			Tizen::Net::Http::HttpSession& httpSession,
+			Tizen::Net::Http::HttpTransaction& httpTransaction,
+			int recommendedChunkSize);
+	virtual void OnTransactionHeaderCompleted(
+			Tizen::Net::Http::HttpSession& httpSession,
+			Tizen::Net::Http::HttpTransaction& httpTransaction, int headerLen,
+			bool authRequired);
+	virtual void OnTransactionCompleted(
+			Tizen::Net::Http::HttpSession& httpSession,
+			Tizen::Net::Http::HttpTransaction& httpTransaction);
+	virtual void OnTransactionCertVerificationRequiredN(
+			Tizen::Net::Http::HttpSession& httpSession,
+			Tizen::Net::Http::HttpTransaction& httpTransaction,
+			Tizen::Base::String* pCert);
+
+	// IHttpProgressEventListener handlers are declared
+	virtual void OnHttpUploadInProgress(
+			Tizen::Net::Http::HttpSession& httpSession,
+			Tizen::Net::Http::HttpTransaction& httpTransaction,
+			long long currentLength, long long totalLength);
+	virtual void OnHttpDownloadInProgress(
+			Tizen::Net::Http::HttpSession& httpSession,
+			Tizen::Net::Http::HttpTransaction& httpTransaction,
+			long long currentLength, long long totalLength);
+
 private:
 	result LoadResources(void);
 	result LoadImageList(void);
@@ -103,6 +140,11 @@ private:
 	void ProcessCameraResult(Tizen::Base::String* imagePath);
 	TTMedia* GetMediaFromClick(Tizen::Graphics::Point point);
 	Tizen::Graphics::Bitmap* CreateTitleBitmap(void);
+
+	result CreateFacebookAlbum(void);
+	result CreateFacebookPhoto(void);
+
+	result ParseAlbumResponse(Tizen::Base::ByteBuffer* pBuffer);
 
 private:
 	static const int ID_FOOTER_BUTTON_CAMERA = 200;
@@ -146,6 +188,8 @@ private:
 	Tizen::Ui::TouchLongPressGestureDetector* __pLongPressDetector;
 	Tizen::Graphics::Point __lastPosition;
 	Tizen::Ui::Scenes::SceneId __previousScene;
+	long long int __fbAlbumId = -1;
+	Tizen::Base::Collection::IEnumeratorT<TTMedia*>* __pFbEnum;
 
 	POI* __pPoi;
 

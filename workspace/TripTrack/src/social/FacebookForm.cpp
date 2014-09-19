@@ -32,14 +32,13 @@ result FacebookForm::OnInitializing(void) {
 
 	SetFormBackEventListener(this);
 
-
 	__accessToken = StorageManager::getInstance()->GetFacebookCredentials();
 
 	SetBackgroundColor(Color::GetColor(COLOR_ID_CYAN));
 	__accessUrl = L"https://www.facebook.com/dialog/oauth?client_id=";
 	__accessUrl.Append(__accessToken.AppId);
 	__accessUrl.Append(
-			"&redirect_uri=http://www.facebook.com/connect/login_success.html&response_type=token&display=touch&scope=user_photos, publish_actions");
+			"&redirect_uri=http://www.facebook.com/connect/login_success.html&response_type=token&display=touch&scope=user_photos,publish_actions,publish_stream");
 
 	__pWeb = new (std::nothrow) Web();
 
@@ -64,14 +63,6 @@ result FacebookForm::OnTerminating(void) {
 	// TODO: Add your termination code here
 
 	return r;
-}
-
-bool FacebookForm::OnHttpAuthenticationRequestedN(
-		const Tizen::Base::String& host, const Tizen::Base::String& realm,
-		const Tizen::Web::Controls::AuthenticationChallenge& authentication) {
-}
-
-void FacebookForm::OnHttpAuthenticationCanceled(void) {
 }
 
 void FacebookForm::OnLoadingStarted(void) {
@@ -174,9 +165,6 @@ void FacebookForm::OnLoadingCompleted(void) {
 	}
 }
 
-void FacebookForm::OnEstimatedProgress(int progress) {
-}
-
 void FacebookForm::OnPageTitleReceived(const Tizen::Base::String& title) {
 }
 
@@ -198,7 +186,7 @@ void FacebookForm::OnFormBackRequested(Tizen::Ui::Controls::Form& source) {
 	 RemoveAllControls();*/
 	SceneManager* pSceneMngr = SceneManager::GetInstance();
 
-	pSceneMngr->GoBackward(BackwardSceneTransition(__previousScene),null);
+	pSceneMngr->GoBackward(BackwardSceneTransition(__previousScene), null);
 }
 
 result FacebookForm::ExtractAccessToken(String& url) {
@@ -267,137 +255,6 @@ result FacebookForm::ExtractAccessToken(String& url) {
 	delete pEnum;
 }
 
-void FacebookForm::OnTransactionCompleted(
-		Tizen::Net::Http::HttpSession& httpSession,
-		Tizen::Net::Http::HttpTransaction& httpTransaction) {
-	result r = E_SUCCESS;
-
-	if (httpTransaction.GetResponse()->GetHttpStatusCode() == HTTP_STATUS_OK) {
-		ByteBuffer* pBuf = httpTransaction.GetResponse()->ReadBodyN();
-
-		int count = 0;
-		String body = L"";
-		pBuf->Reset();
-
-		AppLog("Reading http response body");
-
-		while (pBuf->HasRemaining()) {
-			byte val;
-			r = pBuf->GetByte(val);
-
-			if (r != E_SUCCESS)
-				AppLogException(
-						"Error reading byte number %d", count, GetErrorMessage(r));
-			else {
-				body.Append((char) val);
-				count++;
-			}
-		}
-
-		AppLog("Read %d bytes.\n", body.GetLength());
-		AppLog("%ls", body.GetPointer());
-	} else
-		AppLogException(
-				"Error during transaction: %d", httpTransaction.GetResponse()->GetHttpStatusCode());
-}
-
-void FacebookForm::OnHttpUploadInProgress(
-		Tizen::Net::Http::HttpSession& httpSession,
-		Tizen::Net::Http::HttpTransaction& httpTransaction,
-		long long currentLength, long long totalLength) {
-}
-
-void FacebookForm::OnTransactionReadyToRead(
-		Tizen::Net::Http::HttpSession& httpSession,
-		Tizen::Net::Http::HttpTransaction& httpTransaction,
-		int availableBodyLen) {
-}
-
-void FacebookForm::OnTransactionAborted(
-		Tizen::Net::Http::HttpSession& httpSession,
-		Tizen::Net::Http::HttpTransaction& httpTransaction, result r) {
-}
-
-void FacebookForm::OnTransactionReadyToWrite(
-		Tizen::Net::Http::HttpSession& httpSession,
-		Tizen::Net::Http::HttpTransaction& httpTransaction,
-		int recommendedChunkSize) {
-}
-
-void FacebookForm::OnTransactionHeaderCompleted(
-		Tizen::Net::Http::HttpSession& httpSession,
-		Tizen::Net::Http::HttpTransaction& httpTransaction, int headerLen,
-		bool authRequired) {
-}
-
-void FacebookForm::OnTransactionCertVerificationRequiredN(
-		Tizen::Net::Http::HttpSession& httpSession,
-		Tizen::Net::Http::HttpTransaction& httpTransaction,
-		Tizen::Base::String* pCert) {
-}
-
-void FacebookForm::OnHttpDownloadInProgress(HttpSession& httpSession,
-		HttpTransaction& httpTransaction, long long currentLength,
-		long long totalLength) {
-}
-
-result FacebookForm::CreateFacebookAlbum(void) {
-	result r = E_SUCCESS;
-
-	HttpSession* pSession = null;
-	HttpTransaction* pTransaction = null;
-	HttpRequest* pRequest = null;
-	HttpMultipartEntity* pMultipartEntity = null;
-
-	//HttpMultipartEntity* pMultipartEntity = null;
-	String hostAddr(L"https://graph.facebook.com");
-
-	String reqUri = String(hostAddr);
-	reqUri.Append(L"/v2.1/me/albums?");
-	reqUri.Append(L"access_token=");
-	reqUri.Append(__accessToken.AccessToken);
-	//reqUri.Append(L"&name=%7Btest album%7D");
-	//reqUri.Append(L"&message=%7Btest album description%7D");
-
-	pMultipartEntity = new HttpMultipartEntity();
-	pMultipartEntity->Construct();
-	pMultipartEntity->AddStringPart(L"name", L"test");
-	pMultipartEntity->AddStringPart(L"message", L"test msg");
-
-	AppLog("Creating http post request %ls", reqUri.GetPointer());
-	// Creates an HTTP session.
-	pSession = new HttpSession();
-	r = pSession->Construct(NET_HTTP_SESSION_MODE_NORMAL, null, hostAddr, null);
-	if (r != E_SUCCESS) {
-		AppLogException("Error constructing http session", GetErrorMessage(r));
-		return r;
-	}
-
-	pTransaction = pSession->OpenTransactionN();
-	r = pTransaction->AddHttpTransactionListener(*this);
-	r = pTransaction->SetHttpProgressListener(*this);
-
-	pRequest = pTransaction->GetRequest();
-	pRequest->SetMethod(NET_HTTP_METHOD_POST);
-	pRequest->SetEntity(*pMultipartEntity);
-
-	r = pRequest->SetUri(reqUri);
-	if (r != E_SUCCESS) {
-		AppLogException("Error http request URI", GetErrorMessage(r));
-		return r;
-	}
-
-	pTransaction->SetUserObject(pMultipartEntity);
-	r = pTransaction->Submit();
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error submitting http transaction", GetErrorMessage(r));
-		return r;
-	}
-
-	return r;
-}
-
 void FacebookForm::OnSceneActivatedN(
 		const Tizen::Ui::Scenes::SceneId& previousSceneId,
 		const Tizen::Ui::Scenes::SceneId& currentSceneId,
@@ -415,3 +272,13 @@ void FacebookForm::OnSceneDeactivated(
 	AppLog("Deactivated Facebook oauth form");
 }
 
+bool FacebookForm::OnHttpAuthenticationRequestedN(
+		const Tizen::Base::String& host, const Tizen::Base::String& realm,
+		const Tizen::Web::Controls::AuthenticationChallenge& authentication) {
+}
+
+void FacebookForm::OnHttpAuthenticationCanceled(void) {
+}
+
+void FacebookForm::OnEstimatedProgress(int progress) {
+}
