@@ -474,7 +474,6 @@ Tizen::Base::Collection::LinkedListT<POI*>* StorageManager::GetPois(
 			"Successfully read and added [%d] pois to collection.", retVal->GetCount());
 
 	return retVal;
-
 }
 
 FacebookAccessToken StorageManager::GetFacebookCredentials(void) const {
@@ -483,14 +482,32 @@ FacebookAccessToken StorageManager::GetFacebookCredentials(void) const {
 
 void StorageManager::UpdateFacebookCredentials(
 		FacebookAccessToken& credentials) {
-	__facebookCredentials=credentials;
+	__facebookCredentials = credentials;
+}
+
+Tizen::Base::Collection::LinkedListT<Tracker*>* StorageManager::GetTracks(
+		POI* pPoi) {
+	result r = E_SUCCESS;
+
+	LinkedListT<Tracker*>* retVal = new LinkedListT<Tracker*>();
+	IEnumeratorT<Tracker*>* pEnum=GetTracks()->GetEnumeratorN();
+
+	while (pEnum->MoveNext() == E_SUCCESS) {
+		Tracker* pTrack = null;
+
+		pEnum->GetCurrent(pTrack);
+		if (*(pTrack->StartPosition()->getTimestamp()) <= *(pPoi->GetTimestamp()) && *(pTrack->EndPosition()->getTimestamp()) >= *(pPoi->GetTimestamp()))
+			retVal->Add(pTrack);
+	}
+
+	return retVal;
 }
 
 StorageManager::StorageManager() {
-	__facebookCredentials.AppId=String(L"316072995237651");
-	__facebookCredentials.AppSecret=L"c6226e59c07e451c0b038c30ba9312de";
-	__facebookCredentials.AccessToken=L"";
-	__facebookCredentials.ExpiryTime=-1;
+	__facebookCredentials.AppId = String(L"316072995237651");
+	__facebookCredentials.AppSecret = L"c6226e59c07e451c0b038c30ba9312de";
+	__facebookCredentials.AccessToken = L"";
+	__facebookCredentials.ExpiryTime = -1;
 }
 
 StorageManager::~StorageManager() {

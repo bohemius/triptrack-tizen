@@ -36,6 +36,7 @@ public:
 	Tizen::Base::Collection::LinkedListT<TTLocation*>* GetLocations(
 			long long int trackerId);
 	Tizen::Base::Collection::LinkedListT<POI*>* GetPois(Tracker* pTracker);
+	Tizen::Base::Collection::LinkedListT<Tracker*>* GetTracks(POI* pPoi);
 	FacebookAccessToken GetFacebookCredentials(void) const;
 	void UpdateFacebookCredentials(FacebookAccessToken& credentials);
 

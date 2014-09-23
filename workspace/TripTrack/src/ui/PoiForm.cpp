@@ -14,6 +14,7 @@
 #include "AppResourceId.h"
 #include "SceneRegister.h"
 #include "util/GraphicsUtils.h"
+#include "geo/StaticMap.h"
 
 using namespace Tizen::Base;
 using namespace Tizen::Base::Collection;
@@ -577,6 +578,13 @@ void PoiForm::OnTransactionCompleted(Tizen::Net::Http::HttpSession& httpSession,
 	if (httpTransaction.GetResponse()->GetHttpStatusCode() == HTTP_STATUS_OK) {
 		if (__fbAlbumId < 0) {
 			ParseAlbumResponse(httpTransaction.GetResponse()->ReadBodyN());
+
+			StaticMap* pStaticMap=new StaticMap();
+			r = pStaticMap->Construct(__pPoi, __fbAlbumId);
+			if (r != E_SUCCESS)
+				AppLogException("Error creating static map from poi", GetErrorMessage(r));
+			else
+				AppLog("Static map constructed");
 		}
 
 		if (__pFbEnum->MoveNext() == E_SUCCESS) {
