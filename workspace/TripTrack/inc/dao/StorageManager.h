@@ -28,7 +28,7 @@ public:
 	Tizen::Io::DbEnumerator* PerformTransaction(
 			Tizen::Io::DbStatement* statement);
 	Tizen::Base::Collection::LinkedListT<POI*>* GetPois(void);
-	Tizen::Base::Collection::HashMapT<long long int,
+	Tizen::Base::Collection::HashMapT<int,
 			Tizen::Base::Collection::LinkedListT<POI*>*>* GetPoiHash(void);
 	Tizen::Base::Collection::LinkedListT<TTMedia*>* GetMedia(
 			long long int poiId);
@@ -40,10 +40,10 @@ public:
 	FacebookAccessToken GetFacebookCredentials(void) const;
 	void UpdateFacebookCredentials(FacebookAccessToken& credentials);
 
-
 private:
 	StorageManager();
 	static StorageManager* __pSelf;
+
 	Tizen::Io::Database* __pDb;
 	FacebookAccessToken __facebookCredentials;
 };

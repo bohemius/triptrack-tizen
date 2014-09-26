@@ -118,7 +118,7 @@ private:
 	Tizen::Graphics::Point lastClickedPosition;
 	Tizen::Graphics::Bitmap* __pDeleteBitmap;
 
-	Tizen::Base::Collection::HashMapT<long long int,
+	Tizen::Base::Collection::HashMapT<int,
 			Tizen::Base::Collection::LinkedListT<POI*>*>* __pPoiMap;
 
 	static const int ID_FORMAT_CUSTOM = 503;

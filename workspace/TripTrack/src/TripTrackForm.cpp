@@ -33,6 +33,7 @@ using namespace Tizen::Ui::Controls;
 using namespace Tizen::Ui::Scenes;
 using namespace Tizen::Locations;
 using namespace Tizen::Io;
+using namespace Tizen::System;
 using namespace HMaps;
 
 TripTrackForm::TripTrackForm(void) :
@@ -293,6 +294,14 @@ void TripTrackForm::OnActionPerformed(const Tizen::Ui::Control& source,
 	case ID_FOOTER_BUTTON_ADD_POI: {
 		AppLog("Opening create POI form popup");
 		POI* pPoi = new POI();
+
+		String title(I18N::GetLocalizedString(ID_STRING_DEFAULT_POI_TITLE));
+		String description(
+				I18N::GetLocalizedString(ID_STRING_DEFAULT_POI_DESCRIPTION));
+
+		pPoi->SetDescription(new String(description));
+		pPoi->SetTitle(new String(title));
+
 		ShowEditPopUp(pPoi);
 	}
 		break;
@@ -346,6 +355,8 @@ void TripTrackForm::OnSceneActivatedN(
 		const Tizen::Ui::Scenes::SceneId& currentSceneId,
 		Tizen::Base::Collection::IList* pArgs) {
 	AppLog("Activated MAIN_FORM scene");
+	if (__viewType = VIEW_TYPE_POI_VIEW)
+		__pPoiListPanel->Update();
 }
 
 void TripTrackForm::OnSceneDeactivated(

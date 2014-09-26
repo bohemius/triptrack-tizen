@@ -183,6 +183,7 @@ private:
 	Tizen::Graphics::Rectangle* __pClientBounds;
 	Tizen::Ui::Controls::Label* __pTitleLabel;
 	Tizen::Ui::Controls::Label* __pDescriptionLabel;
+	Tizen::Ui::Controls::Label* __pPostProgressLabel;
 	Tizen::Ui::Controls::Panel* __pPoiPanel;
 	Tizen::Ui::Controls::IconListView* __pMediaIconListView;
 	Tizen::Ui::TouchLongPressGestureDetector* __pLongPressDetector;
@@ -194,6 +195,7 @@ private:
 	POI* __pPoi;
 
 	float tile_width, tile_height;
+	int __fbPostCounter;
 };
 
 #endif /* POIFORM_H_ */

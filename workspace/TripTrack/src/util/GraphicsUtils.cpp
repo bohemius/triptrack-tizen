@@ -14,6 +14,7 @@ using namespace Tizen::Media;
 using namespace Tizen::Graphics;
 using namespace Tizen::Base;
 using namespace Tizen::Base::Collection;
+using namespace Tizen::System;
 
 GraphicsUtils::GraphicsUtils() {
 	// TODO Auto-generated constructor stub
@@ -122,4 +123,67 @@ Tizen::Graphics::FloatRectangle* GraphicsUtils::GetTTMediaDimensions(void) {
 Tizen::Graphics::Bitmap* GraphicsUtils::CreatePoiIconListTile(POI* pPoi) {
 }
 
+int GraphicsUtils::CalculateGroupKey(Tizen::Base::DateTime& date) {
+	result r = E_SUCCESS;
+
+	DateTime currentTime;
+
+	r = Tizen::System::SystemTime::GetCurrentTime(TIME_MODE_WALL, currentTime);
+	if (r != E_SUCCESS)
+		AppLogException("Error getting system time:", GetErrorMessage(r));
+
+	TimeSpan dt = TimeSpan(currentTime.GetTime() - date.GetTime());
+
+	if (dt.GetDays() < 1 && dt.GetHours() < 1 && dt.GetMinutes() < 1)
+		return 0;
+	else if (dt.GetDays() < 1 && dt.GetHours() < 1 && dt.GetMinutes() == 1)
+		return 1;
+	else if (dt.GetDays() < 1 && dt.GetHours() < 1 && dt.GetMinutes() < 60)
+		return 2;
+	else if (dt.GetDays() < 1 && dt.GetHours() == 1 && dt.GetMinutes() < 60)
+		return 3;
+	else if (dt.GetDays() < 1 && dt.GetHours() < 24)
+		return 4;
+	else if (dt.GetDays() == 1)
+		return 5;
+	else if (dt.GetDays() < 7)
+		return 6;
+	else if (dt.GetDays() == 7)
+		return 7;
+	else if (dt.GetDays() > 30 && dt.GetDays() < 62)
+		return 8;
+	else if (dt.GetDays() >= 62 && dt.GetDays() < 365)
+		return 9;
+	else
+		return 10;
+}
+
+Tizen::Base::String GraphicsUtils::GetTimeText(int grpKey) {
+	result r = E_SUCCESS;
+
+	switch (grpKey) {
+	case 0:
+		return String("Few seconds ago");
+	case 1:
+		return String(L"A minute ago");
+	case 2:
+		return String("Several minutes ago");
+	case 3:
+		return String("An hour ago");
+	case 4:
+		return String("Several hours ago");
+	case 5:
+		return String("Yesterday");
+	case 6:
+		return String("Several days ago");
+	case 7:
+		return String("A week ago");
+	case 8:
+		return String("A month ago");
+	case 9:
+		return String("Several months ago");
+	case 10:
+		return String("More than a year ago");
+	}
+}
 

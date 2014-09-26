@@ -30,8 +30,9 @@ using namespace Tizen::Net::Http;
 using namespace Tizen::Web::Json;
 
 PoiForm::PoiForm() :
-		__pTitleLabel(null), __pDescriptionLabel(null), __pPoiPanel(null), __pMediaIconListView(
-				null), __pPoi(null), __pLongPressDetector(null), __pFbEnum(null) {
+		__pTitleLabel(null), __pDescriptionLabel(null), __pPostProgressLabel(
+				null), __pPoiPanel(null), __pMediaIconListView(null), __pPoi(
+				null), __pLongPressDetector(null), __pFbEnum(null), __fbPostCounter(-1) {
 }
 
 bool PoiForm::Initialize(void) {
@@ -134,6 +135,20 @@ void PoiForm::OnActionPerformed(const Tizen::Ui::Control& source,
 			AppLog("Already got valid token");
 			CreateFacebookAlbum();
 		}
+		__fbPostCounter = 0;
+		__pPostProgressLabel = new Label();
+		//TODO localize this
+		__pPostProgressLabel->Construct(Rectangle(0, 0, 550, 50),
+				L"Posting to Facebook");
+		__pPostProgressLabel->SetTextConfig(DESCRIPTION_TEXT_SIZE,
+							LABEL_TEXT_STYLE_NORMAL);
+		__pPostProgressLabel->SetMargin(5,5);
+		__pPostProgressLabel->SetTextVerticalAlignment(ALIGNMENT_TOP);
+		__pPostProgressLabel->SetTextHorizontalAlignment(ALIGNMENT_LEFT);
+		__pPostProgressLabel->SetBackgroundColor(Color(46, 151, 199));
+		__pPostProgressLabel->SetTextColor(Color::GetColor(COLOR_ID_WHITE));
+		this->AddControl(__pPostProgressLabel);
+		__pPostProgressLabel->SetShowState(true);
 	}
 		break;
 	case ID_FOOTER_BUTTON_CAMERA: {
@@ -579,10 +594,11 @@ void PoiForm::OnTransactionCompleted(Tizen::Net::Http::HttpSession& httpSession,
 		if (__fbAlbumId < 0) {
 			ParseAlbumResponse(httpTransaction.GetResponse()->ReadBodyN());
 
-			StaticMap* pStaticMap=new StaticMap();
+			StaticMap* pStaticMap = new StaticMap();
 			r = pStaticMap->Construct(__pPoi, __fbAlbumId);
 			if (r != E_SUCCESS)
-				AppLogException("Error creating static map from poi", GetErrorMessage(r));
+				AppLogException(
+						"Error creating static map from poi", GetErrorMessage(r));
 			else
 				AppLog("Static map constructed");
 		}
@@ -598,7 +614,10 @@ void PoiForm::OnTransactionCompleted(Tizen::Net::Http::HttpSession& httpSession,
 						"Posted to %ls facebook album with id %lld", pMedia->GetSourceUri()->GetPointer(), __fbAlbumId);
 			}
 		} else {
+			RemoveControl(__pPostProgressLabel);
+			__pPostProgressLabel = null;
 			__fbAlbumId = -1;
+			__fbPostCounter = -1;
 			delete __pFbEnum;
 			__pFbEnum = null;
 		}
@@ -623,7 +642,18 @@ void PoiForm::OnTransactionCertVerificationRequiredN(
 void PoiForm::OnHttpUploadInProgress(Tizen::Net::Http::HttpSession& httpSession,
 		Tizen::Net::Http::HttpTransaction& httpTransaction,
 		long long currentLength, long long totalLength) {
-	AppLog("Percent complete %.2f", totalLength/currentLength);
+	double perc = ((double) currentLength) / ((double) totalLength) * 100.0;
+	AppLog("Percent complete %.2f", perc);
+	//TODO localize this
+	String progressText=L"Posting to Facebook ";
+	progressText.Append(__fbPostCounter);
+	progressText.Append(L" of " );
+	progressText.Append(__pPoi->GetAssociatedMedia()->GetCount());
+	progressText.Append(L" (" );
+	progressText.Append(perc);
+	progressText.Append(L"%)" );
+	__pPostProgressLabel->SetText(progressText);
+	__pPostProgressLabel->Draw();
 }
 
 void PoiForm::OnHttpDownloadInProgress(
@@ -762,6 +792,7 @@ result PoiForm::CreateFacebookPhoto(void) {
 	__pFbEnum->GetCurrent(pMedia);
 
 	AppLog("Creating http post request %ls", reqUri.GetPointer());
+	__fbPostCounter++;
 	// Creates an HTTP session.
 	pSession = new HttpSession();
 	r = pSession->Construct(NET_HTTP_SESSION_MODE_NORMAL, null, hostAddr, null);
@@ -793,20 +824,7 @@ result PoiForm::CreateFacebookPhoto(void) {
 	String fileName;
 	filePath.SubString(i + 1, fileName);
 
-	ByteBuffer imageBuf;
-	r = imageBuf.Construct(
-			*(GraphicsUtils::CreateImageBuffer(
-					GraphicsUtils::CreateBitmap(filePath))));
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error submitting creating image buffer", GetErrorMessage(r));
-		return r;
-	}
-
-	//pMultipartEntity->AddStringPart(L"source", "facebook.png");
 	pMultipartEntity->AddFilePart("source", String(*(pMedia->GetSourceUri())));
-	//r = pMultipartEntity->AddFilePart(L"source", filePath, fileName, L"image/jpeg", L"ISO-8859-1");
-	//pMultipartEntity->AddFilePartByBuffer("source", fileName, imageBuf);
 
 	pRequest->SetEntity(*pMultipartEntity);
 	pTransaction->SetUserObject(pMultipartEntity);

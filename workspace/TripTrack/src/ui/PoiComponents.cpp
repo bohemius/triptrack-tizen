@@ -121,18 +121,18 @@ void PoiIconListPanel::OnGroupedListViewItemStateChanged(
 	POI* selectedPoi = null;
 	LinkedList* parameterList = new LinkedList();
 
-	IListT<long long int>* pTimeCollection = __pPoiMap->GetKeysN();
-	long long int timeTicks;
-	r = pTimeCollection->GetAt(groupIndex, timeTicks);
+	IListT<int>* pTimeCollection = __pPoiMap->GetKeysN();
+	int grpKey;
+	r = pTimeCollection->GetAt(groupIndex, grpKey);
 	if (r != E_SUCCESS)
 		AppLogException(
-				"Error getting time key from poi map", GetErrorMessage(r));
+				"Error getting grp key from poi map", GetErrorMessage(r));
 
 	LinkedListT<POI*>* pPoiCollection = null;
-	r = __pPoiMap->GetValue(timeTicks, pPoiCollection);
+	r = __pPoiMap->GetValue(grpKey, pPoiCollection);
 	if (r != E_SUCCESS)
 		AppLogException(
-				"Error getting poi collection for time key [%ld] from poi map", timeTicks, GetErrorMessage(r));
+				"Error getting poi collection for grp key [%d] from poi map", grpKey, GetErrorMessage(r));
 
 	r = pPoiCollection->GetAt(itemIndex, selectedPoi);
 	if (r != E_SUCCESS) {
@@ -157,18 +157,20 @@ int PoiIconListPanel::GetGroupCount(void) {
 
 int PoiIconListPanel::GetItemCount(int groupIndex) {
 	result r = E_SUCCESS;
-	long long int timeTicks;
+	int grpKey;
 
-	IListT<long long int>* pTimeCollection = __pPoiMap->GetKeysN();
-	r = pTimeCollection->GetAt(groupIndex, timeTicks);
+	IListT<int>* pTimeCollection = __pPoiMap->GetKeysN();
+	r = pTimeCollection->GetAt(groupIndex, grpKey);
 	if (r != E_SUCCESS)
 		AppLogException("Error getting time key:", GetErrorMessage(r));
+	else
+		AppLog("Got key %d", grpKey);
 
 	LinkedListT<POI*>* pPoiCollection = null;
-	r = __pPoiMap->GetValue(timeTicks, pPoiCollection);
+	r = __pPoiMap->GetValue(grpKey, pPoiCollection);
 	if (r != E_SUCCESS)
 		AppLogException(
-				"Error poi collection using time key [%ld]:", timeTicks, GetErrorMessage(r));
+				"Error poi collection using grp key [%d]:", grpKey, GetErrorMessage(r));
 	return pPoiCollection->GetCount();
 }
 
@@ -184,16 +186,16 @@ Tizen::Ui::Controls::ListItemBase* PoiIconListPanel::CreateItem(int groupIndex,
 	FloatRectangle elementRectangle = FloatRectangle(0.0, 0.0,
 			elementDimension.width, elementDimension.height);
 
-	long long int groupTimeTicks;
-	r = __pPoiMap->GetKeysN()->GetAt(groupIndex, groupTimeTicks);
+	int grpKey;
+	r = __pPoiMap->GetKeysN()->GetAt(groupIndex, grpKey);
 	if (r != E_SUCCESS)
 		AppLogException("Ërror getting date key from map:", GetErrorMessage(r));
 
 	LinkedListT<POI*>* pPoiCollection = null;
-	r = __pPoiMap->GetValue(groupTimeTicks, pPoiCollection);
+	r = __pPoiMap->GetValue(grpKey, pPoiCollection);
 	if (r != E_SUCCESS)
 		AppLogException(
-				"Ërror poi collection for date key [%ld] from map:", groupTimeTicks, GetErrorMessage(r));
+				"Error poi collection for date key [%d] from map:", grpKey, GetErrorMessage(r));
 
 	POI* pPoi = null;
 	r = pPoiCollection->GetAt(itemIndex, pPoi);
@@ -220,36 +222,19 @@ Tizen::Ui::Controls::GroupItem* PoiIconListPanel::CreateGroupItem(
 	GroupItem* retVal = new GroupItem();
 	result r = E_SUCCESS;
 
-	IListT<long long int>* pTimeCollection = __pPoiMap->GetKeysN();
+	IListT<int>* pTimeCollection = __pPoiMap->GetKeysN();
 
-	long long int groupTimeTicks;
-	DateTime currentTime;
+	int grpKey;
 
-	r = Tizen::System::SystemTime::GetCurrentTime(currentTime);
-	if (r != E_SUCCESS)
-		AppLogException("Error getting system time:", GetErrorMessage(r));
-
-	r = pTimeCollection->GetAt(groupIndex, groupTimeTicks);
-	if (r != E_SUCCESS)
-		AppLogException("Error getting group time:", GetErrorMessage(r));
-
-	DateTime groupTime;
-	r = groupTime.SetValue(groupTimeTicks);
+	r = pTimeCollection->GetAt(groupIndex, grpKey);
 	if (r != E_SUCCESS)
 		AppLogException(
-				"Error seting time value using tick [%ld]", groupTimeTicks, GetErrorMessage(r));
-
-	String timeText(L"");
-	timeText.Append(groupTime.GetMonth());
-	timeText.Append(L"/");
-	timeText.Append(groupTime.GetDay());
-	timeText.Append(L"/");
-	timeText.Append(groupTime.GetYear());
+				"Error getting group key from keys:", GetErrorMessage(r));
 
 	r = retVal->Construct(Dimension(0, 100));
 	if (r != E_SUCCESS)
 		AppLogException("Error constructing group item:", GetErrorMessage(r));
-	r = retVal->SetElement(timeText, null);
+	r = retVal->SetElement(GraphicsUtils::GetTimeText(grpKey), null);
 	if (r != E_SUCCESS)
 		AppLogException(
 				"Error setting group item element:", GetErrorMessage(r));
@@ -345,13 +330,13 @@ POI* PoiIconListPanel::GetPoiFromClick(void) {
 					lastClickedPosition), grpIdx, idx);
 	AppLog("Id of selected list item: grp id [%d], id [%d]", grpIdx, idx);
 
-	IListT<long long int>* groupList = __pPoiMap->GetKeysN();
+	IListT<int>* groupList = __pPoiMap->GetKeysN();
 
-	long long int key;
-	r = groupList->GetAt(grpIdx, key);
+	int grpKey;
+	r = groupList->GetAt(grpIdx, grpKey);
 
 	LinkedListT<POI*>* poiList = null;
-	r = __pPoiMap->GetValue(key, poiList);
+	r = __pPoiMap->GetValue(grpKey, poiList);
 
 	r = poiList->GetAt(idx, pPoi);
 

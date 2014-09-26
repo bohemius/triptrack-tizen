@@ -197,6 +197,7 @@ void EditFormPopup::OnActionPerformed(const Tizen::Ui::Control& source,
 		this->Invalidate(true);
 
 		//TrackerManager::getInstance()->AddTracker(title, desc);
+		delete pEnum;
 
 	}
 		break;

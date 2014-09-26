@@ -8,6 +8,7 @@
 #include "dao/StorageManager.h"
 #include "dao/TTMedia.h"
 #include "util/BootstrapManager.h"
+#include "util/GraphicsUtils.h"
 
 using namespace Tizen::Base;
 using namespace Tizen::Base::Collection;
@@ -65,13 +66,14 @@ Tizen::Io::DbEnumerator* StorageManager::PerformTransaction(
 
 LinkedListT<POI*>* StorageManager::GetPois(void) {
 	result r = E_SUCCESS;
+
 	DbEnumerator* pEnum = null;
 	LinkedListT<POI*>* retVal = new LinkedListT<POI*>();
 	String sql;
 
 	Database* db = BootstrapManager::getInstance()->getDatabase();
 
-	sql.Append(L"SELECT ID FROM poi");
+	sql.Append(L"SELECT ID FROM poi ORDER BY TimeSig DESC");
 	AppLog("Getting all poi IDs from the database.");
 	pEnum = db->QueryN(sql);
 
@@ -131,12 +133,16 @@ LinkedListT<POI*>* StorageManager::GetPois(void) {
 	return retVal;
 }
 
-Tizen::Base::Collection::HashMapT<long long int, LinkedListT<POI*>*>* StorageManager::GetPoiHash(
+Tizen::Base::Collection::HashMapT<int, LinkedListT<POI*>*>* StorageManager::GetPoiHash(
 		void) {
-	HashMapT<long long int, LinkedListT<POI*>*>* retVal = new HashMapT<
-			long long int, LinkedListT<POI*>*>();
+	HashMapT<int, LinkedListT<POI*>*>* retVal = new HashMapT<int,
+			LinkedListT<POI*>*>();
+
+	//ComparerT<String>* comparer=new ComparerT<String>();
+	//StringHashCodeProvider* strHashCodeProvider=new StringHashCodeProvider();
+
 	retVal->Construct(10, 10);
-	LinkedListT<POI*>* pCollection = GetPois();
+	LinkedListT<POI*>* pCollection = StorageManager::getInstance()->GetPois();
 
 	IEnumeratorT<POI*>* pEnum = pCollection->GetEnumeratorN();
 
@@ -148,12 +154,10 @@ Tizen::Base::Collection::HashMapT<long long int, LinkedListT<POI*>*>* StorageMan
 			AppLogException(
 					"Error getting poi from collection.", GetErrorMessage(r));
 		}
-		DateTime* pDate = new DateTime();
-		pDate->SetValue(pPoi->GetTimestamp()->GetYear(),
-				pPoi->GetTimestamp()->GetMonth(),
-				pPoi->GetTimestamp()->GetDay(), 0, 0, 0);
+		DateTime* pDate = new DateTime(*(pPoi->GetTimestamp()));
+		int grpKey = GraphicsUtils::CalculateGroupKey(*pDate);
 		bool flag;
-		r = retVal->ContainsKey(pDate->GetTicks(), flag);
+		r = retVal->ContainsKey(grpKey, flag);
 		if (r != E_SUCCESS)
 			AppLogException(
 					"Error looking up key in poi hash.", GetErrorMessage(r));
@@ -165,7 +169,7 @@ Tizen::Base::Collection::HashMapT<long long int, LinkedListT<POI*>*>* StorageMan
 				if (r != E_SUCCESS)
 					AppLogException(
 							"Error adding poi to collection.", GetErrorMessage(r));
-				r = retVal->Add(pDate->GetTicks(), pPoiGroupCollection);
+				r = retVal->Add(grpKey, pPoiGroupCollection);
 				if (r != E_SUCCESS)
 					AppLogException(
 							"Error adding collection to hash.", GetErrorMessage(r));
@@ -173,7 +177,7 @@ Tizen::Base::Collection::HashMapT<long long int, LinkedListT<POI*>*>* StorageMan
 					count++;
 			} else {
 				LinkedListT<POI*>* pPoiGroupCollection = null;
-				r = retVal->GetValue(pDate->GetTicks(), pPoiGroupCollection);
+				r = retVal->GetValue(grpKey, pPoiGroupCollection);
 				if (r != E_SUCCESS || pPoiGroupCollection == null)
 					AppLogException(
 							"Error getting collection from hash.", GetErrorMessage(r));
@@ -490,13 +494,16 @@ Tizen::Base::Collection::LinkedListT<Tracker*>* StorageManager::GetTracks(
 	result r = E_SUCCESS;
 
 	LinkedListT<Tracker*>* retVal = new LinkedListT<Tracker*>();
-	IEnumeratorT<Tracker*>* pEnum=GetTracks()->GetEnumeratorN();
+	IEnumeratorT<Tracker*>* pEnum = GetTracks()->GetEnumeratorN();
 
 	while (pEnum->MoveNext() == E_SUCCESS) {
 		Tracker* pTrack = null;
 
 		pEnum->GetCurrent(pTrack);
-		if (*(pTrack->StartPosition()->getTimestamp()) <= *(pPoi->GetTimestamp()) && *(pTrack->EndPosition()->getTimestamp()) >= *(pPoi->GetTimestamp()))
+		if (*(pTrack->StartPosition()->getTimestamp())
+				<= *(pPoi->GetTimestamp())
+				&& *(pTrack->EndPosition()->getTimestamp())
+						>= *(pPoi->GetTimestamp()))
 			retVal->Add(pTrack);
 	}
 

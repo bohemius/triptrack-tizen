@@ -21,6 +21,8 @@ public:
 	static Tizen::Base::ByteBuffer* CreateImageBuffer(Tizen::Graphics::Bitmap* bitmap);
 	static Tizen::Graphics::FloatRectangle* GetTTMediaDimensions(void);
 	static Tizen::Graphics::Bitmap* CreatePoiIconListTile(POI* pPoi);
+	static Tizen::Base::String GetTimeText(int grpKey);
+	static int CalculateGroupKey(Tizen::Base::DateTime& date);
 };
 
 #endif /* GRAPHICSUTILS_H_ */

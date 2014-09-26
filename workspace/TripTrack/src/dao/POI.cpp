@@ -133,8 +133,9 @@ result POI::Construct(Tizen::Base::String& Title,
 	SetTimestamp(new DateTime(location.GetTimestamp()));
 	Coordinates coor;
 	DateTime poiTime;
-	//__pTimestamp->SetValue(location.GetTimestamp());
-	// r = __pCoordinates->Set(location.GetCoordinates().GetLatitude(),
+
+	//use current system time
+	SystemTime::GetCurrentTime(TIME_MODE_WALL,poiTime);
 	if (location.IsValid()) {
 		coor = location.GetCoordinates();
 		poiTime = location.GetTimestamp();
@@ -145,11 +146,8 @@ result POI::Construct(Tizen::Base::String& Title,
 					"Error getting valid location using home coordinates:[%s] ", GetErrorMessage(r));
 			//TODO do the home location in the settings
 			coor.Set(0.0, 0.0, 0.0);
-			//use current system time
-			SystemTime::GetCurrentTime(poiTime);
 		} else {
 			coor = lastLocation.GetCoordinates();
-			poiTime = lastLocation.GetTimestamp();
 		}
 	}
 	SetLocation(new Coordinates(coor));
@@ -442,7 +440,14 @@ result POI::SaveFields(LinkedListT<FormField*>* fieldList) {
 	if (__id < 0) {
 		Location loc = GeoHelper::GetPresentLocation();
 		__pCoordinates = new Coordinates(loc.GetCoordinates());
-		__pTimestamp = new DateTime(loc.GetTimestamp());
+
+		DateTime currentTime;
+		r = Tizen::System::SystemTime::GetCurrentTime(TIME_MODE_WALL,
+				currentTime);
+		if (r != E_SUCCESS)
+			AppLogException("Error getting system time:", GetErrorMessage(r));
+
+		__pTimestamp = new DateTime(currentTime);
 
 		r = Construct();
 		if (r != E_SUCCESS)
