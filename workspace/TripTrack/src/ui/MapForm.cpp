@@ -164,7 +164,7 @@ result MapForm::AddTrack(void) {
 			"Created polyline with [%d] way points.", __pPolyline->GetPathN()->GetCount());
 
 	__pPolyline->SetStrokeColor(Color(46, 151, 199));
-	__pPolyline->SetStrokeThickness(10);
+	__pPolyline->SetStrokeThickness(5);
 	__pPolyline->SetVisible(true);
 
 	r = __pMap->AddMapObject(__pPolyline);

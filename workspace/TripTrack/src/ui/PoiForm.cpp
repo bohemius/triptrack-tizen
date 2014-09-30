@@ -211,7 +211,7 @@ void PoiForm::OnSceneActivatedN(
 	result r = E_SUCCESS;
 	__previousScene = previousSceneId;
 
-	if (previousSceneId == SCENE_MAIN_FORM) {
+	if (previousSceneId == SCENE_MAIN_FORM || previousSceneId == SCENE_MAP_FORM) {
 		/*Get the poi from passed arguments*/
 		Object* param = pArgs->GetAt(0);
 		__pPoi = static_cast<POI*>(param);

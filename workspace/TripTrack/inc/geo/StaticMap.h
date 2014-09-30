@@ -11,12 +11,14 @@
 #include <FNet.h>
 #include <FBase.h>
 #include "dao/POI.h"
+#include "geo/Tracker.h"
 
 class StaticMap: public Tizen::Net::Http::IHttpTransactionEventListener {
 public:
 	StaticMap();
 	virtual ~StaticMap();
 	result Construct(POI* pPoi, long long int& albumId);
+	result Construct(Tracker* pTracker);
 
 	// IHttpTransactionEventListener handlers are declared
 	virtual void OnTransactionReadyToRead(
@@ -52,6 +54,7 @@ public:
 
 private:
 	result AddToFacebookAlbum(void);
+	result AddToFacebook(void);
 
 	Tizen::Base::ByteBuffer* __pMapBuffer;
 	long long int __albumId;

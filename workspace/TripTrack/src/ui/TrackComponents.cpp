@@ -7,6 +7,7 @@
 
 #include "ui/TrackComponents.h"
 #include "dao/StorageManager.h"
+#include "geo/StaticMap.h"
 #include "AppResourceId.h"
 #include "SceneRegister.h"
 
@@ -60,16 +61,20 @@ String TrackListElement::FormatDuration(void) {
 	String retVal = L"";
 	TimeSpan duration = __pTracker->GetDuration();
 
-	long long int minutes=duration.GetMinutes();
-	long long int hours=duration.GetHours();
+	long long int minutes = duration.GetMinutes();
+	long long int hours = duration.GetHours();
 	long long int days = duration.GetDays();
 
 	if (minutes < 60)
-		retVal.Append(Long::ToString(minutes)+L" min");
+		retVal.Append(Long::ToString(minutes) + L" min");
 	else if (hours < 24)
-		retVal.Append(Long::ToString(hours)+L" h "+Long::ToString(minutes)+ L" min");
+		retVal.Append(
+				Long::ToString(hours) + L" h " + Long::ToString(minutes)
+						+ L" min");
 	else
-		retVal.Append(Long::ToString(days)+L" d "+Long::ToString(hours)+L" h "+Long::ToString(minutes)+L" min");
+		retVal.Append(
+				Long::ToString(days) + L" d " + Long::ToString(hours) + L" h "
+						+ Long::ToString(minutes) + L" min");
 
 	return retVal;
 }
@@ -163,11 +168,14 @@ result TrackListPanel::Construct(void) {
 		AppLogException(
 				"Error constructing track list context menu: [%s]", GetErrorMessage(r));
 	}
+	//TODO localize this
 	__pTrackListContextMenu->SetFocusable(true);
 	__pTrackListContextMenu->AddItem(L"Show map", ID_CONTEXT_ITEM_MAP,
 			*__pMapBitmap, __pMapBitmap, __pMapBitmap);
 	__pTrackListContextMenu->AddItem(L"Edit", ID_CONTEXT_ITEM_EDIT,
 			*__pEditBitmap, __pEditBitmap, __pEditBitmap);
+	__pTrackListContextMenu->AddItem(L"Post to wall", ID_CONTEXT_ITEM_FACEBOOK,
+			*__pFacebookBitmap, __pFacebookBitmap, __pFacebookBitmap);
 	__pTrackListContextMenu->AddItem(L"Delete", ID_CONTEXT_ITEM_DELETE,
 			*__pDeleteBitmap, __pDeleteBitmap, __pDeleteBitmap);
 	__pTrackListContextMenu->SetColor(Color(46, 151, 199));
@@ -364,7 +372,22 @@ void TrackListPanel::OnActionPerformed(const Tizen::Ui::Control& source,
 		pEditPopup->Show();
 	}
 		break;
+	case ID_CONTEXT_ITEM_FACEBOOK: {
+		FacebookAccessToken creds =
+				StorageManager::getInstance()->GetFacebookCredentials();
+
+		if (creds.AccessToken == L"" || creds.ExpiryTime < 0) {
+			SceneManager* pSceneMngr = SceneManager::GetInstance();
+			pSceneMngr->GoForward(ForwardSceneTransition(SCENE_FACEBOOK_FORM),
+					null);
+		} else {
+			AppLog("Already got valid token");
+			CreateFacebookMap();
+		}
 	}
+		break;
+	}
+
 }
 
 result TrackListPanel::Update(void) {
@@ -391,6 +414,7 @@ result TrackListPanel::LoadResources(void) {
 	__pMapBitmap = pAppRes->GetBitmapN(L"location.png");
 	__pEditBitmap = pAppRes->GetBitmapN(L"edit.png");
 	__pDeleteBitmap = pAppRes->GetBitmapN(L"delete.png");
+	__pFacebookBitmap = pAppRes->GetBitmapN(L"facebook.png");
 
 	return r;
 }
@@ -441,6 +465,18 @@ void TrackListPanel::DeleteTracker(Tracker* tracker) {
 		return;
 	}
 
+}
+
+void TrackListPanel::CreateFacebookMap(void) {
+	result r=E_SUCCESS;
+
+	StaticMap* pStaticMap = new StaticMap();
+	r = pStaticMap->Construct(GetTrackerFromClick());
+	if (r != E_SUCCESS)
+		AppLogException(
+				"Error creating static map from tracker", GetErrorMessage(r));
+	else
+		AppLog("Static map constructed");
 }
 
 Tracker* TrackListPanel::GetTrackerFromClick() {

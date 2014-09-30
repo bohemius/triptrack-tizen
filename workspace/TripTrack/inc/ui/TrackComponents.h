@@ -98,6 +98,7 @@ public:
 
 	//IOnTrackChangeListener
 	virtual result Update(void);
+	void CreateFacebookMap(void);
 
 private:
 	result LoadResources(void);
@@ -108,7 +109,7 @@ private:
 	Tizen::Ui::Controls::ListView* __pTrackListView;
 	Tizen::Graphics::Bitmap* __pTrackListBackgroundBitmap; //TODO: looks like it is not getting used
 	Tizen::Ui::Controls::ContextMenu* __pTrackListContextMenu;
-	Tizen::Graphics::Bitmap *__pMapBitmap, *__pEditBitmap, *__pDeleteBitmap;
+	Tizen::Graphics::Bitmap *__pMapBitmap, *__pEditBitmap, *__pDeleteBitmap, *__pFacebookBitmap;
 	Tizen::Locations::LocationProvider *__pLocProvider;
 	Tizen::Graphics::Point lastClickedPosition;
 	TrackerManager* __pTrackerMgr;
@@ -118,8 +119,8 @@ private:
 	static const int ID_CONTEXT_ITEM_MAP = 504;
 	static const int ID_CONTEXT_ITEM_EDIT = 505;
 	static const int ID_CONTEXT_ITEM_DELETE = 506;
+	static const int ID_CONTEXT_ITEM_FACEBOOK = 507;
 
-	//temp vars TODO, values from the tracker collection will be used
 };
 
 #endif /* TRACKCOMPONENTS_H_ */

@@ -18,6 +18,7 @@
 #include "TripTrackForm.h"
 #include "LocationManagerThread.h"
 #include "AppResourceId.h"
+#include "SceneRegister.h"
 #include "geo/GeoHelper.h"
 
 using namespace std;
@@ -355,8 +356,10 @@ void TripTrackForm::OnSceneActivatedN(
 		const Tizen::Ui::Scenes::SceneId& currentSceneId,
 		Tizen::Base::Collection::IList* pArgs) {
 	AppLog("Activated MAIN_FORM scene");
-	if (__viewType = VIEW_TYPE_POI_VIEW)
+	if (__viewType == VIEW_TYPE_POI_VIEW)
 		__pPoiListPanel->Update();
+	else if (previousSceneId == SCENE_FACEBOOK_FORM && __viewType == VIEW_TYPE_TRACK_VIEW)
+		__pTrackListPanel->CreateFacebookMap();
 }
 
 void TripTrackForm::OnSceneDeactivated(
