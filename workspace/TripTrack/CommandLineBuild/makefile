@@ -36,6 +36,7 @@ SUBDIRS := \
 src\
 src\util \
 src\ui \
+src\social \
 src\geo \
 src\dao \
 
@@ -72,6 +73,7 @@ CPP_SRCS += \
 ../src/ui/MapForm.cpp \
 ../src/ui/PoiComponents.cpp \
 ../src/ui/PoiForm.cpp \
+../src/ui/PoiMapForm.cpp \
 ../src/ui/TrackComponents.cpp 
 
 OBJS += \
@@ -80,6 +82,7 @@ OBJS += \
 ./src/ui/MapForm.o \
 ./src/ui/PoiComponents.o \
 ./src/ui/PoiForm.o \
+./src/ui/PoiMapForm.o \
 ./src/ui/TrackComponents.o 
 
 CPP_DEPS += \
@@ -88,8 +91,8 @@ CPP_DEPS += \
 ./src/ui/MapForm.d \
 ./src/ui/PoiComponents.d \
 ./src/ui/PoiForm.d \
-./src/ui/TrackComponents.d 
-
+./src/ui/PoiMapForm.d \
+./src/ui/TrackComponents.d
 
 # Each subdirectory must supply rules for building sources it contributes
 src/ui/%.o: ../src/ui/%.cpp
@@ -98,22 +101,44 @@ src/ui/%.o: ../src/ui/%.cpp
 	$(CC) -I"$(PROJPATH)\inc" -O3 -g -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"${SDKPATH}/platforms/tizen2.2/rootstraps/hmaps-sdk-emulator/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
+	
+# -include src/social/subdir.mk
+# Add inputs and outputs from these tool invocations to the build variables 
+CPP_SRCS += \
+../src/social/FacebookForm.cpp 
 
+OBJS += \
+./src/social/FacebookForm.o 
+
+CPP_DEPS += \
+./src/social/FacebookForm.d 
+
+
+# Each subdirectory must supply rules for building sources it contributes
+src/social/%.o: ../src/social/%.cpp
+	@echo 'Building file: $<'
+	@echo 'Invoking: C++ Compiler'
+	$(CC) -D_DEBUG -I"$(PROJPATH)\inc" -O0 -g3 -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/../hmaps-sdk-emulator/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -D_APP_LOG -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
 
 # -include src/geo/subdir.mk
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../src/geo/GeoHelper.cpp \
+../src/geo/StaticMap.cpp \
 ../src/geo/Tracker.cpp \
 ../src/geo/TrackerManager.cpp 
 
 OBJS += \
 ./src/geo/GeoHelper.o \
+./src/geo/StaticMap.o \
 ./src/geo/Tracker.o \
 ./src/geo/TrackerManager.o 
 
 CPP_DEPS += \
 ./src/geo/GeoHelper.d \
+./src/geo/StaticMap.d \
 ./src/geo/Tracker.d \
 ./src/geo/TrackerManager.d 
 
