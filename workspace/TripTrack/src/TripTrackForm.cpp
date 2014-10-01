@@ -178,9 +178,7 @@ void TripTrackForm::ProcessCameraResult(String* imagePath) {
 	result r = E_SUCCESS;
 
 	//get location the picture was taken at
-	LocationCriteria* criteria = new LocationCriteria();
-	criteria->SetAccuracy(LOC_ACCURACY_TEN_METERS);
-	Location location = LocationProvider::GetLocation(*criteria);
+	Location location = GeoHelper::GetPresentLocation();
 
 	//create a new poi
 	POI* pPoi = new POI();
@@ -195,68 +193,6 @@ void TripTrackForm::ProcessCameraResult(String* imagePath) {
 	}
 
 	__pPoiListPanel->Update();
-	delete criteria;
-}
-
-void TripTrackForm::OnGeocodeQueryCompleted(
-		const HMaps::BaseGeocodeQuery& query,
-		const HMaps::GeocodeReply& reply) {
-	result r = E_SUCCESS;
-
-	String city, street, country;
-
-	IEnumerator* pEnum = reply.GetResultListN()->GetEnumeratorN();
-	AppLog("Got [%d] items from query", reply.GetResultListN()->GetCount());
-	while (pEnum->MoveNext() == E_SUCCESS) {
-		GeocodeResult* pResult =
-				static_cast<GeocodeResult*>(pEnum->GetCurrent());
-		if (pResult->GetMatchLevel() == GeocodeResult::MATCH_LEVEL_STREET) {
-			city = pResult->GetLocation().GetAddress().GetCity();
-			street = pResult->GetLocation().GetAddress().GetStreet();
-			country = pResult->GetLocation().GetAddress().GetCountry();
-			break;
-		} else if (pResult->GetMatchLevel()
-				== GeocodeResult::MATCH_LEVEL_DISTRICT) {
-			city = pResult->GetLocation().GetAddress().GetCity();
-			street = pResult->GetLocation().GetAddress().GetDistrict();
-			country = pResult->GetLocation().GetAddress().GetCountry();
-			break;
-		}
-	}
-
-	//TODO localize this
-	String desc = L"Traveling from " + street + L", " + city + L", " + country;
-	String title = L"Tracking from " + city;
-
-	Tracker* pTracker = new Tracker();
-	pTracker->SetTitle(new String(desc));
-	pTracker->SetDescription(new String(desc));
-
-	__pProgressPopup->SetShowState(false);
-	__pProgressPopup->Invalidate(true);
-
-	ShowEditPopUp(pTracker);
-}
-
-//TODO update this code to set the box to predefine text (place holder text)
-void TripTrackForm::OnQueryFailure(const BaseQuery& query, result r,
-		const Tizen::Base::String& errorMsg) {
-	if (r != E_SUCCESS) {
-		AppLogException(
-				"Error processing geocode query: [%s]", GetErrorMessage(r));
-		__pProgressPopup->SetShowState(false);
-		__pProgressPopup->Invalidate(true);
-		return;
-	}
-
-	//TODO localize this
-	String desc = String(L"Description");
-	String title = String(L"Title");
-
-	TrackerManager::getInstance()->AddTracker(title, desc);
-	__pTrackListPanel->Update();
-
-	ShowEditPopUp(TrackerManager::getInstance()->GetCurrentTracker());
 }
 
 result TripTrackForm::LoadResources(void) {
@@ -269,6 +205,7 @@ result TripTrackForm::LoadResources(void) {
 	__pDeleteBitmap = pAppRes->GetBitmapN(L"delete.png");
 	__pEditBitmap = pAppRes->GetBitmapN(L"edit.png");
 	__pBgBitmap = pAppRes->GetBitmapN(L"bg_160.jpg");
+	__pLocationBitmap = pAppRes->GetBitmapN(L"location.png");
 
 	return r;
 }
@@ -306,12 +243,14 @@ void TripTrackForm::OnActionPerformed(const Tizen::Ui::Control& source,
 		ShowEditPopUp(pPoi);
 	}
 		break;
-	case ID_FOOTER_BUTTTON_ADD_TRACK: {
+	case ID_FOOTER_BUTTON_ADD_TRACK: {
 		//Create a new POI with predefined or user entered fields
 		int result = 0;
 
 		Tracker* currentTracker =
 				TrackerManager::getInstance()->GetCurrentTracker();
+
+		Tracker* pTracker = null;
 
 		if (!(currentTracker == 0 || currentTracker == null)) {
 			MessageBox msgBox;
@@ -323,21 +262,23 @@ void TripTrackForm::OnActionPerformed(const Tizen::Ui::Control& source,
 			msgBox.SetColor(Color(46, 151, 199));
 			msgBox.SetTextColor(Color::GetColor(COLOR_ID_WHITE));
 			msgBox.ShowAndWait(result);
-		} else {
-			__pProgressPopup->SetShowState(true);
-			__pProgressPopup->Show();
-			GeoHelper::GetPresentAddress(this);
 
-			return;
+			if (result != MSGBOX_RESULT_YES) {
+				return;
+			} else
+				currentTracker->SetStatus(Tracker::PAUSED);
 		}
 
-		if (result == MSGBOX_RESULT_YES) {
-			currentTracker->SetStatus(Tracker::PAUSED);
-			__pProgressPopup->SetShowState(true);
-			__pProgressPopup->Show();
-			GeoHelper::GetPresentAddress(this);
-		}
+		pTracker = new Tracker();
+		pTracker->SetTitle(new String(L""));
+		pTracker->SetDescription(new String(L""));
 
+		ShowEditPopUp(pTracker);
+	}
+		break;
+	case ID_FOOTER_BUTTON_POI_LOCATIONS: {
+		SceneManager* pSceneMngr = SceneManager::GetInstance();
+		pSceneMngr->GoForward(ForwardSceneTransition(SCENE_POIMAP_FORM), null);
 	}
 		break;
 	default:
@@ -358,7 +299,8 @@ void TripTrackForm::OnSceneActivatedN(
 	AppLog("Activated MAIN_FORM scene");
 	if (__viewType == VIEW_TYPE_POI_VIEW)
 		__pPoiListPanel->Update();
-	else if (previousSceneId == SCENE_FACEBOOK_FORM && __viewType == VIEW_TYPE_TRACK_VIEW)
+	else if (previousSceneId == SCENE_FACEBOOK_FORM
+			&& __viewType == VIEW_TYPE_TRACK_VIEW)
 		__pTrackListPanel->CreateFacebookMap();
 }
 
@@ -403,13 +345,16 @@ void TripTrackForm::SetPoiView(void) {
 	Color* footerColor = new Color(70, 70, 70);
 	pFooter->SetColor(*footerColor);
 
-	FooterItem addItem, cameraItem;
+	FooterItem addItem, cameraItem, locationItem;
 	addItem.Construct(ID_FOOTER_BUTTON_ADD_POI);
 	addItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pAddBitmap);
 	pFooter->AddItem(addItem);
 	cameraItem.Construct(ID_FOOTER_BUTTON_CAMERA_POI);
 	cameraItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pCameraBitmap);
 	pFooter->AddItem(cameraItem);
+	locationItem.Construct(ID_FOOTER_BUTTON_POI_LOCATIONS);
+	locationItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pLocationBitmap);
+	pFooter->AddItem(locationItem);
 
 	pFooter->AddActionEventListener(*this);
 }
@@ -451,15 +396,9 @@ void TripTrackForm::SetTrackView(void) {
 	pFooter->SetButtonColor(BUTTON_ITEM_STATUS_NORMAL, *buttonColor);
 
 	FooterItem addItem, editItem, deleteItem;
-	addItem.Construct(ID_FOOTER_BUTTTON_ADD_TRACK);
+	addItem.Construct(ID_FOOTER_BUTTON_ADD_TRACK);
 	addItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pAddBitmap);
 	pFooter->AddItem(addItem);
-	/*editItem.Construct(ID_FOOTER_BUTTON_EDIT_TRACK);
-	 editItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pEditBitmap);
-	 pFooter->AddItem(editItem);
-	 deleteItem.Construct(ID_FOOTER_BUTTON_DELETE_TRACK);
-	 deleteItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pDeleteBitmap);
-	 pFooter->AddItem(deleteItem);*/
 
 	pFooter->AddActionEventListener(*this);
 }

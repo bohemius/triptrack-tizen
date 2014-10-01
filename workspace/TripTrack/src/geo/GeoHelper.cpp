@@ -25,7 +25,7 @@ GeoHelper::~GeoHelper() {
 Location GeoHelper::GetPresentLocation(void) {
 	LocationCriteria criteria;
 
-	criteria.SetAccuracy(LOC_ACCURACY_FINEST);
+	criteria.SetAccuracy(LOC_ACCURACY_HUNDRED_METERS);
 
 	return LocationProvider::GetLocation(criteria);
 }

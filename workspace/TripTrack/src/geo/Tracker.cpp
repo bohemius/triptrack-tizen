@@ -430,6 +430,7 @@ result Tracker::SaveFields(LinkedListT<FormField*>* fieldList) {
 				== LOC_SVC_STATUS_IDLE)
 			TrackerManager::getInstance()->GetLocationProvider()->StartLocationUpdatesByInterval(
 					5);
+		TrackerManager::getInstance()->GetLocationProvider()->KeepLocationUpdateAwake(true);
 		TrackerManager::getInstance()->SetCurrentTracker(this);
 		return r;
 	} else {

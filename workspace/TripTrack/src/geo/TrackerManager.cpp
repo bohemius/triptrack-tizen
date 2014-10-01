@@ -239,6 +239,7 @@ result TrackerManager::Construct(void) {
 				if (__pLocProvider->GetLocationUpdateStatus()
 						== LOC_SVC_STATUS_IDLE)
 					__pLocProvider->StartLocationUpdatesByInterval(5);
+					__pLocProvider->KeepLocationUpdateAwake(true);
 				SetCurrentTracker(pTracker);
 				return E_SUCCESS;
 			}

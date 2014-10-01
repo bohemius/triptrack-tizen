@@ -3,6 +3,7 @@
 #include "ui/PoiForm.h"
 #include "ui/MapForm.h"
 #include "ui/GalleryForm.h"
+#include "ui/PoiMapForm.h"
 #include "social/FacebookForm.h"
 
 using namespace Tizen::Ui::Scenes;
@@ -13,6 +14,7 @@ const wchar_t* FORM_POI = L"Form_Poi";
 const wchar_t* FORM_MAP = L"Form_Map";
 const wchar_t* FORM_GALLERY = L"Form_Gallery";
 const wchar_t* FORM_FACEBOOK = L"Form_Facebook";
+const wchar_t* FORM_POIMAP = L"Form_PoiMap";
 
 FormFactory::FormFactory(void) {
 }
@@ -32,16 +34,12 @@ FormFactory::CreateFormN(const Tizen::Base::String& formId,
 		pForm->Initialize();
 		pSceneManager->AddSceneEventListener(sceneId, *pForm);
 		pNewForm = pForm;
-	}
-
-	else if (formId == FORM_POI) {
+	} else if (formId == FORM_POI) {
 		PoiForm* pForm = new PoiForm();
 		pForm->Initialize();
 		pSceneManager->AddSceneEventListener(sceneId, *pForm);
 		pNewForm = pForm;
-	}
-
-	else if (formId == FORM_MAP) {
+	} else if (formId == FORM_MAP) {
 		MapForm* pForm = new MapForm();
 		pForm->Construct(FORM_STYLE_NORMAL);
 		pSceneManager->AddSceneEventListener(sceneId, *pForm);
@@ -54,6 +52,11 @@ FormFactory::CreateFormN(const Tizen::Base::String& formId,
 	} else if (formId == FORM_FACEBOOK) {
 		FacebookForm* pForm = new FacebookForm();
 		pForm->Initialize();
+		pSceneManager->AddSceneEventListener(sceneId, *pForm);
+		pNewForm = pForm;
+	} else if (formId == FORM_POIMAP) {
+		PoiMapForm* pForm = new PoiMapForm();
+		pForm->Construct(FORM_STYLE_NORMAL);
 		pSceneManager->AddSceneEventListener(sceneId, *pForm);
 		pNewForm = pForm;
 	}

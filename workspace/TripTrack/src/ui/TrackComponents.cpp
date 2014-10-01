@@ -240,6 +240,7 @@ void TrackListPanel::OnListViewItemStateChanged(
 	if (currentTracker == 0 || currentTracker == null) {
 		pTracker->SetStatus(Tracker::ACTIVE);
 		pLocProvider->StartLocationUpdatesByInterval(5);
+		pLocProvider->KeepLocationUpdateAwake(true);
 		TrackerManager::getInstance()->SetCurrentTracker(pTracker);
 	} else {
 		if (pTracker == currentTracker) {

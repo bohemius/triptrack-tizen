@@ -34,23 +34,6 @@ public:
 
 	const static int ID_FIELD_PROVIDER_TRACK = 2001;
 	const static int ID_FIELD_PROVIDER_POI = 2002;
-	const static int ID_FIELD_PROVIDER_HMAPS = 2003;
-};
-
-class HMapsFieldProvider: public IFormFieldProvider {
-public:
-	HMapsFieldProvider(Tizen::Base::String& fromCity,
-			Tizen::Base::String& fromDetail);
-	~HMapsFieldProvider(void);
-
-	//IFormFieldProvider
-	virtual Tizen::Base::Collection::LinkedListT<FormField*>* GetFields(void);
-	virtual result SaveFields(void);
-	virtual int GetFieldCount(void);
-	virtual int GetProviderID(void);
-
-private:
-	Tizen::Base::Collection::LinkedListT<IFormFieldProvider::FormField*>* __pFieldList;
 };
 
 class EditFormPopup: public Tizen::Ui::Controls::Popup,

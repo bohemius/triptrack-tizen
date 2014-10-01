@@ -124,7 +124,7 @@ void MapForm::OnMapTapped(Map& map,
 void MapForm::OnSceneDeactivated(
 		const Tizen::Ui::Scenes::SceneId& currentSceneId,
 		const Tizen::Ui::Scenes::SceneId& nextSceneId) {
-	AppLog("Deactivate MAP_FORM scene");
+	AppLog("Deactivated MAP_FORM scene");
 }
 
 result MapForm::Update(void) {

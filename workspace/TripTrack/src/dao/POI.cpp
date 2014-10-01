@@ -135,7 +135,7 @@ result POI::Construct(Tizen::Base::String& Title,
 	DateTime poiTime;
 
 	//use current system time
-	SystemTime::GetCurrentTime(TIME_MODE_WALL,poiTime);
+	SystemTime::GetCurrentTime(TIME_MODE_WALL, poiTime);
 	if (location.IsValid()) {
 		coor = location.GetCoordinates();
 		poiTime = location.GetTimestamp();
@@ -441,13 +441,16 @@ result POI::SaveFields(LinkedListT<FormField*>* fieldList) {
 		Location loc = GeoHelper::GetPresentLocation();
 		__pCoordinates = new Coordinates(loc.GetCoordinates());
 
-		DateTime currentTime;
-		r = Tizen::System::SystemTime::GetCurrentTime(TIME_MODE_WALL,
-				currentTime);
-		if (r != E_SUCCESS)
-			AppLogException("Error getting system time:", GetErrorMessage(r));
+		/*
+		 *
+		 * DateTime currentTime;
+		 * r = Tizen::System::SystemTime::GetCurrentTime(TIME_MODE_WALL,
+		 *		currentTime);
+		 * if (r != E_SUCCESS)
+		 * AppLogException("Error getting system time:", GetErrorMessage(r));
+		 */
 
-		__pTimestamp = new DateTime(currentTime);
+		__pTimestamp = new DateTime(loc.GetTimestamp());
 
 		r = Construct();
 		if (r != E_SUCCESS)

@@ -88,9 +88,6 @@ result PoiForm::OnInitializing(void) {
 	cameraItem.Construct(ID_FOOTER_BUTTON_CAMERA);
 	cameraItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pCameraBitmap);
 	pFooter->AddItem(cameraItem);
-	locationItem.Construct(ID_FOOTER_BUTTON_MAP);
-	locationItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pLocationBitmap);
-	pFooter->AddItem(locationItem);
 	fbItem.Construct(ID_FOOTER_BUTTON_FB);
 	fbItem.SetIcon(FOOTER_ITEM_STATUS_NORMAL, __pFbBitmap);
 	pFooter->AddItem(fbItem);
@@ -117,10 +114,6 @@ void PoiForm::OnActionPerformed(const Tizen::Ui::Control& source,
 	switch (actionId) {
 	case ID_FOOTER_BUTTTON_EDIT: {
 		ShowEditPopup();
-	}
-		break;
-	case ID_FOOTER_BUTTON_MAP: {
-		//TODO milestone 2
 	}
 		break;
 	case ID_FOOTER_BUTTON_FB: {
@@ -184,7 +177,6 @@ result PoiForm::LoadResources(void) {
 	__pDeleteBitmap = pAppRes->GetBitmapN(L"delete.png");
 	__pEditBitmap = pAppRes->GetBitmapN(L"edit.png");
 	__pFbBitmap = pAppRes->GetBitmapN(L"facebook.png");
-	__pLocationBitmap = pAppRes->GetBitmapN(L"location.png");
 	__pCheckBitmap = pAppRes->GetBitmapN(L"check.png");
 
 	__pBgBitmap = pAppRes->GetBitmapN(L"bg_160.jpg");
