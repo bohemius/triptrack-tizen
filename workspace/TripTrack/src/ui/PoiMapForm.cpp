@@ -211,6 +211,7 @@ void PoiMapForm::ShowThumbnail() {
 }
 
 Tizen::Base::String PoiMapForm::CreatePoiInfo(POI* pPoi) {
+	return String(L"");
 }
 
 void PoiMapForm::OnMapObjectTapped(HMaps::Map& map, HMaps::MapObject& mapObject,
@@ -245,7 +246,8 @@ void PoiMapForm::OnMapObjectTapped(HMaps::Map& map, HMaps::MapObject& mapObject,
 		if (r == E_SUCCESS) {
 			TTMedia* pMedia=new TTMedia();
 
-			r = pMedia->Construct(GetPoiFromClick(mapObject, c)->GetId());
+			r = pMedia->Construct(GetPoiFromClick(mapObject, c)->GetDefImageId());
+			AppLog("Clicked poi with id %lld", GetPoiFromClick(mapObject, c)->GetId());
 			Bitmap* pBitmap=GraphicsUtils::CreateBitmap(*(pMedia->GetSourceUri()));
 			__pPoiThumbnail->SetBitmap(pBitmap);
 			__pPoiThumbnail->SetPosition(placeMarKerPoint.x - X_THUMBNAIL,
