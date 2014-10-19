@@ -32,7 +32,8 @@ using namespace Tizen::Web::Json;
 PoiForm::PoiForm() :
 		__pTitleLabel(null), __pDescriptionLabel(null), __pPostProgressLabel(
 				null), __pPoiPanel(null), __pMediaIconListView(null), __pPoi(
-				null), __pLongPressDetector(null), __pFbEnum(null), __fbPostCounter(-1) {
+				null), __pLongPressDetector(null), __pFbEnum(null), __fbPostCounter(
+				-1) {
 }
 
 bool PoiForm::Initialize(void) {
@@ -134,8 +135,8 @@ void PoiForm::OnActionPerformed(const Tizen::Ui::Control& source,
 		__pPostProgressLabel->Construct(Rectangle(0, 0, 550, 50),
 				L"Posting to Facebook");
 		__pPostProgressLabel->SetTextConfig(DESCRIPTION_TEXT_SIZE,
-							LABEL_TEXT_STYLE_NORMAL);
-		__pPostProgressLabel->SetMargin(5,5);
+				LABEL_TEXT_STYLE_NORMAL);
+		__pPostProgressLabel->SetMargin(5, 5);
 		__pPostProgressLabel->SetTextVerticalAlignment(ALIGNMENT_TOP);
 		__pPostProgressLabel->SetTextHorizontalAlignment(ALIGNMENT_LEFT);
 		__pPostProgressLabel->SetBackgroundColor(Color(46, 151, 199));
@@ -203,7 +204,8 @@ void PoiForm::OnSceneActivatedN(
 	result r = E_SUCCESS;
 	__previousScene = previousSceneId;
 
-	if (previousSceneId == SCENE_MAIN_FORM || previousSceneId == SCENE_MAP_FORM) {
+	if (previousSceneId == SCENE_MAIN_FORM
+			|| previousSceneId == SCENE_MAP_FORM) {
 		/*Get the poi from passed arguments*/
 		Object* param = pArgs->GetAt(0);
 		__pPoi = static_cast<POI*>(param);
@@ -326,8 +328,21 @@ void PoiForm::OnAppControlCompleteResponseReceived(
 				if (pValueList) {
 					String* pValue = dynamic_cast<String*>(pValueList->GetAt(0));
 					AppLog("Captured image path: [%ls]", pValue->GetPointer());
-					ProcessCameraResult(pValue);
-					__pMediaIconListView->UpdateList();
+
+					if (pValue->Contains(L"mp4")) {
+						MessageBox msgBox;
+
+						//TODO localize this
+						msgBox.Construct(L"Warning",
+								L"Video capture not supported, media not added.",
+								MSGBOX_STYLE_NONE, 5000);
+						int r;
+						msgBox.ShowAndWait(r);
+					} else {
+						ProcessCameraResult(pValue);
+						__pMediaIconListView->UpdateList();
+					}
+
 				}
 			}
 		} else if (appControlResult == APP_CTRL_RESULT_FAILED) {
@@ -637,13 +652,13 @@ void PoiForm::OnHttpUploadInProgress(Tizen::Net::Http::HttpSession& httpSession,
 	double perc = ((double) currentLength) / ((double) totalLength) * 100.0;
 	AppLog("Percent complete %.2f", perc);
 	//TODO localize this
-	String progressText=L"Posting to Facebook ";
+	String progressText = L"Posting to Facebook ";
 	progressText.Append(__fbPostCounter);
-	progressText.Append(L" of " );
+	progressText.Append(L" of ");
 	progressText.Append(__pPoi->GetAssociatedMedia()->GetCount());
-	progressText.Append(L" (" );
+	progressText.Append(L" (");
 	progressText.Append(perc);
-	progressText.Append(L"%)" );
+	progressText.Append(L"%)");
 	__pPostProgressLabel->SetText(progressText);
 	__pPostProgressLabel->Draw();
 }

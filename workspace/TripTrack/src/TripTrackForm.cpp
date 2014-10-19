@@ -139,8 +139,19 @@ void TripTrackForm::OnAppControlCompleteResponseReceived(
 					String* pValue = dynamic_cast<String*>(pValueList->GetAt(0));
 					AppLog("Captured image path: [%ls]", pValue->GetPointer());
 
-					ProcessCameraResult(pValue);
-					SetPoiView();
+					if (pValue->Contains(L"mp4")) {
+						MessageBox msgBox;
+
+						//TODO localize this
+						msgBox.Construct(L"Warning",
+								L"Video capture not supported, album not created and media not added.",
+								MSGBOX_STYLE_NONE, 5000);
+						int r;
+						msgBox.ShowAndWait(r);
+					} else {
+						ProcessCameraResult(pValue);
+						SetPoiView();
+					}
 				}
 			}
 		} else if (appControlResult == APP_CTRL_RESULT_FAILED) {

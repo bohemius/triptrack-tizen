@@ -221,7 +221,7 @@ void PoiMapForm::OnMapObjectTapped(HMaps::Map& map, HMaps::MapObject& mapObject,
 	IEnumeratorT<PoiMarker*>* pEnum = __pMarkerList->GetEnumeratorN();
 	PoiMarker* currentPoi;
 	Point placeMarKerPoint;
-	Coordinates c=coord;
+	Coordinates c = coord;
 
 	String infoText;
 
@@ -244,11 +244,23 @@ void PoiMapForm::OnMapObjectTapped(HMaps::Map& map, HMaps::MapObject& mapObject,
 		r = __pMap->CoordinateToScreenPosition(pMarker->GetCoordinates(),
 				placeMarKerPoint);
 		if (r == E_SUCCESS) {
-			TTMedia* pMedia=new TTMedia();
+			TTMedia* pMedia = new TTMedia();
+			POI* pPoi = GetPoiFromClick(mapObject, c);
+			Bitmap* pBitmap = null;
+			long long int defId = pPoi->GetDefImageId();
 
-			r = pMedia->Construct(GetPoiFromClick(mapObject, c)->GetDefImageId());
-			AppLog("Clicked poi with id %lld", GetPoiFromClick(mapObject, c)->GetId());
-			Bitmap* pBitmap=GraphicsUtils::CreateBitmap(*(pMedia->GetSourceUri()));
+			AppLog("Clicked poi with id %lld", defId);
+
+			if (defId < 0) {
+				AppResource* pAppRes =
+						Application::GetInstance()->GetAppResource();
+				pBitmap = pAppRes->GetBitmapN(L"BlankPoi.png");
+			} else {
+				r = pMedia->Construct(defId);
+
+				pBitmap = GraphicsUtils::CreateBitmap(*(pMedia->GetSourceUri()));
+			}
+
 			__pPoiThumbnail->SetBitmap(pBitmap);
 			__pPoiThumbnail->SetPosition(placeMarKerPoint.x - X_THUMBNAIL,
 					placeMarKerPoint.y - Y_THUMBNAIL);
@@ -306,22 +318,24 @@ result PoiThumbnail::Construct(const Rectangle& rect) {
 }
 
 result PoiThumbnail::OnDraw(void) {
-	result r=E_SUCCESS;
+	result r = E_SUCCESS;
 	Canvas* pCanvas = GetCanvasN();
-
 
 	//pCanvas->SetForegroundColor(Color(46, 151, 199));
 	//ImageBuffer* pBuf=new ImageBuffer();
 	//pCanvas->SetBackgroundColor(Color(46, 151, 45,128));
 	//pBuf->Construct(__pThumbnail);
-	r = pCanvas->DrawBitmap(Rectangle(0, 0, W_THUMBNAIL, H_THUMBNAIL), *__pThumbnail);
+	r = pCanvas->DrawBitmap(Rectangle(0, 0, W_THUMBNAIL, H_THUMBNAIL),
+			*__pThumbnail);
 	//pCanvas->SetCompositeMode(COMPOSITE_MODE_OVERLAY);
 
-	r = pCanvas->FillRectangle(Color(46, 255, 255, 85),Rectangle(0, 0, W_THUMBNAIL, H_THUMBNAIL));
+	r = pCanvas->FillRectangle(Color(46, 255, 255, 85),
+			Rectangle(0, 0, W_THUMBNAIL, H_THUMBNAIL));
 
 	pCanvas->SetLineWidth(5);
 	pCanvas->SetForegroundColor(Color(46, 151, 199));
-	r = pCanvas->DrawRoundRectangle(Rectangle(0, 0, W_THUMBNAIL, H_THUMBNAIL), Dimension(5,5));
+	r = pCanvas->DrawRoundRectangle(Rectangle(0, 0, W_THUMBNAIL, H_THUMBNAIL),
+			Dimension(5, 5));
 	//pCanvas->FillEllipse(Color(255, 255, 255,75),Rectangle(W_THUMBNAIL/4, H_THUMBNAIL/4, W_THUMBNAIL/2, H_THUMBNAIL/2));
 	delete pCanvas;
 
