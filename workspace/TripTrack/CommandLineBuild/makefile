@@ -98,7 +98,7 @@ CPP_DEPS += \
 src/ui/%.o: ../src/ui/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: C++ Compiler'
-	$(CC) -I"$(PROJPATH)\inc" -O3 -g -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"${SDKPATH}/platforms/tizen2.2/rootstraps/hmaps-sdk-emulator/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	$(CC) -I"$(PROJPATH)\inc" -O3 -g -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"${SDKPATH}/platforms/tizen2.2/rootstraps/hmaps-sdk-device/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 	
@@ -118,7 +118,7 @@ CPP_DEPS += \
 src/social/%.o: ../src/social/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: C++ Compiler'
-	$(CC) -D_DEBUG -I"$(PROJPATH)\inc" -O0 -g3 -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/../hmaps-sdk-emulator/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -D_APP_LOG -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	$(CC) -D_DEBUG -I"$(PROJPATH)\inc" -O0 -g3 -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/../hmaps-sdk-device/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -D_APP_LOG -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
@@ -147,7 +147,7 @@ CPP_DEPS += \
 src/geo/%.o: ../src/geo/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: C++ Compiler'
-	$(CC) -I"$(PROJPATH)\inc" -O3 -g -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"${SDKPATH}/platforms/tizen2.2/rootstraps/hmaps-sdk-emulator/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	$(CC) -I"$(PROJPATH)\inc" -O3 -g -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"${SDKPATH}/platforms/tizen2.2/rootstraps/hmaps-sdk-device/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
@@ -177,7 +177,7 @@ CPP_DEPS += \
 src/dao/%.o: ../src/dao/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: C++ Compiler'
-	$(CC) -I"$(PROJPATH)\inc" -O3 -g -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"${SDKPATH}/platforms/tizen2.2/rootstraps/hmaps-sdk-emulator/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	$(CC) -I"$(PROJPATH)\inc" -O3 -g -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"${SDKPATH}/platforms/tizen2.2/rootstraps/hmaps-sdk-device/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
@@ -216,7 +216,7 @@ CPP_DEPS += \
 src/%.o: ../src/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: C++ Compiler'
-	$(CC) -I"$(PROJPATH)\inc" -O3 -g -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"${SDKPATH}/platforms/tizen2.2/rootstraps/hmaps-sdk-emulator/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	$(CC) -I"$(PROJPATH)\inc" -O3 -g -Wall -c -fmessage-length=0 $(TC_COMPILER_MISC) -fPIE --sysroot="$(ROOTSTRAP)" -I"${SDKPATH}/platforms/tizen2.2/rootstraps/hmaps-sdk-device/usr/include/hmaps" -I"$(ROOTSTRAP)/usr/include/libxml2" -I"$(SDKPATH)\library" -I"$(ROOTSTRAP)/usr/include" -I"$(ROOTSTRAP)/usr/include/osp" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
@@ -258,7 +258,7 @@ all: makesubdirs TripTrack.exe secondary-outputs
 TripTrack.exe: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: C++ Linker'
-	$(CC) -o"TripTrack.exe" $(OBJS) $(USER_OBJS) $(LIBS) -L"$(PROJPATH)\lib" $(TC_LINKER_MISC) -pie -lpthread -Xlinker -rpath="/opt/usr/apps/${APPID}/lib" -Xlinker -rpath="/home/developer/sdk_tools/lib" --sysroot="$(ROOTSTRAP)" -L"$(ROOTSTRAP)/usr/lib" -L"$(ROOTSTRAP)/usr/lib/osp" -L"$(ROOTSTRAP)/../hmaps-sdk-emulator/usr/lib/hmaps" -lhmaps -lHereMaps -losp-uifw -losp-appfw -losp-image -losp-json -losp-ime -losp-net -lpthread -losp-content -losp-locations -losp-telephony -losp-uix -losp-media -losp-messaging -losp-web -losp-social -losp-wifi -losp-bluetooth -losp-nfc -losp-face -losp-secure-element -losp-speech-tts -losp-speech-stt -losp-shell -losp-shell-core -losp-vision -lxml2 -lalut -lopenal -lxml2
+	$(CC) -o"TripTrack.exe" $(OBJS) $(USER_OBJS) $(LIBS) -L"$(PROJPATH)\lib" $(TC_LINKER_MISC) -pie -lpthread -Xlinker -rpath="/opt/usr/apps/${APPID}/lib" -Xlinker -rpath="/home/developer/sdk_tools/lib" --sysroot="$(ROOTSTRAP)" -L"$(ROOTSTRAP)/usr/lib" -L"$(ROOTSTRAP)/usr/lib/osp" -L"$(ROOTSTRAP)/../hmaps-sdk-device/usr/lib/hmaps" -lhmaps -lHereMaps -losp-uifw -losp-appfw -losp-image -losp-json -losp-ime -losp-net -lpthread -losp-content -losp-locations -losp-telephony -losp-uix -losp-media -losp-messaging -losp-web -losp-social -losp-wifi -losp-bluetooth -losp-nfc -losp-face -losp-secure-element -losp-speech-tts -losp-speech-stt -losp-shell -losp-shell-core -losp-vision -lxml2 -lalut -lopenal -lxml2
 	@echo 'Finished building target: $@'
 	@echo ' '
 
